@@ -1,0 +1,7 @@
+{
+  "name": "com.game.core.tests",
+  "version": "0.1.0",
+  "displayName": "Game Core Tests",
+  "description": "GameCore birim testleri (NUnit).",
+  "unity": "6000.3"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "com.game.core",
+  "version": "0.1.0",
+  "displayName": "Game Core (saf C# simülasyon)",
+  "description": "Unity'den bağımsız deterministik oyun çekirdeği. İstemci ve sunucu paylaşır.",
+  "unity": "6000.3"
+}
