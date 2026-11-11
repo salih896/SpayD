@@ -23,4 +23,4 @@ Proje: İzometrik 2.5D mobil strateji (köy + Tower Defense + asenkron PvP). Uni
 Orta cihaz 60 FPS, giriş seviyesi 30 FPS, ≤300 asker, <150 draw call, açılış <5 sn, indirme <150 MB.
 
 ## Aşamalar
-GDD Bölüm 28 sırası. Şu an: Aşama 1 (proje hazırlığı). Kodlamaya Aşama 2'den önce başlama.
+GDD Bölüm 28 sırası. Şu an: Aşama 2 (izometrik köy prototipi).
