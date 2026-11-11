@@ -19,3 +19,9 @@
 - Savaş başına üst asker sınırı ve hücre yığılma sınırı.
 - Bina/kule boyutları ile 11×11 alan bütçesi.
 - GDD madde 29'daki 18 soru (ilgili aşamada).
+
+## Yollar (Aşama 2-4, kullanıcıdan bekleyen)
+- Başlangıç yol sayısı 7 mi 10 mu? Yol hakkı = toplam yol kapasitesi mi, yeni yerleştirilebilir parça mı? (şu an sınır YOK)
+- Yol malzemesi geliştirme: maliyet, süre, araştırma şartı (şu an yalnızca görünüm; "Yol:" düğmesi serbestçe değiştirir). Altın kuralı: altın+tahta yol seviye 5+ içeriği, demir yol araştırmayla.
+- Yol çıkmazlarına izin var mı? (şu an serbest; yalnızca giriş→bina bağlantısı zorunlu)
+- Yol hücresi (+) menüsü: zemin özelliği/tuzak slotları.

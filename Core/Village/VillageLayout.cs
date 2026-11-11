@@ -6,6 +6,9 @@ namespace GameCore.Village
 {
     public enum CellKind { Empty = 0, Road = 1, Building = 2, Tower = 3 }
 
+    /// <summary>Yol malzemesi (GDD Bölüm 5): tahta, altın+tahta, demir. Maliyet/araştırma kuralları henüz yok.</summary>
+    public enum RoadTier { Wood = 0, Reinforced = 1, Iron = 2 }
+
     /// <summary>
     /// Savunma köyü düzeni (saf C#). Grid boyutu parametriktir (varsayılan 11).
     /// Giriş kenarı: y == 0 (alt kenar). Kurallar GDD Bölüm 4-5.
@@ -17,6 +20,7 @@ namespace GameCore.Village
         public int Size { get; }
         private readonly Dictionary<GridPos, CellKind> cells = new Dictionary<GridPos, CellKind>();
         private readonly HashSet<GridPos> entrances = new HashSet<GridPos>();
+        private readonly Dictionary<GridPos, RoadTier> roadTiers = new Dictionary<GridPos, RoadTier>();
 
         public VillageLayout(int size = 11) { Size = size; }
 
@@ -25,7 +29,16 @@ namespace GameCore.Village
         public bool IsEntrance(GridPos p) => entrances.Contains(p);
         public int EntranceCount => entrances.Count;
 
-        public bool TryPlace(GridPos p, CellKind kind, out string error)
+        public RoadTier GetRoadTier(GridPos p) => roadTiers.TryGetValue(p, out var t) ? t : RoadTier.Wood;
+
+        public bool SetRoadTier(GridPos p, RoadTier tier)
+        {
+            if (Get(p) != CellKind.Road) return false;
+            roadTiers[p] = tier;
+            return true;
+        }
+
+        public bool TryPlace(GridPos p, CellKind kind, out string error, RoadTier tier = RoadTier.Wood)
         {
             error = null;
             if (!InBounds(p)) { error = "Grid dışı"; return false; }
@@ -33,6 +46,7 @@ namespace GameCore.Village
             if (Get(p) != CellKind.Empty) { error = "Hücre dolu"; return false; }
             if (kind == CellKind.Tower && !HasAdjacentRoad(p)) { error = "Kule yola komşu olmalı"; return false; }
             cells[p] = kind;
+            if (kind == CellKind.Road) roadTiers[p] = tier;
             return true;
         }
 
@@ -40,6 +54,7 @@ namespace GameCore.Village
         {
             if (!cells.Remove(p)) return false;
             entrances.Remove(p);
+            roadTiers.Remove(p);
             return true;
         }
 
@@ -63,6 +78,7 @@ namespace GameCore.Village
             var n = new VillageLayout(newSize);
             foreach (var kv in cells) if (n.InBounds(kv.Key)) n.cells[kv.Key] = kv.Value;
             foreach (var e in entrances) if (n.InBounds(e)) n.entrances.Add(e);
+            foreach (var kv in roadTiers) if (n.InBounds(kv.Key)) n.roadTiers[kv.Key] = kv.Value;
             return n;
         }
 

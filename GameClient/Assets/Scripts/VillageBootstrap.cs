@@ -19,6 +19,8 @@ namespace GameClient
 
         private VillageLayout layout;
         private Tool tool = Tool.Road;
+        private RoadTier roadTier = RoadTier.Wood;
+        private static readonly string[] TierNames = { "Tahta", "Altın+Tahta", "Demir" };
         private Camera cam;
         private Vector3 target;
         private float zoom = 8f;
@@ -172,7 +174,10 @@ namespace GameClient
             bool ok = false;
             switch (tool)
             {
-                case Tool.Road: ok = layout.TryPlace(cell, CellKind.Road, out err); break;
+                case Tool.Road:
+                    if (layout.Get(cell) == CellKind.Road) ok = layout.GetRoadTier(cell) != roadTier && layout.SetRoadTier(cell, roadTier);
+                    else ok = layout.TryPlace(cell, CellKind.Road, out err, roadTier);
+                    break;
                 case Tool.Building: ok = layout.TryPlace(cell, CellKind.Building, out err); break;
                 case Tool.Tower: ok = layout.TryPlace(cell, CellKind.Tower, out err); break;
                 case Tool.Entrance: ok = layout.ToggleEntrance(cell, out err); break;
@@ -196,13 +201,78 @@ namespace GameClient
         }
 
         private void Cube(GridPos p, Vector3 scale, float centerY, Color c)
+            => Cube(new Vector3(p.X, centerY, p.Y), scale, c);
+
+        private void Cube(Vector3 pos, Vector3 scale, Color c)
         {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             Destroy(go.GetComponent<Collider>());
             go.transform.SetParent(viewRoot, false);
-            go.transform.localPosition = new Vector3(p.X, centerY, p.Y);
+            go.transform.localPosition = pos;
             go.transform.localScale = scale;
             go.GetComponent<MeshRenderer>().sharedMaterial = Mat(c);
+        }
+
+
+        private bool IsRoad(int x, int y) => layout.Get(new GridPos(x, y)) == CellKind.Road;
+
+        /// <summary>Komşu yollara otomatik bağlanan yol parçası: merkez + bağlı yönlere kollar.
+        /// Düz, köşe, T, kavşak ve uç şekilleri buradan çıkar. Giriş hücresi dışarıya (güney) da uzanır.</summary>
+        private void DrawRoad(GridPos p)
+        {
+            var tier = layout.GetRoadTier(p);
+            Color baseC, rail, stripe;
+            switch (tier)
+            {
+                case RoadTier.Reinforced:
+                    baseC = new Color(0.66f, 0.52f, 0.30f); rail = new Color(0.92f, 0.74f, 0.20f); stripe = new Color(0.50f, 0.38f, 0.20f); break;
+                case RoadTier.Iron:
+                    baseC = new Color(0.40f, 0.42f, 0.47f); rail = new Color(0.72f, 0.74f, 0.80f); stripe = new Color(0.30f, 0.32f, 0.36f); break;
+                default:
+                    baseC = new Color(0.62f, 0.50f, 0.34f); rail = baseC; stripe = new Color(0.44f, 0.34f, 0.21f); break;
+            }
+            const float slabH = 0.14f, slabY = 0.02f;
+            var c = new Vector3(p.X, 0f, p.Y);
+
+            // merkez
+            Cube(c + new Vector3(0, slabY, 0), new Vector3(0.5f, slabH, 0.5f), baseC);
+            if (tier != RoadTier.Wood)
+                Cube(c + new Vector3(0, 0.1f, 0), new Vector3(0.16f, 0.1f, 0.16f), rail);
+
+            // yönler: (dx, dy)
+            int[] dx = { 0, 1, 0, -1 };
+            int[] dy = { 1, 0, -1, 0 };
+            bool[] open =
+            {
+                IsRoad(p.X, p.Y + 1),
+                IsRoad(p.X + 1, p.Y),
+                IsRoad(p.X, p.Y - 1) || layout.IsEntrance(p),
+                IsRoad(p.X - 1, p.Y)
+            };
+            for (int i = 0; i < 4; i++)
+            {
+                if (!open[i]) continue;
+                bool alongX = dx[i] != 0;
+                var dir = new Vector3(dx[i], 0, dy[i]);
+                var armPos = c + dir * 0.375f + new Vector3(0, slabY, 0);
+                var armSize = alongX ? new Vector3(0.25f, slabH, 0.5f) : new Vector3(0.5f, slabH, 0.25f);
+                Cube(armPos, armSize, baseC);
+
+                if (tier == RoadTier.Wood)
+                {
+                    // tahta çıtası: kolu enine kesen koyu çizgi
+                    var sSize = alongX ? new Vector3(0.04f, slabH + 0.01f, 0.5f) : new Vector3(0.5f, slabH + 0.01f, 0.04f);
+                    Cube(c + dir * 0.375f + new Vector3(0, slabY, 0), sSize, stripe);
+                }
+                else
+                {
+                    // raylar: kolun iki yan kenarında ince çıta
+                    var perp = alongX ? new Vector3(0, 0, 1) : new Vector3(1, 0, 0);
+                    var rSize = alongX ? new Vector3(0.25f, 0.2f, 0.05f) : new Vector3(0.05f, 0.2f, 0.25f);
+                    Cube(armPos + perp * 0.22f + new Vector3(0, 0.03f, 0), rSize, rail);
+                    Cube(armPos - perp * 0.22f + new Vector3(0, 0.03f, 0), rSize, rail);
+                }
+            }
         }
 
         private void Rebuild()
@@ -223,7 +293,7 @@ namespace GameClient
                     switch (layout.Get(p))
                     {
                         case CellKind.Road:
-                            Cube(p, new Vector3(0.96f, 0.14f, 0.96f), 0.02f, new Color(0.62f, 0.50f, 0.34f));
+                            DrawRoad(p);
                             break;
                         case CellKind.Building:
                             Cube(p, new Vector3(0.7f, 0.7f, 0.7f), 0.35f, new Color(0.85f, 0.65f, 0.15f));
@@ -274,7 +344,9 @@ namespace GameClient
             if (GUI.Button(rp, "Grid +") && layout.Size < MaxSize) { layout = layout.Resized(layout.Size + 1); ResetCamera(); dirty = true; }
             if (GUI.Button(rc, "Kamera")) ResetCamera();
             if (GUI.Button(rt, "Temizle")) { layout = new VillageLayout(layout.Size); dirty = true; }
-            uiRects.Add(rm); uiRects.Add(rl); uiRects.Add(rp); uiRects.Add(rc); uiRects.Add(rt);
+            var rr = new Rect(354, 44, 120, 32);
+            if (GUI.Button(rr, "Yol: " + TierNames[(int)roadTier])) { roadTier = (RoadTier)(((int)roadTier + 1) % 3); tool = Tool.Road; }
+            uiRects.Add(rm); uiRects.Add(rl); uiRects.Add(rp); uiRects.Add(rc); uiRects.Add(rt); uiRects.Add(rr);
 
             var rs = new Rect(4, h - 44, w - 8, 40);
             string msg = valid ? "GEÇERLİ - savunma kaydedilebilir" : "GEÇERSİZ - " + validationError;

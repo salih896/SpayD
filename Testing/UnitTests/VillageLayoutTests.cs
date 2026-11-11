@@ -85,5 +85,25 @@ namespace GameCore.Tests
             for (int x = 0; x < 10; x++) Assert.IsTrue(v.ToggleEntrance(P(x, 0), out _));
             Assert.IsFalse(v.ToggleEntrance(P(10, 0), out _));
         }
+
+        [Test]
+        public void RoadTier_DefaultsToWood_CanBeSet_AndSurvivesResize()
+        {
+            var v = new VillageLayout(11);
+            v.TryPlace(P(2, 2), CellKind.Road, out _);
+            Assert.AreEqual(RoadTier.Wood, v.GetRoadTier(P(2, 2)));
+            Assert.IsTrue(v.SetRoadTier(P(2, 2), RoadTier.Iron));
+            Assert.AreEqual(RoadTier.Iron, v.Resized(13).GetRoadTier(P(2, 2)));
+            Assert.IsFalse(v.SetRoadTier(P(3, 3), RoadTier.Iron)); // yol değil
+        }
+
+        [Test]
+        public void Entrance_ToggleOnExistingRoad_KeepsTier()
+        {
+            var v = new VillageLayout(11);
+            v.TryPlace(P(4, 0), CellKind.Road, out _, RoadTier.Reinforced);
+            v.ToggleEntrance(P(4, 0), out _);
+            Assert.AreEqual(RoadTier.Reinforced, v.GetRoadTier(P(4, 0)));
+        }
     }
 }
