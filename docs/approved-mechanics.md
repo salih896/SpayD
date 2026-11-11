@@ -26,3 +26,6 @@
 - Bölüm 7: başlangıç yapıları yalnızca orman + köylü. Kereste deposu, maden, banka sonradan açılır.
 - Bölüm 18: koruma 3 saat. Bölüm 19: rank koruması savunana.
 - Bölüm 3/26/28: Android → Android + iOS; Aşama 11'e App Store hazırlığı eklenecek.
+
+## Prototip sonrası onaylar
+15. Savunma haritası 11×11 olarak KALIR (prototip denendi, 11.11.2026). Boyut `VillageLayout` varsayılanıdır; değişirse tek yerden güncellenir.
