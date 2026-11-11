@@ -1,0 +1,16 @@
+GameProject/[Ll]ibrary/
+GameProject/[Tt]emp/
+GameProject/[Oo]bj/
+GameProject/[Bb]uild/
+GameProject/[Bb]uilds/
+GameProject/[Ll]ogs/
+GameProject/[Uu]ser[Ss]ettings/
+GameProject/.vs/
+*.csproj
+*.sln
+*.apk
+*.aab
+*.ipa
+.DS_Store
+**/bin/
+**/obj/
