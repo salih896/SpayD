@@ -25,3 +25,7 @@
 - Yol malzemesi geliştirme: maliyet, süre, araştırma şartı (şu an yalnızca görünüm; "Yol:" düğmesi serbestçe değiştirir). Altın kuralı: altın+tahta yol seviye 5+ içeriği, demir yol araştırmayla.
 - Yol çıkmazlarına izin var mı? (şu an serbest; yalnızca giriş→bina bağlantısı zorunlu)
 - Yol hücresi (+) menüsü: zemin özelliği/tuzak slotları.
+
+## ÇÖZÜLDÜ (12.11.2026) — Yol soruları
+Başlangıç 10 yol (sınır 10, hepsi zorunlu), tek giriş, hepsi girişe bağlı, dallanma serbest, çıkmaz serbest → bkz. approved-mechanics.md #16-21.
+Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme geliştirme maliyeti/süresi/araştırması; yol hücresi (+) menüsü.

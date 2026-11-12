@@ -69,8 +69,8 @@ namespace GameClient
         private void ResetCamera()
         {
             float c = (layout.Size - 1) * 0.5f;
-            target = new Vector3(c, 0f, c);
-            zoom = layout.Size * 0.75f + 2f;
+            target = new Vector3(c, 0f, c - VillageLayout.AttackZoneRows * 0.5f); // saldırı alanı da görünsün
+            zoom = layout.Size * 0.75f + 4f;
         }
 
         private void Update()
@@ -86,7 +86,7 @@ namespace GameClient
             float c = (layout.Size - 1) * 0.5f;
             float lim = layout.Size * 0.5f + 2f;
             target.x = Mathf.Clamp(target.x, c - lim, c + lim);
-            target.z = Mathf.Clamp(target.z, c - lim, c + lim);
+            target.z = Mathf.Clamp(target.z, c - lim - VillageLayout.AttackZoneRows, c + lim);
             cam.orthographicSize = zoom;
             cam.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
             cam.transform.position = target - cam.transform.forward * 60f;
@@ -306,6 +306,12 @@ namespace GameClient
                     if (layout.IsEntrance(p))
                         Cube(p, new Vector3(0.5f, 0.2f, 0.5f), 0.15f, new Color(0.95f, 0.45f, 0.1f));
                 }
+            // Saldırganın asker gönderme alanı (4 x Size): giriş kenarının dışında, kırmızı tonlu.
+            var z1 = new Color(0.55f, 0.25f, 0.22f);
+            var z2 = new Color(0.48f, 0.21f, 0.19f);
+            for (int x = 0; x < n; x++)
+                for (int r = 1; r <= VillageLayout.AttackZoneRows; r++)
+                    Cube(new GridPos(x, -r), new Vector3(0.96f, 0.1f, 0.96f), -0.05f, ((x + r) & 1) == 0 ? z1 : z2);
             dirty = false;
             valid = layout.Validate(out validationError);
         }
@@ -343,14 +349,15 @@ namespace GameClient
             if (GUI.Button(rm, "Grid -") && layout.Size > MinSize) { layout = layout.Resized(layout.Size - 1); ResetCamera(); dirty = true; }
             if (GUI.Button(rp, "Grid +") && layout.Size < MaxSize) { layout = layout.Resized(layout.Size + 1); ResetCamera(); dirty = true; }
             if (GUI.Button(rc, "Kamera")) ResetCamera();
-            if (GUI.Button(rt, "Temizle")) { layout = new VillageLayout(layout.Size); dirty = true; }
-            var rr = new Rect(354, 44, 120, 32);
-            if (GUI.Button(rr, "Yol: " + TierNames[(int)roadTier])) { roadTier = (RoadTier)(((int)roadTier + 1) % 3); tool = Tool.Road; }
+            if (GUI.Button(rt, "Temizle")) { layout = new VillageLayout(layout.Size, layout.RoadLimit, layout.EntranceLimit); dirty = true; }
+            var rr = new Rect(354, 44, 150, 32);
+            if (GUI.Button(rr, "Malzeme: " + TierNames[(int)roadTier])) { roadTier = (RoadTier)(((int)roadTier + 1) % 3); tool = Tool.Road; }
             uiRects.Add(rm); uiRects.Add(rl); uiRects.Add(rp); uiRects.Add(rc); uiRects.Add(rt); uiRects.Add(rr);
 
             var rs = new Rect(4, h - 44, w - 8, 40);
             string msg = valid ? "GEÇERLİ - savunma kaydedilebilir" : "GEÇERSİZ - " + validationError;
             if (Time.time < toastUntil) msg = toast;
+            msg += "    [Yol " + layout.RoadCount + "/" + layout.RoadLimit + " | Giriş " + layout.EntranceCount + "/" + layout.EntranceLimit + "]";
             GUI.color = valid ? new Color(0.6f, 1f, 0.6f) : new Color(1f, 0.8f, 0.5f);
             GUI.Box(rs, msg);
             GUI.color = Color.white;

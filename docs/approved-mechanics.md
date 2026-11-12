@@ -29,3 +29,11 @@
 
 ## Prototip sonrası onaylar
 15. Savunma haritası 11×11 olarak KALIR (prototip denendi, 11.11.2026). Boyut `VillageLayout` varsayılanıdır; değişirse tek yerden güncellenir.
+
+## Yol ve giriş kuralları (12.11.2026)
+16. Başlangıç yol hakkı TAM 10: sınır 10, hepsi kullanılmak zorunda (savunma 10/10 olmadan kaydedilemez). Giriş karesi de bir yol parçasıdır, 10'dan sayılır (varsayım, aksini söylerseniz değiştiririm).
+17. Tek giriş karesi koymak zorunlu (alt kenar). Giriş sayısı sonradan araştırmayla artabilir (GDD: 1-10); sınır veri olarak tutulur.
+18. Bütün yollar girişe bağlı olmak zorunda; kopuk yol parçası olamaz.
+19. Yol 2 veya 3 kola ayrılabilir (dallanma serbest). Çıkmaz uçlara izin var.
+20. Saldırganın asker gönderme alanı 4×11, giriş kenarının dışındadır; askerler girişten köye girer.
+21. Yol hakkının seviye başına +1 artması (GDD Bölüm 5) geçerli; başlangıç 10'dan yukarı artar.
