@@ -31,8 +31,8 @@
 15. Savunma haritası 11×11 olarak KALIR (prototip denendi, 11.11.2026). Boyut `VillageLayout` varsayılanıdır; değişirse tek yerden güncellenir.
 
 ## Yol ve giriş kuralları (12.11.2026, güncel)
-16. Yol hakkı seviyeye bağlı: Sv1=10, Sv2=11, Sv3=12 (+1/seviye, Sv30=39). Savunmada yol sayısı TAM bu sayı olmalı; ne eksik ne fazla. Giriş karesi yol sayısından sayılır (varsayım, aksini söylerseniz değiştiririm).
-17. En az 1 giriş karesi zorunlu (alt kenar); birden fazla giriş konabilir (üst sınır 10, GDD). Her giriş bir binaya ulaşmalı.
+16. Yol hakkı seviyeye bağlı: Sv1=10, Sv2=11, Sv3=12 (+1/seviye, Sv30=39). Savunmada yol sayısı TAM bu sayı olmalı; ne eksik ne fazla. Giriş karesi yol sayısından sayılır (onaylandı).
+17. En az 1 giriş karesi zorunlu (alt kenar); birden fazla giriş konabilir (üst sınır 10, GDD); araştırma gerekmez, baştan açık (onaylandı). Her giriş bir binaya ulaşmalı.
 18. Yol sayısı ne olursa olsun bütün yollar girişe bağlı olmak zorunda; kopuk yol parçası olamaz.
 19. Dallanma ve çıkmaz yol serbest.
 20. Saldırganın asker gönderme alanı 4×11, giriş kenarının dışındadır.
