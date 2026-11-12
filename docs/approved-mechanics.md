@@ -39,3 +39,9 @@
 21. Seviye atlayınca yol hakkı artar; yeni yol konana kadar savunma geçersiz sayılır.
 22. Yol geliştirme her seviyede açıktır (seviye şartı yok) ama önce "yol geliştirme" araştırması yapılmalı. Araştırmanın süresi, maliyeti ve şartı vardır (ÖRNEK: 1 gün; 5000 tahta, 1000 altın, 100 demir — kesin denge değil).
 23. Araştırma bitince oyuncu yollara tek tek dokunup her yolu ayrı ayrı geliştirir (Tahta → Altın+Tahta → Demir). Her yol geliştirmesinin maliyeti/süresi AÇIK (open-questions.md).
+
+## Kaynaklar (12.11.2026) — #6-#11'deki altın seviyelerini GEÇERSİZ KILAR (ayrıntı open-questions.md)
+24. 4 kaynak: Odun (Sv1), Taş (Sv5), Altın (Sv15), Demir (Sv25). Yiyecek kaynağı YOKTUR.
+25. Açılmamış kaynak üretilemez, harcanamaz, oyuncuya gösterilmez; ilgili bina/geliştirme erişilemez.
+26. Açılma seviyeleri tek merkezde tutulur (Core/Economy/ResourceConfig). Üretim, süre, depo, harcama alanı, yağma kuralı kaynak başına ayarlanır.
+27. Kaynak üretimi/harcaması sunucuda doğrulanır; istemci miktarı değiştiremez (sunucu Aşama 7'de kurulur, kurallar Core'da yazılır).

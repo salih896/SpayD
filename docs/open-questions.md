@@ -33,3 +33,9 @@ Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme ge
 ## AÇIK (12.11.2026 – yol geliştirme)
 - Tek yol geliştirmesinin maliyeti/süresi ve Demir için ayrı araştırma gerekir mi?
 - Yol hücresine dokununca açılacak (+) menü.
+
+## AÇIK (12.11.2026 – kaynak sistemi)
+- approved-mechanics #6-#11 (altın madeni Sv5, banka Sv6, altın yağma koruması) yeni açılma seviyeleriyle (Taş 5, Altın 15, Demir 25) çakışıyor; banka/madenler hangi seviyede, hangi bina?
+- Yol araştırma maliyeti (şu an ÖRNEK: 5000 tahta, 1000 altın, 100 demir) Sv1'de ödenemez; yeniden belirlenmeli.
+- Yol malzeme basamakları (Tahta / Altın+Tahta / Demir) yeni kaynaklarla nasıl eşleşecek?
+- Kaynak ayarları JSON'a taşınsın mı (öneri: Core/Data/resources.json)?
