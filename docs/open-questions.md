@@ -41,7 +41,6 @@ Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme ge
 - Kaynak ayarları JSON'a taşınsın mı (öneri: Core/Data/resources.json)?
 
 ## AÇIK (12.11.2026 – teknoloji/araştırma ağaçları, kaynak: GameDesign/TechTrees.md)
-- Element ağacı dosyada yalnızca başlık satırı: içeriği (Ateş/Buz/Zehir araştırmaları ve "temel saldırı/savunma kilitleri") eksik.
 - Ön koşul: Seviye N araştırması için önceki seviyenin TÜM araştırmaları mı, en az biri mi gerekir? (öneri: tümü)
 - Üniversite seviyesi araştırma seviyesinden "bağımsız" deniyor; Üniversite seviyesi neyi belirler (ör. bir seviyedeki araştırmaları açar, süre/maliyet, ek yuva)?
 - Yol geliştirme araştırması hangi ağaçta (öneri: Mimarlık)? Araştırma Üniversite (Sv5) gerektirdiği için Sv1-4'te yol geliştirme yapılamaz; kabul mü?
@@ -49,3 +48,11 @@ Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme ge
 - "Kalkan" = "Normal koruma (3 saat)" mı?
 - Araştırma maliyet/süre/bonus değerleri yok (belgede "ayrıca dengelenecek"): prototipte geçici değer kullanılacak.
 - Tek araştırma yuvası Bilim ağacının 30. seviyesine kadar sürüyor; bu hedeflenen mi?
+- (Belge 12.11.2026 tam sürüm) Belgenin kendi "onay bekleyen" listesi: bonus yüzdeleri, maliyetler, süreler, maksimum rank, üniversite seviyesiyle açılma, iptalde kaynak iadesi, üniversite yıkılınca davranış. Bunlar onaysız kesin kural yapılmayacak.
+- Ekonomi ağacı seviye 25'te 2 araştırma var (diğer ağaçlarda 3); eksik mi?
+- Element ağacında "Element Kontrolü III" (Sv20) ve "IV" (Sv25) var ama I ve II yok; adlandırma mı yoksa eksik araştırma mı?
+- Aynı ad iki ağaçta: "Kuşatma Ustalığı" (Savunma+Askerî), "İşçi Verimliliği" (Mimarlık+Köy Gelişimi). Kimlikler (ID) ağaç önekli olacak; ad aynı kalsın mı?
+- Her araştırma tek rank mı (I-IV ayrı kayıtlar) yoksa çok rank mı? Prototip: tek rank, "I-IV" ayrı kayıt.
+- Köy Gelişimi'nde "Kalkan Yönetimi I-IV" ile "Kalkan Süresi Geliştirmesi I-III" ayrı; hangisi süreyi, hangisi neyi değiştirir?
+- Diğer ağaçlardaki Element ön koşulları (hangi araştırma hangi Element araştırmasına bağlı) için anahtar kelimeyle eşleme önerilecek; onay gerekir.
+- Araştırma maliyeti yalnızca o seviyede açık kaynaklarla mı ödenir? (örn. Sv5 öncesi yalnız odun)

@@ -350,4 +350,194 @@ Amaç: Araştırma maliyetlerini ve sürelerini azaltmak, bilimsel verimliliği 
 
 # 7. ELEMENT AĞACI
 
-Amaç: Ateş, Buz ve Zehir
+Amaç: Ateş, Buz ve Zehir elementlerinin saldırı, savunma ve özel etkilerini geliştirmek.
+
+Element ağacı diğer altı araştırma ağacını da etkileyen özel bir ön koşul sistemine sahiptir.
+
+## Seviye 1 – Temel Element Bilgisi
+
+| Araştırma | Görevi |
+|---|---|
+| Ateş | Ateş elementinin temel kilidini açar. |
+| Buz | Buz elementinin temel kilidini açar. |
+| Zehir | Zehir elementinin temel kilidini açar. |
+
+## Seviye 2 – Element Saldırısı
+
+| Araştırma | Görevi |
+|---|---|
+| Ateş Saldırısı | Ateş hasarı geliştirmelerinin kilidini açar. |
+| Buz Saldırısı | Buz hasarı geliştirmelerinin kilidini açar. |
+| Zehir Saldırısı | Zehir hasarı geliştirmelerinin kilidini açar. |
+
+## Seviye 3 – Elementlerin Temel Etkileri
+
+| Araştırma | Görevi |
+|---|---|
+| Yanma Etkisi | Ateşin zamanla verdiği yanma hasarını geliştirir. |
+| Yavaşlatma Etkisi | Buzun düşmanları yavaşlatma gücünü geliştirir. |
+| Zehirlenme Etkisi | Zehrin zamanla verdiği hasarı geliştirir. |
+
+Ön koşullar:
+- Yanma Etkisi: Ateş + Ateş Saldırısı.
+- Yavaşlatma Etkisi: Buz + Buz Saldırısı.
+- Zehirlenme Etkisi: Zehir + Zehir Saldırısı.
+
+## Seviye 4 – Element Savunması
+
+| Araştırma | Görevi |
+|---|---|
+| Ateş Savunması | Ateş savunması geliştirmelerinin kilidini açar. |
+| Buz Savunması | Buz savunması geliştirmelerinin kilidini açar. |
+| Zehir Savunması | Zehir savunması geliştirmelerinin kilidini açar. |
+
+## Seviye 5–16 – Element Ustalığı
+
+Bu bölümde her üniversite seviyesinde üç elementin de kendine özgü bir saldırı, savunma veya özel etki araştırması bulunur.
+
+Araştırma isimleri tekrarlanmayacaktır.
+
+| Seviye | Ateş | Buz | Zehir |
+|---|---|---|---|
+| 5 | Alev Kudreti | Buzul Gücü | Zehirin Özü |
+| 6 | Kor Zırhı | Kristal Muhafaza | Panzehir Doktrini |
+| 7 | Kızıl Hâkimiyet | Mutlak Donuş | Ölümcül Sızıntı |
+| 8 | Ejderha Alevi | Kutup Fırtınası | Kara Özüt |
+| 9 | Kül Muhafızlığı | Buzul Bariyeri | Zehir Perdesi |
+| 10 | Kor Hâkimiyeti | Donmuş Hâkimiyet | Toksin Hâkimiyeti |
+| 11 | Cehennem Kudreti | Kadim Buz Gücü | Ölümcül Toksin |
+| 12 | Alev Kalkanı | Sonsuz Buz Zırhı | Kara Panzehir |
+| 13 | Güneşin Öfkesi | Mutlak Sıfır | Veba Hâkimiyeti |
+| 14 | Lav Çekirdeği | Buzul Çekirdeği | Zehir Çekirdeği |
+| 15 | Kızıl Ejder Muhafazası | Kutup Muhafazası | Akrep Muhafazası |
+| 16 | Ateşin Efendisi | Buzulun Efendisi | Zehrin Efendisi |
+
+Araştırmaların işlevleri:
+
+- Saldırı araştırmaları ilgili elementin verdiği hasarı artırır.
+- Savunma araştırmaları ilgili elementten alınan hasarı azaltır.
+- Özel etki araştırmaları yanma, yavaşlatma ve zehirlenme etkilerini geliştirir.
+
+Bu araştırmaların kesin bonus değerleri ayrıca belirlenecektir.
+
+## Seviye 17–20 – İleri Element Teknolojileri
+
+| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
+|---|---|---|---|
+| 17 | Element Etki Süresi | Element Direnci Kırma | — |
+| 18 | Element Alan Etkisi | Gelişmiş Yanma | — |
+| 19 | Gelişmiş Yavaşlatma | Gelişmiş Zehirlenme | — |
+| 20 | Element Kontrolü III | Element Patlaması | Element Etki Ustalığı |
+
+## Seviye 21–25 – Element Uzmanlığı
+
+| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
+|---|---|---|---|
+| 21 | Ateş Patlaması | Buz Patlaması | — |
+| 22 | Zehir Patlaması | Ateş Etki Alanı | — |
+| 23 | Buz Etki Alanı | Zehir Etki Alanı | — |
+| 24 | Element Zinciri | Element Direnci Delme | — |
+| 25 | Element Kontrolü IV | Element Zincirleme Ustalığı | Element Etki Uzmanlığı |
+
+## Seviye 26–30 – Efsanevi Element Teknolojileri
+
+| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
+|---|---|---|---|
+| 26 | Ateş Zinciri | Buz Zinciri | — |
+| 27 | Zehir Zinciri | Element Kombinasyonu I | — |
+| 28 | Element Kombinasyonu II | Element Etki Ustalığı II | — |
+| 29 | Element Patlaması II | Efsanevi Element Kontrolü | — |
+| 30 | Efsanevi Element Ustalığı | Kadim Element Gücü | Efsanevi Element Hâkimiyeti |
+
+Element Kombinasyonu araştırmaları taslaktır. Örnek olarak:
+- Buz etkisindeki düşmana ateş saldırısı geldiğinde ilave hasar.
+- Zehirlenmiş düşmana ateş saldırısı geldiğinde yanma etkisinin güçlenmesi.
+- Farklı element etkilerinin birbirini tamamlaması.
+
+Kombinasyonların kesin çalışma şekli ve bonusları daha sonra belirlenecektir.
+
+---
+
+# ELEMENT AĞACININ DİĞER AĞAÇLARLA ORTAK ÖN KOŞULLARI
+
+Bu sistem zorunludur.
+
+| İlgili yetenek | Gerekli Element araştırması |
+|---|---|
+| Ateş hasarı | Ateş Saldırısı |
+| Ateş yanma etkisi | Ateş Saldırısı |
+| Ateş saldırı ustalığı | Ateş Saldırısı |
+| Ateş direnci | Ateş Savunması |
+| Ateş hasarı azaltma | Ateş Savunması |
+| Buz hasarı | Buz Saldırısı |
+| Buz yavaşlatma | Buz Saldırısı |
+| Buz saldırı ustalığı | Buz Saldırısı |
+| Buz direnci | Buz Savunması |
+| Buz etkisi azaltma | Buz Savunması |
+| Zehir hasarı | Zehir Saldırısı |
+| Zehirlenme etkisi | Zehir Saldırısı |
+| Zehir saldırı ustalığı | Zehir Saldırısı |
+| Zehir direnci | Zehir Savunması |
+| Zehir hasarı azaltma | Zehir Savunması |
+
+Örnek:
+- Oyuncu Ateş Savunması araştırmasını tamamlamadıysa Askerî ağacındaki Ateş Direnci araştırmasını yapamaz.
+- Oyuncu Buz Saldırısı araştırmasını tamamlamadıysa Savunma ağacındaki Buz hasarı geliştirmelerini yapamaz.
+- Oyuncu Zehir Saldırısı araştırmasını tamamlamadıysa Zehir Patlaması gibi saldırı geliştirmelerini yapamaz.
+
+Bir elementin araştırmaları diğer elementleri engellemez.
+
+---
+
+# UYGULAMA VE TEKNİK KURALLAR
+
+Claude ve Codex bu araştırma sistemini uygularken aşağıdaki kurallara uymalıdır:
+
+1. Öncelikle mevcut proje mimarisi, veri yapıları ve araştırma sistemi incelenmelidir.
+2. Mevcut kod ve sistemler incelenmeden doğrudan değişiklik yapılmamalıdır.
+3. Araştırmalar merkezi bir veri kataloğunda tutulmalıdır.
+4. Her araştırmaya benzersiz bir ID verilmelidir.
+5. Her araştırmada şu bilgiler bulunmalıdır:
+   - ID
+   - Araştırma adı
+   - Araştırma ağacı
+   - Üniversite seviyesi
+   - Araştırma rank seviyesi
+   - Maksimum rank
+   - Ön koşullar
+   - Kaynak maliyeti
+   - Araştırma süresi
+   - Bonus türü
+   - Bonus miktarı
+   - Açıklama
+6. Ön koşullar yalnızca arayüzde değil, sunucu tarafında da doğrulanmalıdır.
+7. Araştırma tamamlandığında bonuslar sunucu tarafından uygulanmalıdır.
+8. Oyuncu araştırma ekranında kilitli araştırmaların neden kilitli olduğunu görebilmelidir.
+9. Element araştırmaları diğer araştırma ağaçlarının ön koşul sistemiyle bağlantılı olmalıdır.
+10. Araştırma süreleri çevrimdışı ilerlemeye uygun olmalıdır.
+11. Üniversite yükseltmesi devam eden araştırmayı durdurmamalıdır.
+12. Üniversite yıkılırsa araştırmaların durması ve tamirden sonra devam etmesi önerilmektedir; bu davranış henüz kesinleştirilmelidir.
+13. Araştırma iptalinde kaynak iadesi konusu ayrıca kararlaştırılmalıdır.
+14. Bonusların toplam sınırları merkezi olarak kontrol edilmelidir.
+15. Aynı bonusun farklı araştırmalardan alınması hâlinde toplam bonus hesaplaması tutarlı olmalıdır.
+
+---
+
+# SON DURUM VE ONAY BEKLEYEN KONULAR
+
+Bu belge, araştırma ağaçlarının isimlerini ve genel dağılımını tanımlar. Henüz tamamlanmamış konular:
+
+- Her araştırmanın kesin bonus yüzdesi.
+- Araştırma başına kaynak maliyeti.
+- Araştırma süreleri.
+- Her araştırmanın maksimum rank sayısı.
+- Araştırmaların üniversite seviyesiyle açılma koşulları.
+- Bazı ileri araştırmaların ayrıntılı mekanikleri.
+- Element kombinasyonlarının kesin savaş etkileri.
+- Araştırma iptalinde kaynak iadesi.
+- Üniversite yıkıldığında araştırma davranışı.
+- Ekonomi ağacındaki kaynak açılma koşullarının tüm araştırmalara uygulanması.
+
+Bu maddeler kullanıcı onayı olmadan kesin oyun kuralı olarak uygulanmamalıdır.
+
+**ÖNEMLİ:** Bu belge tasarım referansıdır. Kod değişikliğine başlamadan önce kullanıcıya mevcut projeyle uyumluluk raporu sunulmalı ve önemli uygulama aşamaları için onay alınmalıdır.
