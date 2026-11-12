@@ -39,3 +39,13 @@ Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme ge
 - Yol araştırma maliyeti (şu an ÖRNEK: 5000 tahta, 1000 altın, 100 demir) Sv1'de ödenemez; yeniden belirlenmeli.
 - Yol malzeme basamakları (Tahta / Altın+Tahta / Demir) yeni kaynaklarla nasıl eşleşecek?
 - Kaynak ayarları JSON'a taşınsın mı (öneri: Core/Data/resources.json)?
+
+## AÇIK (12.11.2026 – teknoloji/araştırma ağaçları, kaynak: GameDesign/TechTrees.md)
+- Element ağacı dosyada yalnızca başlık satırı: içeriği (Ateş/Buz/Zehir araştırmaları ve "temel saldırı/savunma kilitleri") eksik.
+- Ön koşul: Seviye N araştırması için önceki seviyenin TÜM araştırmaları mı, en az biri mi gerekir? (öneri: tümü)
+- Üniversite seviyesi araştırma seviyesinden "bağımsız" deniyor; Üniversite seviyesi neyi belirler (ör. bir seviyedeki araştırmaları açar, süre/maliyet, ek yuva)?
+- Yol geliştirme araştırması hangi ağaçta (öneri: Mimarlık)? Araştırma Üniversite (Sv5) gerektirdiği için Sv1-4'te yol geliştirme yapılamaz; kabul mü?
+- Harita Genişletme (12x12..15x15) ile approved #15 ("11x11 kalır") çakışıyor: taban 11, araştırmayla 15'e mi? Saldırgan alanı genişliği haritayla mı büyür?
+- "Kalkan" = "Normal koruma (3 saat)" mı?
+- Araştırma maliyet/süre/bonus değerleri yok (belgede "ayrıca dengelenecek"): prototipte geçici değer kullanılacak.
+- Tek araştırma yuvası Bilim ağacının 30. seviyesine kadar sürüyor; bu hedeflenen mi?
