@@ -19,12 +19,13 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void Defaults_AreTenRoads_OneEntrance()
+        public void Defaults_AreTenRoads_EntranceMaxTen()
         {
             var v = new VillageLayout();
             Assert.AreEqual(11, v.Size);
             Assert.AreEqual(10, v.RoadLimit);
-            Assert.AreEqual(1, v.EntranceLimit);
+            Assert.AreEqual(RoadRules.MaxEntrances, v.EntranceLimit);
+            Assert.AreEqual(1, RoadRules.MinEntrances);
         }
 
         [Test]
@@ -57,14 +58,15 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void Entrance_DefaultLimitIsOne()
+        public void Entrance_CanHaveSeveral_UpToLimit()
         {
-            var v = new VillageLayout(11);
+            var v = new VillageLayout(11, 10, 2);
             Assert.IsTrue(v.ToggleEntrance(P(3, 0), out _));
-            Assert.IsFalse(v.ToggleEntrance(P(4, 0), out var err));
+            Assert.IsTrue(v.ToggleEntrance(P(4, 0), out _));
+            Assert.IsFalse(v.ToggleEntrance(P(5, 0), out var err));
             Assert.IsNotNull(err);
-            Assert.IsTrue(v.ToggleEntrance(P(3, 0), out _)); // kaldır
-            Assert.IsTrue(v.ToggleEntrance(P(4, 0), out _)); // şimdi taşınabilir
+            Assert.IsTrue(v.ToggleEntrance(P(3, 0), out _)); // kapat
+            Assert.IsTrue(v.ToggleEntrance(P(5, 0), out _)); // yeni giriş açılabilir
         }
 
         [Test]
@@ -192,6 +194,96 @@ namespace GameCore.Tests
             v.TryPlace(P(4, 0), CellKind.Road, out _, RoadTier.Reinforced);
             v.ToggleEntrance(P(4, 0), out _);
             Assert.AreEqual(RoadTier.Reinforced, v.GetRoadTier(P(4, 0)));
+        }
+
+        [Test]
+        public void RoadLimit_PerLevel_IsTenPlusLevelMinusOne()
+        {
+            Assert.AreEqual(10, RoadRules.RoadLimitForLevel(1));
+            Assert.AreEqual(11, RoadRules.RoadLimitForLevel(2));
+            Assert.AreEqual(12, RoadRules.RoadLimitForLevel(3));
+            Assert.AreEqual(39, RoadRules.RoadLimitForLevel(30)); // GDD: 10 + 29
+        }
+
+        [Test]
+        public void LevelUp_RaisesRoadLimit_AndLayoutBecomesInvalidUntilNewRoadAdded()
+        {
+            var v = ValidStraight();                       // Sv1: 10/10 geçerli
+            Assert.IsTrue(v.Validate(out _));
+            var up = v.WithLimits(RoadRules.RoadLimitForLevel(2), v.EntranceLimit); // Sv2: 11
+            Assert.IsFalse(up.Validate(out var err));      // 10/11 -> eksik
+            StringAssert.Contains("yol haklarını", err);
+            Assert.IsTrue(up.TryPlace(P(4, 9), CellKind.Road, out _)); // çıkmaz kol
+            Assert.IsTrue(up.Validate(out err), err);
+        }
+
+        [Test]
+        public void TooManyRoads_AfterLimitDrops_IsInvalid()
+        {
+            var v = ValidStraight().WithLimits(9, 10);
+            Assert.IsFalse(v.Validate(out var err));
+            StringAssert.Contains("Fazla yol", err);
+        }
+
+        [Test]
+        public void DeadEndRoads_AreAllowed()
+        {
+            var v = new VillageLayout(11, 6, 10);
+            v.ToggleEntrance(P(5, 0), out _);
+            foreach (var (x, y) in new[] { (5, 1), (5, 2), (4, 2), (3, 2), (6, 2) }) // sol/sağ çıkmaz kollar
+                v.TryPlace(P(x, y), CellKind.Road, out _);
+            v.TryPlace(P(5, 3), CellKind.Building, out _);
+            Assert.IsTrue(v.Validate(out var err), err);
+        }
+
+        [Test]
+        public void TwoEntrances_BothConnected_IsValid()
+        {
+            var v = new VillageLayout(11, 9, 10);
+            v.ToggleEntrance(P(3, 0), out _);
+            v.ToggleEntrance(P(7, 0), out _);
+            foreach (var (x, y) in new[] { (3, 1), (3, 2), (4, 2), (5, 2), (6, 2), (7, 2), (7, 1) })
+                v.TryPlace(P(x, y), CellKind.Road, out _);
+            v.TryPlace(P(5, 3), CellKind.Building, out _);
+            Assert.IsTrue(v.Validate(out var err), err);
+        }
+
+        [Test]
+        public void SecondEntrance_NotReachingBuilding_IsInvalid()
+        {
+            var v = new VillageLayout(11, 4, 10);
+            v.ToggleEntrance(P(5, 0), out _);
+            v.TryPlace(P(5, 1), CellKind.Road, out _);
+            v.ToggleEntrance(P(9, 0), out _);              // yalnız duran ikinci giriş
+            v.TryPlace(P(9, 1), CellKind.Road, out _);
+            v.TryPlace(P(5, 2), CellKind.Building, out _);
+            Assert.IsFalse(v.Validate(out _));
+        }
+
+        [Test]
+        public void UpgradeRoad_StepsThroughTiers_PerTile()
+        {
+            var v = new VillageLayout(11);
+            v.TryPlace(P(2, 2), CellKind.Road, out _);
+            v.TryPlace(P(2, 3), CellKind.Road, out _);
+            Assert.IsTrue(v.TryUpgradeRoad(P(2, 2), out _));
+            Assert.AreEqual(RoadTier.Reinforced, v.GetRoadTier(P(2, 2)));
+            Assert.AreEqual(RoadTier.Wood, v.GetRoadTier(P(2, 3)));   // diğer yol etkilenmez
+            Assert.IsTrue(v.TryUpgradeRoad(P(2, 2), out _));
+            Assert.AreEqual(RoadTier.Iron, v.GetRoadTier(P(2, 2)));
+            Assert.IsFalse(v.TryUpgradeRoad(P(2, 2), out _));         // en üstte
+            Assert.IsFalse(v.TryUpgradeRoad(P(8, 8), out _));         // yol değil
+        }
+
+        [Test]
+        public void UpgradeGate_RequiresLevelTen_AndResearch()
+        {
+            Assert.IsFalse(RoadRules.CanUpgrade(9, true, out var r1));
+            StringAssert.Contains("Sv 10", r1);
+            Assert.IsFalse(RoadRules.CanUpgrade(10, false, out var r2));
+            StringAssert.Contains("araştırma", r2);
+            Assert.IsTrue(RoadRules.CanUpgrade(10, true, out _));
+            Assert.IsTrue(RoadRules.CanUpgrade(25, true, out _));
         }
     }
 }

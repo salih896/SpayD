@@ -13,14 +13,14 @@ namespace GameClient
     /// </summary>
     public sealed class VillageBootstrap : MonoBehaviour
     {
-        private enum Tool { Pan, Road, Building, Tower, Entrance, Erase }
-        private static readonly string[] ToolNames = { "Kaydır", "Yol", "Bina", "Kule", "Giriş", "Sil" };
+        private enum Tool { Pan, Road, Building, Tower, Entrance, Upgrade, Erase }
+        private static readonly string[] ToolNames = { "Kaydır", "Yol", "Bina", "Kule", "Giriş", "Geliştir", "Sil" };
         private const int MinSize = 5, MaxSize = 21;
 
         private VillageLayout layout;
         private Tool tool = Tool.Road;
-        private RoadTier roadTier = RoadTier.Wood;
-        private static readonly string[] TierNames = { "Tahta", "Altın+Tahta", "Demir" };
+        private int playerLevel = 1;              // test durumu (gerçek oyunda sunucudan gelir)
+        private bool roadResearchDone;            // test durumu: yol geliştirme araştırması
         private Camera cam;
         private Vector3 target;
         private float zoom = 8f;
@@ -50,7 +50,7 @@ namespace GameClient
             baseMat = tmp.GetComponent<MeshRenderer>().sharedMaterial;
             Destroy(tmp);
 
-            layout = new VillageLayout(11);
+            layout = new VillageLayout(11, RoadRules.RoadLimitForLevel(playerLevel), RoadRules.MaxEntrances);
             cam = Camera.main;
             if (cam == null)
             {
@@ -175,8 +175,11 @@ namespace GameClient
             switch (tool)
             {
                 case Tool.Road:
-                    if (layout.Get(cell) == CellKind.Road) ok = layout.GetRoadTier(cell) != roadTier && layout.SetRoadTier(cell, roadTier);
-                    else ok = layout.TryPlace(cell, CellKind.Road, out err, roadTier);
+                    ok = layout.TryPlace(cell, CellKind.Road, out err);
+                    break;
+                case Tool.Upgrade:
+                    if (!RoadRules.CanUpgrade(playerLevel, roadResearchDone, out err)) break;
+                    ok = layout.TryUpgradeRoad(cell, out err);
                     break;
                 case Tool.Building: ok = layout.TryPlace(cell, CellKind.Building, out err); break;
                 case Tool.Tower: ok = layout.TryPlace(cell, CellKind.Tower, out err); break;
@@ -316,6 +319,13 @@ namespace GameClient
             valid = layout.Validate(out validationError);
         }
 
+        private void SetLevel(int level)
+        {
+            playerLevel = level;
+            layout = layout.WithLimits(RoadRules.RoadLimitForLevel(level), layout.EntranceLimit);
+            dirty = true;
+        }
+
         // ---------- Arayüz (OnGUI: dokunmatik düğmeler de çalışır) ----------
         private void OnGUI()
         {
@@ -350,14 +360,23 @@ namespace GameClient
             if (GUI.Button(rp, "Grid +") && layout.Size < MaxSize) { layout = layout.Resized(layout.Size + 1); ResetCamera(); dirty = true; }
             if (GUI.Button(rc, "Kamera")) ResetCamera();
             if (GUI.Button(rt, "Temizle")) { layout = new VillageLayout(layout.Size, layout.RoadLimit, layout.EntranceLimit); dirty = true; }
-            var rr = new Rect(354, 44, 150, 32);
-            if (GUI.Button(rr, "Malzeme: " + TierNames[(int)roadTier])) { roadTier = (RoadTier)(((int)roadTier + 1) % 3); tool = Tool.Road; }
-            uiRects.Add(rm); uiRects.Add(rl); uiRects.Add(rp); uiRects.Add(rc); uiRects.Add(rt); uiRects.Add(rr);
+            uiRects.Add(rm); uiRects.Add(rl); uiRects.Add(rp); uiRects.Add(rc); uiRects.Add(rt);
+
+            // Test paneli: seviye ve araştırma durumu (gerçek oyunda sunucu belirler)
+            var lm = new Rect(4, 80, 50, 32);
+            var ll = new Rect(58, 80, 70, 32);
+            var lp = new Rect(132, 80, 50, 32);
+            var rr = new Rect(186, 80, 190, 32);
+            GUI.Box(ll, "Sv " + playerLevel);
+            if (GUI.Button(lm, "Sv -") && playerLevel > 1) SetLevel(playerLevel - 1);
+            if (GUI.Button(lp, "Sv +") && playerLevel < 30) SetLevel(playerLevel + 1);
+            if (GUI.Button(rr, "Yol araştırması: " + (roadResearchDone ? "VAR" : "yok") + " (test)")) roadResearchDone = !roadResearchDone;
+            uiRects.Add(lm); uiRects.Add(ll); uiRects.Add(lp); uiRects.Add(rr);
 
             var rs = new Rect(4, h - 44, w - 8, 40);
             string msg = valid ? "GEÇERLİ - savunma kaydedilebilir" : "GEÇERSİZ - " + validationError;
             if (Time.time < toastUntil) msg = toast;
-            msg += "    [Yol " + layout.RoadCount + "/" + layout.RoadLimit + " | Giriş " + layout.EntranceCount + "/" + layout.EntranceLimit + "]";
+            msg += "    [Sv " + playerLevel + " | Yol " + layout.RoadCount + "/" + layout.RoadLimit + " | Giriş " + layout.EntranceCount + "]";
             GUI.color = valid ? new Color(0.6f, 1f, 0.6f) : new Color(1f, 0.8f, 0.5f);
             GUI.Box(rs, msg);
             GUI.color = Color.white;

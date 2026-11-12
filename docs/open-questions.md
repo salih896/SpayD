@@ -29,3 +29,9 @@
 ## ÇÖZÜLDÜ (12.11.2026) — Yol soruları
 Başlangıç 10 yol (sınır 10, hepsi zorunlu), tek giriş, hepsi girişe bağlı, dallanma serbest, çıkmaz serbest → bkz. approved-mechanics.md #16-21.
 Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme geliştirme maliyeti/süresi/araştırması; yol hücresi (+) menüsü.
+
+## AÇIK (12.11.2026 – yol geliştirme)
+- Giriş karesi yol hakkından sayılıyor mu? (şu an: evet)
+- Birden fazla giriş baştan mı açık, araştırmayla mı açılır? (şu an: baştan 10'a kadar)
+- Tek yol geliştirmesinin maliyeti/süresi ve Demir için ayrı araştırma gerekir mi?
+- Yol hücresine dokununca açılacak (+) menü.

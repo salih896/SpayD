@@ -12,14 +12,14 @@ namespace GameCore.Village
     /// <summary>
     /// Savunma köyü düzeni (saf C#). Grid boyutu ve limitler parametriktir.
     /// Giriş kenarı: y == 0 (alt kenar); saldırgan gönderim alanı bu kenarın DIŞINDADIR (y = -1 .. -AttackZoneRows).
-    /// Onaylı kurallar (docs/approved-mechanics.md #16): tam 10 yol hakkı ve hepsi kullanılmalı,
-    /// tek giriş, tüm yollar girişe bağlı, dallanma serbest.
+    /// Onaylı kurallar (docs/approved-mechanics.md #16-#21): yol sayısı TAM yol hakkı kadar (seviyeye bağlı),
+    /// en az 1 giriş, tüm yollar girişe bağlı, dallanma ve çıkmaz serbest.
     /// </summary>
     public sealed class VillageLayout
     {
         public const int DefaultSize = 11;
         public const int DefaultRoadLimit = 10;
-        public const int DefaultEntranceLimit = 1;
+        public const int DefaultEntranceLimit = RoadRules.MaxEntrances; // en az 1 zorunlu, üst sınır 10
         public const int AttackZoneRows = 4; // GDD Bölüm 4: saldırı alanı 4x11
 
         public int Size { get; }
@@ -94,6 +94,27 @@ namespace GameCore.Village
             return true;
         }
 
+        /// <summary>Yolu bir malzeme basamağı yükseltir (tahta → altın+tahta → demir). Kapı kontrolü (seviye/araştırma) RoadRules.CanUpgrade'dedir.</summary>
+        public bool TryUpgradeRoad(GridPos p, out string error)
+        {
+            error = null;
+            if (Get(p) != CellKind.Road) { error = "Geliştirmek için bir yola dokun"; return false; }
+            var t = GetRoadTier(p);
+            if (t == RoadTier.Iron) { error = "Bu yol zaten en üst seviyede"; return false; }
+            roadTiers[p] = t + 1;
+            return true;
+        }
+
+        /// <summary>Aynı içerikle yeni limitler (ör. oyuncu seviye atladığında yol hakkı artar).</summary>
+        public VillageLayout WithLimits(int roadLimit, int entranceLimit)
+        {
+            var n = new VillageLayout(Size, roadLimit, entranceLimit);
+            foreach (var kv in cells) n.cells[kv.Key] = kv.Value;
+            foreach (var e in entrances) n.entrances.Add(e);
+            foreach (var kv in roadTiers) n.roadTiers[kv.Key] = kv.Value;
+            return n;
+        }
+
         /// <summary>Yeni boyutta kopya; sınır içindeki hücreler korunur.</summary>
         public VillageLayout Resized(int newSize)
         {
@@ -108,13 +129,14 @@ namespace GameCore.Village
         public bool Validate(out string error)
         {
             error = null;
-            if (entrances.Count == 0) { error = "Giriş karesi koymalısın (alt kenar)"; return false; }
+            if (entrances.Count == 0) { error = "En az 1 giriş karesi koymalısın (alt kenar)"; return false; }
 
             var buildings = new HashSet<GridPos>(cells.Where(c => c.Value == CellKind.Building).Select(c => c.Key));
             if (buildings.Count == 0) { error = "En az 1 kaynak binası gerekli"; return false; }
 
             var roads = new HashSet<GridPos>(cells.Where(c => c.Value == CellKind.Road).Select(c => c.Key));
-            if (roads.Count != RoadLimit) { error = "Tüm yol haklarını kullanmalısın (" + roads.Count + "/" + RoadLimit + ")"; return false; }
+            if (roads.Count < RoadLimit) { error = "Tüm yol haklarını kullanmalısın (" + roads.Count + "/" + RoadLimit + ")"; return false; }
+            if (roads.Count > RoadLimit) { error = "Fazla yol var (" + roads.Count + "/" + RoadLimit + "): " + (roads.Count - RoadLimit) + " yol kaldır"; return false; }
 
             int unreached = roads.Count - FloodFromEntrances(roads);
             if (unreached > 0) { error = "Tüm yollar girişe bağlı olmalı (" + unreached + " parça kopuk)"; return false; }
