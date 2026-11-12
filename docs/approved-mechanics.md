@@ -37,5 +37,5 @@
 19. Dallanma ve çıkmaz yol serbest.
 20. Saldırganın asker gönderme alanı 4×11, giriş kenarının dışındadır.
 21. Seviye atlayınca yol hakkı artar; yeni yol konana kadar savunma geçersiz sayılır.
-22. Yol geliştirme: Sv 10'da "yol geliştirme" araştırması açılır. Araştırmanın süresi, maliyeti ve şartı vardır (ÖRNEK: 1 gün; 5000 tahta, 1000 altın, 100 demir — kesin denge değil).
+22. Yol geliştirme her seviyede açıktır (seviye şartı yok) ama önce "yol geliştirme" araştırması yapılmalı. Araştırmanın süresi, maliyeti ve şartı vardır (ÖRNEK: 1 gün; 5000 tahta, 1000 altın, 100 demir — kesin denge değil).
 23. Araştırma bitince oyuncu yollara tek tek dokunup her yolu ayrı ayrı geliştirir (Tahta → Altın+Tahta → Demir). Her yol geliştirmesinin maliyeti/süresi AÇIK (open-questions.md).

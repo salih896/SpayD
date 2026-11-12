@@ -276,14 +276,11 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void UpgradeGate_RequiresLevelTen_AndResearch()
+        public void UpgradeGate_RequiresResearch_AtAnyLevel()
         {
-            Assert.IsFalse(RoadRules.CanUpgrade(9, true, out var r1));
-            StringAssert.Contains("Sv 10", r1);
-            Assert.IsFalse(RoadRules.CanUpgrade(10, false, out var r2));
-            StringAssert.Contains("araştırma", r2);
-            Assert.IsTrue(RoadRules.CanUpgrade(10, true, out _));
-            Assert.IsTrue(RoadRules.CanUpgrade(25, true, out _));
+            Assert.IsFalse(RoadRules.CanUpgrade(false, out var r));
+            StringAssert.Contains("araştırma", r);
+            Assert.IsTrue(RoadRules.CanUpgrade(true, out _));
         }
     }
 }

@@ -178,7 +178,7 @@ namespace GameClient
                     ok = layout.TryPlace(cell, CellKind.Road, out err);
                     break;
                 case Tool.Upgrade:
-                    if (!RoadRules.CanUpgrade(playerLevel, roadResearchDone, out err)) break;
+                    if (!RoadRules.CanUpgrade(roadResearchDone, out err)) break;
                     ok = layout.TryUpgradeRoad(cell, out err);
                     break;
                 case Tool.Building: ok = layout.TryPlace(cell, CellKind.Building, out err); break;
