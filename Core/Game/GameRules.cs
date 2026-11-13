@@ -14,7 +14,9 @@ namespace GameCore.Game
         public const int StarterWood = 600;
         public const int SellRefundPct = 50;
 
-        public static int MaxTowers(int playerLevel) => 3 + playerLevel;
+        /// <summary>Kule hakkı (GDD Bölüm 9, KESİN KARAR): başlangıçta 5, ilerledikçe en çok 10. Sv2'de 5, her 5 seviyede +1, Sv27+ = 10.</summary>
+        public const int StartTowerSlots = 5, MaxTowerSlots = 10;
+        public static int MaxTowers(int playerLevel) => Math.Min(MaxTowerSlots, StartTowerSlots + Math.Max(0, playerLevel - 2) / 5);
 
         /// <summary>
         /// O oyuncu seviyesindeki tipik aktif oyuncunun kule/asker/bina ortalama seviyesi (denge simülasyonundan kalibre,
@@ -23,7 +25,14 @@ namespace GameCore.Game
         public static int ExpectedStructureLevel(int playerLevel)
         {
             int l = Math.Max(1, Math.Min(MaxLevel, playerLevel));
-            return Math.Max(1, Math.Min(MaxStructureLevel(l), (120 * l + 6 * l * l) / 750)); // Sv10→2, 15→4, 20→6, 25→9, 30→12
+            return Math.Max(1, Math.Min(MaxStructureLevel(l), (120 * l + 6 * l * l) / 750)); // asker: Sv10→2, 15→4, 20→6, 25→9, 30→12
+        }
+
+        /// <summary>Tipik oyuncunun KULE seviyesi (kule sayısı az olduğu için askerden hızlı yükselir). Hedef köy kuleleri buna bağlı.</summary>
+        public static int ExpectedTowerLevel(int playerLevel)
+        {
+            int l = Math.Max(1, Math.Min(MaxLevel, playerLevel));
+            return Math.Max(1, Math.Min(MaxStructureLevel(l), (4 * l * l + 30 * l + 300) / 300)); // Sv10→3, 15→5, 20→8, 25→11, 30→16
         }
 
         /// <summary>Yapı/kule seviyesi oyuncu seviyesini geçemez.</summary>
@@ -73,7 +82,7 @@ namespace GameCore.Game
         public static int Builders(int villagerHouses) => 1 + Math.Min(5, villagerHouses);
 
         /// <summary>Kışla toplam seviyesi başına ordu kapasitesi.</summary>
-        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 10 + 3 * barracksLevelSum;
+        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 20 + barracksLevelSum * 6 / 5;
 
         // ---- Üretim ve depo ----
         public static ResourceType? ProducedBy(BuildingType t)

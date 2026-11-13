@@ -2,7 +2,7 @@ using GameCore.Economy;
 
 namespace GameCore.Combat
 {
-    public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6 }
+    public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6, Giant = 7, Catapult = 8, DragonRider = 9 }
     public enum TowerType { Archer = 0, Mage = 1, Spear = 2, Elf = 3 }
     public enum BuildingType
     {

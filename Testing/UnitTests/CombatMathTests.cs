@@ -46,18 +46,18 @@ namespace GameCore.Tests
         public void SpearTower_HasBonusVsMounted()
         {
             var spear = ContentCatalog.Tower(TowerType.Spear);
-            int vsInfantry = CombatMath.TowerDamage(spear, 1, false, false, 10);   // 30 * 0.9
-            int vsCavalry = CombatMath.TowerDamage(spear, 1, false, true, 20);     // 75 * 0.8
-            Assert.AreEqual(27, vsInfantry);
-            Assert.AreEqual(60, vsCavalry);
+            int vsInfantry = CombatMath.TowerDamage(spear, 1, false, false, 10);   // 75 * 0.9
+            int vsCavalry = CombatMath.TowerDamage(spear, 1, false, true, 20);     // 187 * 0.8
+            Assert.AreEqual(67, vsInfantry);
+            Assert.AreEqual(149, vsCavalry); // tamsayı yuvarlama
         }
 
         [Test]
         public void ElfTower_HasBonusVsAir()
         {
             var elf = ContentCatalog.Tower(TowerType.Elf);
-            Assert.AreEqual(14, CombatMath.TowerDamage(elf, 1, true, false, 0));
-            Assert.AreEqual(7, CombatMath.TowerDamage(elf, 1, false, false, 0));
+            Assert.AreEqual(36, CombatMath.TowerDamage(elf, 1, true, false, 0));
+            Assert.AreEqual(18, CombatMath.TowerDamage(elf, 1, false, false, 0));
         }
 
         [Test]
@@ -65,7 +65,7 @@ namespace GameCore.Tests
         {
             var mage = ContentCatalog.Tower(TowerType.Mage);
             int pierced = CombatMath.TowerDamage(mage, 1, false, false, 30);   // zırh 30 -> 21
-            Assert.AreEqual(20, pierced);
+            Assert.AreEqual(51, pierced); // 65 * (1 - 0.21)
         }
 
         [Test]

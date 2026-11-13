@@ -22,7 +22,7 @@ namespace GameCore.Game
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
                 if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= level) unlocked.Add((SoldierType)i);
             if (unlocked.Count == 0) unlocked.Add(SoldierType.Swordsman);
-            int total = 4 + level; // GEÇİCİ: oyuncunun ordu kapasitesinin kabaca yarısı
+            int total = 6 + level * 3 / 2; // GEÇİCİ: denge turu 2 (5-10 güçlü kuleye karşı)
             for (int i = 0; i < total; i++)
             {
                 var t = unlocked[i % unlocked.Count];

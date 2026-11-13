@@ -12,8 +12,8 @@ namespace GameCore.Game
     {
         private static readonly SoldierType[] Order =
         {
-            SoldierType.Spearman, SoldierType.Swordsman, SoldierType.Cavalry, SoldierType.Archer,
-            SoldierType.Mage, SoldierType.Fairy, SoldierType.Goblin
+            SoldierType.Giant, SoldierType.Spearman, SoldierType.Swordsman, SoldierType.Cavalry, SoldierType.Archer,
+            SoldierType.Mage, SoldierType.Catapult, SoldierType.Fairy, SoldierType.DragonRider, SoldierType.Goblin
         };
 
         public static BattleSim Run(DefenseSetup defense, Dictionary<SoldierType, int> stock, Dictionary<SoldierType, int> levels, CombatMods mods, int seed)

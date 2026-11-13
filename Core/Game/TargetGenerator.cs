@@ -94,11 +94,11 @@ namespace GameCore.Game
             // Savunma araştırması: o seviyedeki tipik oyuncunun kule/bina bonusu kadar (oyuncu saldırırken kendi araştırmasını kullanır)
             int rp = ExpectedDefenseResearchPermille(level);
             var setup = new DefenseSetup(layout) { Mods = new CombatMods { TowerDamage = rp, TowerHp = rp, BuildingHp = rp } };
-            // Kule sayısı: o seviyedeki oyuncunun kule hakkının bir oranı (Kolay %60, Normal %90, Zor %100).
-            // Seviyeler: tipik oyuncunun yapı seviyesi (GameRules.ExpectedStructureLevel), Kolay -1 / Zor +1.
-            int countPct = difficulty == 0 ? 60 : (difficulty == 2 ? 100 : 90);
+            // Kule sayısı: o seviyedeki oyuncunun kule hakkının bir oranı (Kolay %50, Normal %80, Zor %100).
+            // Seviyeler: tipik oyuncunun kule seviyesi (GameRules.ExpectedTowerLevel), Kolay -1 / Zor +1.
+            int countPct = difficulty == 0 ? 50 : (difficulty == 2 ? 100 : 80);
             int towerTarget = Math.Max(1, GameRules.MaxTowers(level) * countPct / 100 * TowerScalePct / 100);
-            int structLevel = Math.Max(1, Math.Min(GameRules.MaxStructureLevel(level), GameRules.ExpectedStructureLevel(level) + (difficulty == 0 ? -1 : difficulty == 2 ? 1 : 0)));
+            int structLevel = Math.Max(1, Math.Min(GameRules.MaxStructureLevel(level), GameRules.ExpectedTowerLevel(level) + (difficulty == 0 ? -1 : difficulty == 2 ? 1 : 0)));
             var towerTypes = new List<TowerType>();
             foreach (TowerType t in Enum.GetValues(typeof(TowerType))) if (ContentCatalog.Tower(t).UnlockLevel <= level) towerTypes.Add(t);
             if (towerTypes.Count == 0) towerTypes.Add(TowerType.Archer); // Sv1 hedeflerde de en az bir okçu kulesi olsun

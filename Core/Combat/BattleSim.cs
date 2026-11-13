@@ -322,7 +322,9 @@ namespace GameCore.Combat
                 case SoldierType.Swordsman: return (st.Kind == StructKind.Tower || st.IsResource) ? 0 : 1;
                 case SoldierType.Fairy: return st.IsResource ? 0 : (st.Kind == StructKind.Tower ? 1 : 2);
                 case SoldierType.Mage: return 0;
-                default: return st.Kind == StructKind.Tower ? 0 : 1; // Okçu, Atlı, Mızraklı
+                case SoldierType.Catapult: return 0;                       // en yakın her şey (uzaktan kuşatma)
+                case SoldierType.DragonRider: return st.Kind == StructKind.Tower ? 0 : 1;
+                default: return st.Kind == StructKind.Tower ? 0 : 1; // Okçu, Atlı, Mızraklı, Dev
             }
         }
 
