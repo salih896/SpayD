@@ -34,7 +34,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 - Açık sorular tam liste: `docs/open-questions.md` (banka/altın madeni açılış seviyesi çakışması, kalkan = koruma mı, vb.).
 
 ## 5. Sıradaki işler (öneri sırası)
-1. **Ortam:** ✔ Depo açıldı (`Documents\GameStudio-repo`), eksik Unity iskeleti (ProjectSettings, Packages, sahne, .meta) depoya eklendi, `Tools/run-tests.ps1` yazıldı. ⏳ GitHub özel depo kullanıcıyı bekliyor (gh CLI kurulu değil).
+1. **Ortam:** ✔ Depo açıldı (`Documents\GameStudio-repo`), eksik Unity iskeleti (ProjectSettings, Packages, sahne, .meta) depoya eklendi, `Tools/run-tests.ps1` yazıldı, GitHub özel deposu kuruldu: `salih896/SpayD` (origin; eski bundle uzak deposu `bundle` adıyla duruyor).
 2. **Elle test turu:** Bölüm 4'teki doğrulanmayanları sırayla dene, hataları düzelt.
 3. **Denge turu:** Zafer kazanılabilir ama kolay olmayan savaş; asker/kule hasarları, ordu kapasitesi, XP/ödül hızları, günlük baskın sıklığı. Hedef: Sv1→30 toplam birkaç hafta aktif oyun.
 4. **Eksik sistemler:** yol malzeme yükseltmesi + araştırması, Element kilitleri, onarım maliyeti/süresi, harita genişletme (onay şartıyla), tuzak çeşitleri/gelişimi.
@@ -52,7 +52,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 
 ## 7. Taşıma notu
 **Çalışma kopyası artık `C:\Users\salih\Documents\GameStudio-repo` (git deposu).** `Documents\GameStudio` git'siz eski kopyadır; Unity Hub'da projeyi `GameStudio-repo\GameClient` olarak açın.
-Git geçmişi `GameStudio.bundle` dosyasındadır (`C:\Users\salih\Documents\GameStudio\`). Açmak: `git clone GameStudio\GameStudio.bundle GameStudio-repo` → `git checkout feature/combat-prototype`. GitHub için `salih896/GameStudio` özel deposu henüz açılmadı.
+Git geçmişi `GameStudio.bundle` dosyasındadır (`C:\Users\salih\Documents\GameStudio\`). Açmak: `git clone GameStudio\GameStudio.bundle GameStudio-repo` → `git checkout feature/combat-prototype`. GitHub: https://github.com/salih896/SpayD (özel, 13.11.2026).
 
 ## 8. Unity kısa notları
 - Test: Window > General > Test Runner > EditMode > Run All (105 test). Denge raporu `docs/balance-report.txt` dosyasına yazılır.
