@@ -7,8 +7,8 @@ namespace GameCore.Economy
     [System.Flags]
     public enum SpendArea
     {
-        None = 0, Building = 1, Upgrade = 2, Research = 4, Repair = 8, Road = 16,
-        All = Building | Upgrade | Research | Repair | Road
+        None = 0, Building = 1, Upgrade = 2, Research = 4, Repair = 8, Road = 16, Training = 32,
+        All = Building | Upgrade | Research | Repair | Road | Training
     }
 
     /// <summary>Yağmalanma kuralı (ayrıntılar dengeleme/PvP aşamasında).</summary>

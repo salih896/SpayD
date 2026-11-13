@@ -46,6 +46,29 @@ namespace GameCore.Village
         public int EntranceCount => entrances.Count;
         public int RoadCount => cells.Count(c => c.Value == CellKind.Road);
 
+        /// <summary>Belirli türdeki hücreler, sıralı (Y sonra X): deterministik dolaşım için.</summary>
+        public List<GridPos> CellsOf(CellKind kind)
+        {
+            var l = new List<GridPos>();
+            foreach (var kv in cells) if (kv.Value == kind) l.Add(kv.Key);
+            l.Sort(CompareYX);
+            return l;
+        }
+
+        /// <summary>Giriş hücreleri, sıralı (Y sonra X).</summary>
+        public List<GridPos> EntrancePositions()
+        {
+            var l = new List<GridPos>(entrances);
+            l.Sort(CompareYX);
+            return l;
+        }
+
+        private static int CompareYX(GridPos a, GridPos b)
+        {
+            int c = a.Y.CompareTo(b.Y);
+            return c != 0 ? c : a.X.CompareTo(b.X);
+        }
+
         public RoadTier GetRoadTier(GridPos p) => roadTiers.TryGetValue(p, out var t) ? t : RoadTier.Wood;
 
         public bool SetRoadTier(GridPos p, RoadTier tier)
