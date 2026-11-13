@@ -585,6 +585,7 @@ namespace GameClient
             battleOver = true;
             var have = new ResourceCost(wallet.Get(ResourceType.Wood), wallet.Get(ResourceType.Stone), wallet.Get(ResourceType.Gold), wallet.Get(ResourceType.Iron));
             lastResult = sim.Result(have, resCfg, playerLevel);
+            wallet.Plunder(lastResult.Loot); // savunmacı yağmalanan kaynağı kaybeder
             foreach (var rec in lastResult.TowerDamages)
             {
                 if (!wears.TryGetValue(rec.Pos, out var wr)) { wr = new TowerWear(); wears[rec.Pos] = wr; }

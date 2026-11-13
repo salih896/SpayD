@@ -107,5 +107,19 @@ namespace GameCore.Tests
             StringAssert.Contains("harcanamaz", err);
             Assert.IsTrue(w.TrySpend(new ResourceCost(5), 1, SpendArea.Building, out _));
         }
+
+        [Test]
+        public void Plunder_TakesAtMostWhatExists()
+        {
+            var w = new Wallet(ResourceConfig.CreateDefault());
+            w.TryAdd(ResourceType.Wood, 100, 1, out _, out _);
+            var taken = w.Plunder(new ResourceCost(70, 50));
+            Assert.AreEqual(70, taken.Wood);
+            Assert.AreEqual(0, taken.Stone);
+            Assert.AreEqual(30, w.Get(ResourceType.Wood));
+            taken = w.Plunder(new ResourceCost(500));
+            Assert.AreEqual(30, taken.Wood);
+            Assert.AreEqual(0, w.Get(ResourceType.Wood));
+        }
     }
 }

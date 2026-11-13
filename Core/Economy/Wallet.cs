@@ -64,6 +64,18 @@ namespace GameCore.Economy
             return true;
         }
 
+        /// <summary>Yağma kaybı: alan/kilit denetimi yok, eldekinden fazlası düşmez. Gerçekte düşen miktarı döndürür.</summary>
+        public ResourceCost Plunder(ResourceCost loot)
+        {
+            int[] taken = new int[4];
+            foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
+            {
+                int n = Math.Max(0, Math.Min(loot.Get(t), amounts[(int)t]));
+                amounts[(int)t] -= n; taken[(int)t] = n;
+            }
+            return new ResourceCost(taken[0], taken[1], taken[2], taken[3]);
+        }
+
         private static string Name(ResourceType t)
         {
             switch (t)
