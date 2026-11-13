@@ -64,6 +64,9 @@ namespace GameCore.Combat
         public IReadOnlyList<SimSoldier> Soldiers => soldiers;
         public int StockOf(SoldierType t) => stock.TryGetValue(t, out var n) ? n : 0;
 
+        /// <summary>Saldıranın araştırma bonusları (Deploy'dan önce atanır).</summary>
+        public CombatMods AttackerMods = new CombatMods();
+
         public BattleSim(DefenseSetup defense, Dictionary<SoldierType, int> attackerStock,
                          Dictionary<SoldierType, int> soldierLevels, int seed)
         {
@@ -80,7 +83,7 @@ namespace GameCore.Combat
             {
                 if (!defense.Towers.TryGetValue(p, out var spec)) spec = new TowerSpec(TowerType.Archer);
                 var def = ContentCatalog.Tower(spec.Type);
-                int max = ContentCatalog.Scaled(def.Hp, spec.Level);
+                int max = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, spec.Level), defense.Mods.TowerHp);
                 int perm = Math.Max(0, Math.Min(100, spec.PermanentDamagePct));
                 int start = Math.Max(1, max * (100 - perm) / 100);
                 structures.Add(new SimStructure
@@ -93,7 +96,7 @@ namespace GameCore.Combat
             {
                 if (!defense.Buildings.TryGetValue(p, out var spec)) spec = new BuildingSpec(BuildingType.VillagerHouse);
                 var def = ContentCatalog.Building(spec.Type);
-                int max = ContentCatalog.Scaled(def.Hp, spec.Level);
+                int max = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, spec.Level), defense.Mods.BuildingHp);
                 structures.Add(new SimStructure
                 {
                     Id = structures.Count, Pos = p, Kind = StructKind.Building, BuildingType = spec.Type, Level = spec.Level,
@@ -116,7 +119,7 @@ namespace GameCore.Combat
             var s = new SimSoldier
             {
                 Id = soldiers.Count, Type = type, Level = lvl,
-                MaxHp = ContentCatalog.Scaled(def.Hp, lvl), Attack = ContentCatalog.Scaled(def.Attack, lvl),
+                MaxHp = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, lvl), AttackerMods.SoldierHp), Attack = CombatMods.Apply(ContentCatalog.Scaled(def.Attack, lvl), AttackerMods.SoldierDamage),
                 IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli, SpeedMilli = def.SpeedMilli,
                 ArmorPct = def.ArmorPct, FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli,
                 Flying = def.Flying, Mounted = def.Mounted,
@@ -192,7 +195,7 @@ namespace GameCore.Combat
                     best = s; bestD = d;
                 }
                 if (best == null) continue;
-                int dmg = CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct);
+                int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage);
                 Hit(best, dmg);
                 if (def.SplashMilli > 0)
                 {

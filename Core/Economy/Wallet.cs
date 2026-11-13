@@ -12,14 +12,22 @@ namespace GameCore.Economy
         private readonly ResourceConfig cfg;
         private readonly int[] amounts = new int[Enum.GetValues(typeof(ResourceType)).Length];
 
+        private readonly int[] capOverride = new int[Enum.GetValues(typeof(ResourceType)).Length];
+
         public Wallet(ResourceConfig config) { cfg = config; }
+
+        /// <summary>Depo binalarından hesaplanan kapasite (0 = ayar dosyasındaki değer kullanılır).</summary>
+        public void SetCapacity(ResourceType t, int capacity) { capOverride[(int)t] = capacity; }
+
+        /// <summary>Kayıttan yükleme: doğrudan bakiye atar (sunucu doğrulaması dışında kullanılmaz).</summary>
+        public void SetAmount(ResourceType t, int amount) { amounts[(int)t] = Math.Max(0, amount); }
 
         public int Get(ResourceType t) => amounts[(int)t];
 
         /// <summary>Depo kapasitesi; 0 veya negatif = henüz belirlenmedi (sınırsız).</summary>
         public int CapacityOf(ResourceType t)
         {
-            int c = cfg.Get(t).StorageCapacity;
+            int c = capOverride[(int)t] > 0 ? capOverride[(int)t] : cfg.Get(t).StorageCapacity;
             return c <= 0 ? int.MaxValue : c;
         }
 

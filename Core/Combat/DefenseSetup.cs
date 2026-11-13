@@ -24,6 +24,8 @@ namespace GameCore.Combat
         public Dictionary<GridPos, BuildingSpec> Buildings = new Dictionary<GridPos, BuildingSpec>();
         public Dictionary<GridPos, TrapType> Traps = new Dictionary<GridPos, TrapType>();
 
+        public CombatMods Mods = new CombatMods(); // savunmacının araştırma bonusları
+
         public DefenseSetup(VillageLayout layout) { Layout = layout; }
     }
 }

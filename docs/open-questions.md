@@ -52,3 +52,12 @@ Hâlâ açık: giriş karesi 10'dan sayılıyor mu (varsayım: evet); malzeme ge
 - Güncellenmiş TechTrees.md bekleniyor: yol geliştirme kaydı, yeniden adlandırmalar (Element Kontrolü, tekrar eden adlar), kalkan düzenlemesi bu oturuma ulaşmadı.
 - Harita Genişletme: koşullu onay ("sistemi çok karıştırmazsa"). Taban 11, araştırmayla 15; uygulamada karmaşıklık raporlanacak. approved #15 bu yüzden henüz değişmedi.
 - Ön koşul zinciri yorumu (ONAY LAZIM): her araştırma, aynı kanaldaki (sütundaki) bir önceki seviyenin araştırmasını gerektirir; kanal atlanamaz. 3. sütun (Sv5,10,15...) için kural belirsiz.
+
+## AÇIK (13.11.2026 – oyun döngüsü tamamlama, kullanıcı: "bana sorma, hepsini sen ayarla")
+Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımdır:
+- Element çapraz-ağaç kilitleri UYGULANMADI (sadece aynı sütun ön koşulu + 3. sütun için aynı seviyedeki 1. ve 2. sütun + önceki 3. sütun varsayımı).
+- Yol malzeme basamağı yükseltme/araştırması istemciye bağlanmadı (TechTrees yol kaydı gelmedi); yapı onarımı anlık ve ücretsizdir.
+- Tüm sayılar (XP eğrisi 100+12l+2l², seviye ölçeği 100+20l+2l², araştırma süre/maliyet, kaynak üretim/kapasite, hedef kule sayısı TowerScalePct=200, görev ödülleri, günlük baskın) docs/balance-report.txt ile ayarlanmalı.
+- Seviye 30 test durumunda 16 adet Sv1 askerle Sv28 köye saldırı kesin yenilgi (beklenen): asker seviye yükseltmesi/ordu kapasitesi oynarken dengelenecek.
+- Sunucu/hesap/sıralama/eşleştirme/lonca/mağaza dokunulmadı; yerel kayıt (save.txt) geçicidir.
+- main'e birleştirme kullanıcı onayı bekler.

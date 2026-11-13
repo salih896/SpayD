@@ -23,6 +23,9 @@ namespace GameCore.Military
         private readonly List<ProductionItem> items = new List<ProductionItem>();
         public IReadOnlyList<ProductionItem> Items => items;
 
+        /// <summary>Kayıttan yükleme için.</summary>
+        public void RestoreItem(ProductionItem item) { items.Add(item); }
+
         public int TotalSecondsRemaining
         {
             get { int s = 0; foreach (var i in items) s += i.RemainingSeconds; return s; }
