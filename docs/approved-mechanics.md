@@ -45,3 +45,10 @@
 25. Açılmamış kaynak üretilemez, harcanamaz, oyuncuya gösterilmez; ilgili bina/geliştirme erişilemez.
 26. Açılma seviyeleri tek merkezde tutulur (Core/Economy/ResourceConfig). Üretim, süre, depo, harcama alanı, yağma kuralı kaynak başına ayarlanır.
 27. Kaynak üretimi/harcaması sunucuda doğrulanır; istemci miktarı değiştiremez (sunucu Aşama 7'de kurulur, kurallar Core'da yazılır).
+
+## Araştırma sistemi (12.11.2026) — kaynak: GameDesign/TechTrees.md
+28. Araştırma maliyeti yalnızca o seviyede açık kaynaklarla ödenir (kilitli kaynak maliyette olamaz).
+29. Üniversite seviyesi arttıkça o seviyedeki araştırmalar açılır: Üniversite Sv N ise en çok N. seviye araştırmalar yapılabilir (örn. köy 10, üniversite 8 → 9 ve 10. seviye araştırmalar kapalı).
+30. Bir araştırma yapılabilmek için ağaçta tam kendinden önceki araştırma (aynı kanalda) tamamlanmış olmalı; kanal atlanamaz (kesin işleyiş açık-sorular'da).
+31. Aynı adda iki araştırma olmaz. Ekonomi ağacının Sv25'inde 2 araştırma olması doğrudur.
+32. Yol geliştirme araştırması araştırma ağacına eklendi (kayıt güncel belgeyle gelecek).

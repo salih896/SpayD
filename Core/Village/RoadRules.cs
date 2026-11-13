@@ -1,15 +1,7 @@
+using GameCore.Economy;
+
 namespace GameCore.Village
 {
-    /// <summary>Kaynak maliyeti (tahta, altın, demir). Değerler dengeleme aşamasında veri dosyasına taşınacak.</summary>
-    public readonly struct ResourceCost
-    {
-        public readonly int Wood;
-        public readonly int Gold;
-        public readonly int Iron;
-        public ResourceCost(int wood, int gold, int iron) { Wood = wood; Gold = gold; Iron = iron; }
-        public override string ToString() => Wood + " tahta, " + Gold + " altın, " + Iron + " demir";
-    }
-
     /// <summary>
     /// Yol kuralları (docs/approved-mechanics.md #16-#23).
     /// DİKKAT: Araştırma süresi/maliyeti kullanıcının verdiği ÖRNEK değerlerdir (geçici), kesin denge değil.
@@ -20,7 +12,7 @@ namespace GameCore.Village
         public const int MinEntrances = 1;
         public const int MaxEntrances = 10;           // GDD Bölüm 5
         public const int ResearchDurationSeconds = 24 * 60 * 60; // ÖRNEK: 1 gün
-        public static readonly ResourceCost ResearchCost = new ResourceCost(5000, 1000, 100); // ÖRNEK
+        public static readonly ResourceCost ResearchCost = new ResourceCost(wood: 5000, stone: 1000); // ÖRNEK (yalnızca açık kaynaklar; altın/demir kullanılmaz)
 
         /// <summary>Seviye başına +1 yol: Sv1=10, Sv2=11, Sv3=12 ... Savunmada TAM bu sayıda yol olmalı.</summary>
         public static int RoadLimitForLevel(int level) => BaseRoadCount + (level < 1 ? 0 : level - 1);
