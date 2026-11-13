@@ -110,10 +110,11 @@ namespace GameCore.Progression
         public bool IsClaimed(string id) => claimed.Contains(id);
         public bool IsComplete(QuestDef q) => ProgressOf(q.Id) >= q.Target;
 
-        /// <summary>Yeni gün başladıysa günlükleri yeniden seç ve günlük ilerlemeyi sıfırla.</summary>
+        /// <summary>Yeni gün başladıysa günlükleri yeniden seç ve günlük ilerlemeyi sıfırla.
+        /// Gün yalnızca ileri gider: saat geri alınırsa (cihaz saati, test aracı) günlükler yeniden seçilmez.</summary>
         public bool RollDaily(int dayIndex, int playerLevel)
         {
-            if (dayIndex == DailyDay) return false;
+            if (dayIndex <= DailyDay) return false;
             foreach (var id in dailyIds) { progress.Remove(id); claimed.Remove(id); }
             dailyIds.Clear();
             var pool = new List<QuestDef>();

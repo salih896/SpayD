@@ -48,6 +48,12 @@ namespace GameCore.Game
             foreach (var a in g.Research.Active) sb.AppendLine("ract " + a.Id + " " + a.RemainingSeconds);
             foreach (var kv in g.Quests.Progress) sb.AppendLine("qp " + kv.Key + " " + kv.Value + " " + (g.Quests.IsClaimed(kv.Key) ? 1 : 0));
             sb.AppendLine("qd " + g.Quests.DailyDay + " " + string.Join(",", g.Quests.DailyIds));
+            if (g.LastRaid != null && g.LastRaid.Result != null)
+            {
+                var rr = g.LastRaid; var lo = rr.LootLost;
+                sb.AppendLine("raid " + rr.Day + " " + (rr.Result.Victory ? 1 : 0) + " " + rr.Result.Stars + " " + rr.Result.OverallDamagePct + " "
+                    + lo.Wood + " " + lo.Stone + " " + lo.Gold + " " + lo.Iron + " " + rr.TowersDamaged);
+            }
             foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds);
             return sb.ToString();
         }
@@ -106,6 +112,15 @@ namespace GameCore.Game
                         case "qd":
                             dailyDay = int.Parse(p[1]);
                             if (p.Length > 2 && p[2].Length > 0) daily.AddRange(p[2].Split(','));
+                            break;
+                        case "raid": // yalnızca rapor özeti saklanır (ayrıntılı savaş kaydı sunucu aşamasında)
+                            g.LastRaid = new RaidReport
+                            {
+                                Day = int.Parse(p[1]),
+                                Result = new BattleResult { Victory = p[2] == "1", Stars = int.Parse(p[3]), OverallDamagePct = int.Parse(p[4]) },
+                                LootLost = new ResourceCost(int.Parse(p[5]), int.Parse(p[6]), int.Parse(p[7]), int.Parse(p[8])),
+                                TowersDamaged = int.Parse(p[9])
+                            };
                             break;
                         case "job":
                             g.Jobs.Add(new UpgradeJob { Kind = (JobKind)int.Parse(p[1]), Pos = new GridPos(int.Parse(p[2]), int.Parse(p[3])), Soldier = (SoldierType)int.Parse(p[4]), TargetLevel = int.Parse(p[5]), RemainingSeconds = int.Parse(p[6]) });

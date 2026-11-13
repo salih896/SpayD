@@ -282,7 +282,7 @@ namespace GameCore.Game
             RecomputeCapacity();
 
             if (Quests.RollDaily(dayIndex, lvl)) events.Add("Yeni günlük görevler");
-            if (dayIndex != LastRaidDay)
+            if (dayIndex > LastRaidDay) // gün yalnızca ileri gider; saat geri alınınca ikinci baskın olmaz
             {
                 LastRaidDay = dayIndex;
                 var rep = RaidSimulator.TryRaid(this, dayIndex);

@@ -1,5 +1,5 @@
 # DEVİR TESLİM – Oyun Durumu ve Devam Planı
-Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 105/105 geçti (Unity EditMode)
+Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 117/117 geçti (Unity EditMode, batch)
 
 > Claude Code'a ilk mesaj: "docs/HANDOFF.md, CLAUDE.md, docs/approved-mechanics.md ve docs/open-questions.md dosyalarını oku, sonra Bölüm 5'teki sıradan devam et."
 
@@ -11,10 +11,10 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 - `Core/` = saf C# simülasyon (Unity'siz, tamsayı matematik, `float` yok, tick tabanlı 10/sn, tohumlu RNG, sabit komşu sırası). İstemci ve ileride sunucu aynı kodu kullanır.
 - `GameClient/` = Unity istemcisi (asmdef: GameCore, GameClient, GameCore.Tests). Core, yerel paket olarak bağlı.
 - Klasörler: `Core/{Combat,Economy,Game,Grid,Military,Progression,Village}`, `Testing/UnitTests`, `Tools/gen_research.py`, `GameDesign/GDD.md`, `GameDesign/TechTrees.md`, `docs/`.
-- Derleme/test komut satırından: `powershell -ExecutionPolicy Bypass -File Tools\run-tests.ps1` (`-CompileOnly`, `-Filter <ad>`). Proje Editör'de açıkken çalışmaz. 13.11.2026: 105/105 geçti (~1 dk).
+- Derleme/test komut satırından: `powershell -ExecutionPolicy Bypass -File Tools\run-tests.ps1` (`-CompileOnly`, `-Filter <ad>`). Proje Editör'de açıkken çalışmaz. 13.11.2026: 117/117 geçti (~20 sn, ilk açılış ~1 dk).
 
 ## 3. Yapılanlar (GDD aşamalarına göre)
-- **Aşama 1 – Hazırlık:** ✔ GDD, mimari, Unity projesi, test altyapısı, CLAUDE.md. (GitHub deposu henüz yok.)
+- **Aşama 1 – Hazırlık:** ✔ GDD, mimari, Unity projesi, test altyapısı, CLAUDE.md. GitHub: `salih896/SpayD` (özel).
 - **Aşama 2 – Köy prototipi:** ✔ İzometrik kamera, 11×11 grid, bina/yol/kule yerleştirme, kamera hareketi, yakınlaştırma. Android cihazda denenmedi.
 - **Aşama 3 – Köy ve ekonomi:** ✔ Odun/Taş/Altın/Demir, Sv'ye göre açılma, üretim, depolama kapasitesi, inşaat/yükseltme süreleri, işçi (köylü evi başı +1, en çok 6), çevrim dışı üretim (24 saate kadar).
 - **Aşama 4 – Savunma:** ✔ Giriş noktaları, yol ağı ve bağlantı doğrulama (VillageLayout.Validate), tuzaklar, kule saldırısı/hasarı, kule aşınması, onarım (şimdilik anlık ve ücretsiz).
@@ -24,7 +24,8 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 - **Unity'de elle doğrulananlar:** derleme temiz, oyun açılıyor, yerleştirme, kışla kuyruğu, saldırı + sonuç ekranı (yenilgi, XP, ölü sayısı), Görevler ve Araştırma sekmeleri.
 
 ## 4. Henüz doğrulanmayanlar / bilinen eksikler
-- Elle denenmedi: zafer yolu, baskın raporu, kayıt-yükleme, araştırma başlatma/bitirme, seviye atlama sırası, Android/iOS cihaz.
+- Core'da otomatik testle doğrulandı (`Testing/UnitTests/GameLoopTests.cs`, 13.11.2026): zafer yolu, günlük baskın + rapor, kayıt-yükleme (yükleme sonrası aynı ilerleme), araştırma başlat/bitir, çoklu seviye atlama sırası. Düzeltilen hatalar: (1) saat geri gidince / test menüsü "+1 gün" sonrası ikinci baskın ve günlük görevlerin geri sarılması, (2) baskın raporunun oyun yeniden açılınca kaybolması.
+- Hâlâ ekranda elle denenecek (Unity Play, ~10 dk): Menü "Sv 30 yap" → seviye penceresi; Saldır → Kolay hedef → ZAFER ekranı (yıldız, yağma, XP); Menü "+1 gün" → alt bantta "Son baskın" yazısı; oyunu kapat-aç → rapor ve kaynaklar duruyor mu; Araştırma → BAŞLAT → "+1 saat" → tamamlandı bildirimi. Android/iOS cihaz denenmedi.
 - Sv30 testte 16 adet Sv1 askerle Sv28 köye saldırı kesin yenilgi (beklenen) → asker seviye gelişimi ve ordu kapasitesi dengesi oynayarak ayarlanacak.
 - Element ağaçlarının çapraz kilitleri YOK. 3. sütun ön koşulu bir varsayım.
 - Yol malzeme basamağı (Tahta/Altın+Tahta/Demir) yükseltme ve araştırması istemciye bağlı değil (TechTrees'te yol kaydı gelmedi). Yol araştırma maliyeti örnek.
@@ -35,7 +36,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 
 ## 5. Sıradaki işler (öneri sırası)
 1. **Ortam:** ✔ Depo açıldı (`Documents\GameStudio-repo`), eksik Unity iskeleti (ProjectSettings, Packages, sahne, .meta) depoya eklendi, `Tools/run-tests.ps1` yazıldı, GitHub özel deposu kuruldu: `salih896/SpayD` (origin; eski bundle uzak deposu `bundle` adıyla duruyor).
-2. **Elle test turu:** Bölüm 4'teki doğrulanmayanları sırayla dene, hataları düzelt.
+2. **Elle test turu:** ✔ Core tarafı otomatik testlerle bitti (2 hata düzeltildi). ⏳ Ekran kontrolü kullanıcıda (Bölüm 4 listesi).
 3. **Denge turu:** Zafer kazanılabilir ama kolay olmayan savaş; asker/kule hasarları, ordu kapasitesi, XP/ödül hızları, günlük baskın sıklığı. Hedef: Sv1→30 toplam birkaç hafta aktif oyun.
 4. **Eksik sistemler:** yol malzeme yükseltmesi + araştırması, Element kilitleri, onarım maliyeti/süresi, harita genişletme (onay şartıyla), tuzak çeşitleri/gelişimi.
 5. **İlk Android build:** cihazda performans (60 FPS orta cihaz, ≤300 asker, <150 draw call), dokunmatik kontrol, ekran boyutları. İlk Aşama 2 hedefini gerçekten tamamlar.
