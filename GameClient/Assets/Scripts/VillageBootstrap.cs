@@ -79,6 +79,7 @@ namespace GameClient
             cam.backgroundColor = new Color(0.12f, 0.15f, 0.20f);
             cam.nearClipPlane = 0.1f;
             cam.farClipPlane = 200f;
+            SetupAtmosphere();
 
             LoadGame();
             view = g.MakeDefense();
@@ -211,7 +212,7 @@ namespace GameClient
         {
             float c = (layout.Size - 1) * 0.5f;
             target = new Vector3(c, 0f, c - VillageLayout.AttackZoneRows * 0.5f);
-            zoom = layout.Size * 0.75f + 4f;
+            zoom = layout.Size * 0.42f + 2.2f; // köy ekranı doldursun
         }
 
         private void UpdateCamera()
@@ -222,7 +223,7 @@ namespace GameClient
             target.z = Mathf.Clamp(target.z, c - lim - VillageLayout.AttackZoneRows, c + lim);
             cam.orthographicSize = zoom;
             cam.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
-            cam.transform.position = target - cam.transform.forward * 60f;
+            cam.transform.position = target - cam.transform.forward * 30f; // yakın: gölge mesafesine sığar (ortografik, boyut değişmez)
         }
 
         private bool RayToPlane(Vector2 screen, out Vector3 hit)
@@ -291,7 +292,7 @@ namespace GameClient
                 pinching = true;
             }
             else prevPinch = -1f;
-            zoom = Mathf.Clamp(zoom + z, 3f, 30f);
+            zoom = Mathf.Clamp(zoom + z, 3f, 14f);
         }
 
         private bool IsOverUi(Vector2 screen)

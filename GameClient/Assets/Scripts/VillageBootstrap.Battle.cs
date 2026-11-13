@@ -72,42 +72,115 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); barViews.Clear();
+            soldierViews.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            towerPrevCd = null; structPrevAlive = null;
         }
 
-        private Transform MakeDynCube(Color c, Vector3 scale)
+        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur; }
+        private readonly List<Shot> shots = new List<Shot>();
+        private readonly List<Vector3> soldierPrev = new List<Vector3>();
+        private readonly List<Transform> barFills = new List<Transform>();
+        private int[] towerPrevCd;
+        private bool[] structPrevAlive;
+
+        private Transform DynRoot()
         {
             if (dynRoot == null) dynRoot = new GameObject("Battle").transform;
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(go.GetComponent<Collider>());
-            go.transform.SetParent(dynRoot, false);
-            go.transform.localScale = scale;
-            go.GetComponent<MeshRenderer>().sharedMaterial = Mat(c);
-            return go.transform;
+            return dynRoot;
         }
 
         private void UpdateBattleView()
         {
+            var root = DynRoot();
+            // askerler: modele dönüştür, yürüme sallantısı ve yöne dönüş
             while (soldierViews.Count < sim.Soldiers.Count)
-                soldierViews.Add(MakeDynCube(SoldierColor(sim.Soldiers[soldierViews.Count].Type), new Vector3(0.28f, 0.28f, 0.28f)));
+            {
+                var st = sim.Soldiers[soldierViews.Count];
+                var tr = VillageArt.BuildSoldier(root, st.Type);
+                soldierViews.Add(tr);
+                soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
+            }
             for (int i = 0; i < sim.Soldiers.Count; i++)
             {
                 var s = sim.Soldiers[i];
                 var t = soldierViews[i];
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
-                t.position = new Vector3(s.X / 1000f, s.Flying ? 0.9f : 0.25f, s.Y / 1000f);
+                if (!s.Alive) continue;
+                var p = new Vector3(s.X / 1000f, 0f, s.Y / 1000f);
+                var d = p - soldierPrev[i];
+                if (d.sqrMagnitude > 0.00002f) t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(d.normalized, Vector3.up), 0.35f);
+                bool moving = d.sqrMagnitude > 0.00002f;
+                float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 14f + i)) * 0.04f : 0f;
+                t.position = p + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
+                soldierPrev[i] = p;
             }
-            while (barViews.Count < sim.Structures.Count)
-                barViews.Add(MakeDynCube(new Color(0.2f, 0.9f, 0.2f), new Vector3(0.8f, 0.08f, 0.08f)));
-            for (int i = 0; i < sim.Structures.Count; i++)
+
+            // yapılar: can çubuğu, yıkım dumanı, kule atışı
+            int n = sim.Structures.Count;
+            if (towerPrevCd == null || towerPrevCd.Length != n)
+            {
+                towerPrevCd = new int[n]; structPrevAlive = new bool[n];
+                for (int i = 0; i < n; i++) { towerPrevCd[i] = sim.Structures[i].Cooldown; structPrevAlive[i] = sim.Structures[i].Alive; }
+            }
+            while (barViews.Count < n)
+            {
+                var st = sim.Structures[barViews.Count];
+                var holder = VillageArt.Group(root, "bar", new Vector3(st.Pos.X, st.Kind == StructKind.Tower ? 1.75f : 1.0f, st.Pos.Y), 45f);
+                VillageArt.Part(holder, VillageArt.Shape.Box, Vector3.zero, new Vector3(0.74f, 0.09f, 0.04f), VillageArt.Mat(new Color(0.08f, 0.06f, 0.05f)));
+                var fill = VillageArt.Group(holder, "fill", new Vector3(-0.35f, 0f, -0.025f));
+                VillageArt.Part(fill, VillageArt.Shape.Box, new Vector3(0.35f, 0f, 0f), new Vector3(0.7f, 0.065f, 0.02f), VillageArt.Mat(Color.white, 0.2f, 0.6f));
+                barViews.Add(holder);
+                barFills.Add(fill);
+            }
+            for (int i = 0; i < n; i++)
             {
                 var st = sim.Structures[i];
-                var t = barViews[i];
-                if (t.gameObject.activeSelf != st.Alive) t.gameObject.SetActive(st.Alive);
-                float f = st.MaxHp > 0 ? Mathf.Clamp01((float)st.Hp / st.MaxHp) : 0f;
-                t.localScale = new Vector3(Mathf.Max(0.02f, 0.8f * f), 0.08f, 0.08f);
-                t.position = new Vector3(st.Pos.X, st.Kind == StructKind.Tower ? 2.0f : 1.2f, st.Pos.Y);
+                bool show = st.Alive && st.Hp < st.MaxHp;
+                if (barViews[i].gameObject.activeSelf != show) barViews[i].gameObject.SetActive(show);
+                if (show)
+                {
+                    float f = st.MaxHp > 0 ? Mathf.Clamp01((float)st.Hp / st.MaxHp) : 0f;
+                    barFills[i].localScale = new Vector3(Mathf.Max(0.02f, f), 1f, 1f);
+                    var r = barFills[i].GetComponentInChildren<MeshRenderer>();
+                    r.sharedMaterial = VillageArt.Mat(f > 0.6f ? new Color(0.3f, 0.9f, 0.3f) : (f > 0.3f ? new Color(1f, 0.8f, 0.2f) : new Color(1f, 0.3f, 0.2f)), 0.2f, 0.6f);
+                }
+                if (structPrevAlive[i] && !st.Alive) VillageArt.Smoke(root, new Vector3(st.Pos.X, 0f, st.Pos.Y), i * 13 + sim.Tick);
+                structPrevAlive[i] = st.Alive;
+
+                if (st.Kind == StructKind.Tower && st.Alive && st.Cooldown > towerPrevCd[i]) SpawnShot(st);
+                towerPrevCd[i] = st.Cooldown;
             }
+
+            // mermiler
+            for (int i = shots.Count - 1; i >= 0; i--)
+            {
+                var sh = shots[i];
+                float a = (Time.time - sh.T0) / sh.Dur;
+                if (a >= 1f || sh.T == null) { if (sh.T != null) Destroy(sh.T.gameObject); shots.RemoveAt(i); continue; }
+                var pos = Vector3.Lerp(sh.A, sh.B, a) + new Vector3(0f, Mathf.Sin(a * Mathf.PI) * 0.35f, 0f);
+                var dir = sh.B - sh.A;
+                sh.T.position = pos;
+                if (dir.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+            }
+        }
+
+        private void SpawnShot(SimStructure tower)
+        {
+            var def = ContentCatalog.Tower(tower.TowerType);
+            long r2 = (long)def.RangeMilli * def.RangeMilli;
+            SimSoldier best = null; long bestD = long.MaxValue;
+            foreach (var s in sim.Soldiers)
+            {
+                if (!s.Alive || (s.Flying && !def.CanHitAir)) continue;
+                long dx = s.X - tower.CenterX, dy = s.Y - tower.CenterY, d = dx * dx + dy * dy;
+                if (d <= r2 && d < bestD) { best = s; bestD = d; }
+            }
+            if (best == null) return;
+            var t = VillageArt.Projectile(DynRoot(), tower.TowerType);
+            var a = new Vector3(tower.Pos.X, 1.25f, tower.Pos.Y);
+            var b = new Vector3(best.X / 1000f, best.Flying ? 1.0f : 0.25f, best.Y / 1000f);
+            shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = 0.25f / Mathf.Max(1, speed) });
+            t.position = a;
         }
 
         private void HandleBattleInput(Vector2 pos, bool down, bool held, bool pinching)

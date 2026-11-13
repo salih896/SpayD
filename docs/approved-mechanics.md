@@ -52,3 +52,10 @@
 30. Bir araştırma yapılabilmek için ağaçta tam kendinden önceki araştırma (aynı kanalda) tamamlanmış olmalı; kanal atlanamaz (kesin işleyiş açık-sorular'da).
 31. Aynı adda iki araştırma olmaz. Ekonomi ağacının Sv25'inde 2 araştırma olması doğrudur.
 32. Yol geliştirme araştırması araştırma ağacına eklendi (kayıt güncel belgeyle gelecek).
+
+## İçerik ve görsel (14.11.2026, kullanıcı isteği)
+33. 10 asker türü olacak (kullanıcı: "oyunda 10 çeşit savaşçı olacak"). GDD'deki 7'ye ek: Dev (Sv13), Mancınık (Sv17), Ejderha Binicisi (Sv21). Adlar/roller Claude önerisi; kullanıcı değiştirebilir.
+34. Kule hakkı GDD Bölüm 9 KESİN KARAR'a göre uygulandı: Sv2'de 5, her 5 seviyede +1, en çok 10 (önceki "3+Sv" uygulaması GDD'yi ihlal ediyordu).
+35. Saldırıda kullanılabilecek asker sayısı = ordu kapasitesi (20 + 1,2 × toplam kışla seviyesi; Sv30 ≈ 80-90). Değer dengeleme içindir.
+36. Görsel yön: düşük poligonlu, sıcak renkli "köy havası" (kodla üretilen modeller; ileride gerçek modellerle değiştirilebilir).
+

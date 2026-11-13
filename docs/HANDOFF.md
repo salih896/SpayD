@@ -1,5 +1,5 @@
 # DEVİR TESLİM – Oyun Durumu ve Devam Planı
-Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 117/117 geçti (Unity EditMode, batch)
+Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 118/118 geçti (Unity EditMode, batch)
 
 > Claude Code'a ilk mesaj: "docs/HANDOFF.md, CLAUDE.md, docs/approved-mechanics.md ve docs/open-questions.md dosyalarını oku, sonra Bölüm 5'teki sıradan devam et."
 
@@ -30,7 +30,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 - Yol malzeme basamağı (Tahta/Altın+Tahta/Demir) yükseltme ve araştırması istemciye bağlı değil (TechTrees'te yol kaydı gelmedi). Yol araştırma maliyeti örnek.
 - Harita genişletme (11→15) uygulanmadı (koşullu onay vardı).
 - Denge turu 1 yapıldı (simülasyonla; ayrıntı `docs/balance-and-engagement.md`, çıktı `docs/balance-report.txt`): XP eğrisi 100+40l+8l², yapay rakip gücü `GameRules.ExpectedStructureLevel`'a bağlı, ordu kapasitesi 10+3×kışla. Hâlâ yer tutucu: kaynak üretim/maliyet, görev ödülleri, araştırma süre/maliyet, seviye ölçeği 100+20l+2l².
-- Arayüz geçici OnGUI; görseller kutu/küp. Ses, müzik, animasyon, efekt yok.
+- Görsel (14.11.2026): kodla üretilen düşük poligonlu köy (`VillageArt.cs`: 11 bina, 4 kule, 10 asker modeli, taşlı yol, kapı, tuzak, çayır/orman/çit/çadır çevresi, gölgeli güneş, sis) + savaş efektleri (kule atışları, duman, can çubukları). Arayüz hâlâ OnGUI ama özel temalı (`UiTheme.cs`: ahşap/altın paneller, kaynak çipleri, XP çubuğu, parşömen pencereler). Ses/müzik yok; asker animasyonu yalnızca yürüme sallantısı.
 - Açık sorular tam liste: `docs/open-questions.md` (banka/altın madeni açılış seviyesi çakışması, kalkan = koruma mı, vb.).
 
 ## 5. Sıradaki işler (öneri sırası)
@@ -40,7 +40,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 4. **Eksik sistemler:** yol malzeme yükseltmesi + araştırması, Element kilitleri, onarım maliyeti/süresi, harita genişletme (onay şartıyla), tuzak çeşitleri/gelişimi.
 5. **İlk Android build:** cihazda performans (60 FPS orta cihaz, ≤300 asker, <150 draw call), dokunmatik kontrol, ekran boyutları. İlk Aşama 2 hedefini gerçekten tamamlar.
 6. **İnceleme geçişi:** kodu başkası yazmış gibi eleştir (güvenlik, determinizm, taşma/sınır durumları).
-7. **Aşama 10 (görsel kalite)** – OnGUI yerine Unity UI/UI Toolkit, modeller, animasyon, ses. Sunucudan bağımsız yapılabilir.
+7. **Aşama 10 (görsel kalite)** – ◐ Kodla üretilen modeller + temalı OnGUI yapıldı (14.11.2026). Kalan: UI Toolkit'e geçiş, gerçek modeller/animasyon, ses/müzik, mobil performans ölçümü (çok sayıda küçük nesne; StaticBatching var).
 8. **Aşama 7+ (çevrim içi, rekabet, sosyal):** ASP.NET Core + PostgreSQL + Redis önerisi; **ücretli hizmet ve mimari karar olduğu için önce kullanıcı onayı.** Core aynı kodla sunucuda savaşı yeniden oynatır (istemci güvenilmez).
 9. **Aşama 11:** cihaz/performans/hile/veri kaybı testleri, Google Play hazırlığı (yayın için onay şart).
 

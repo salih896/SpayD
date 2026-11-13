@@ -28,24 +28,27 @@ namespace GameClient
             return GUI.Button(r, text);
         }
 
+        /// <summary>Seçili durumu altın renkle gösteren düğme.</summary>
+        private bool SelBtn(Rect r, string text, bool on)
+        {
+            uiRects.Add(r);
+            return GUI.Button(r, text, on ? UiTheme.BtnOn : GUI.skin.button);
+        }
+
         private void Panel(Rect r, string title = null)
         {
             uiRects.Add(r);
-            GUI.color = new Color(0f, 0f, 0f, 0.82f);
             GUI.Box(r, "");
-            GUI.color = Color.white;
-            if (title != null) GUI.Label(new Rect(r.x + 8, r.y + 4, r.width - 16, 24), title);
+            if (title != null) GUI.Label(new Rect(r.x + 14, r.y + 6, r.width - 28, 26), title, UiTheme.Header);
         }
 
         private void OnGUI()
         {
             if (g == null || view == null) return;
-            uiScale = Mathf.Max(1f, Screen.height / 600f);
+            UiTheme.Ensure();
+            GUI.skin = UiTheme.Skin;
+            uiScale = Mathf.Clamp(Screen.height / 640f, 0.75f, 3f);
             GUI.matrix = Matrix4x4.Scale(new Vector3(uiScale, uiScale, 1f));
-            GUI.skin.button.fontSize = 14;
-            GUI.skin.label.fontSize = 14;
-            GUI.skin.box.fontSize = 14;
-            GUI.skin.label.wordWrap = true;
             uiRects.Clear();
             float w = Screen.width / uiScale, h = Screen.height / uiScale;
 
@@ -65,31 +68,63 @@ namespace GameClient
         }
 
         // ---------- Ortak ----------
+        private static Color ResColor(ResourceType t)
+        {
+            switch (t)
+            {
+                case ResourceType.Wood: return new Color(0.70f, 0.45f, 0.22f);
+                case ResourceType.Stone: return new Color(0.70f, 0.72f, 0.75f);
+                case ResourceType.Gold: return new Color(1f, 0.82f, 0.25f);
+                default: return new Color(0.50f, 0.58f, 0.70f);
+            }
+        }
+
         private void DrawTopBar(float w)
         {
-            var r = new Rect(0, 0, w, 30);
+            var r = new Rect(0, 0, w, 44);
             uiRects.Add(r);
-            var sb = new StringBuilder();
-            sb.Append("Sv ").Append(g.Level);
-            if (g.Level < ProgressionRules.MaxLevel) sb.Append(" (").Append(g.XpIntoLevel).Append('/').Append(ProgressionRules.XpToNextLevel(g.Level)).Append(" XP)");
-            else sb.Append(" (MAKS)");
+            GUI.DrawTexture(r, UiTheme.White, ScaleMode.StretchToFill, true, 0f, new Color(0.10f, 0.07f, 0.04f, 0.78f), 0f, 0f);
+            GUI.DrawTexture(new Rect(0, 43, w, 2), UiTheme.White, ScaleMode.StretchToFill, true, 0f, new Color(0.78f, 0.60f, 0.28f, 0.9f), 0f, 0f);
+            // seviye rozeti + XP çubuğu
+            UiTheme.Dot(new Rect(6, 3, 38, 38), new Color(0.85f, 0.62f, 0.2f));
+            GUI.Label(new Rect(6, 3, 38, 38), g.Level.ToString(), UiTheme.Title);
+            bool max = g.Level >= ProgressionRules.MaxLevel;
+            float need = max ? 1 : ProgressionRules.XpToNextLevel(g.Level);
+            UiTheme.Bar(new Rect(48, 22, 120, 14), max ? 1f : g.XpIntoLevel / need, new Color(0.45f, 0.8f, 1f));
+            GUI.Label(new Rect(48, 2, 140, 20), max ? "Seviye MAKS" : "Seviye " + g.Level + "  " + g.XpIntoLevel + "/" + (int)need, UiTheme.Small);
+            float x = 180f;
             foreach (var t in ResourceRules.Unlocked(g.Config, g.Level))
-                sb.Append("   ").Append(ResName(t)).Append(' ').Append(g.Wallet.Get(t)).Append('/').Append(g.CapacityOf(t)).Append(" +").Append(g.PerHour(t)).Append("/sa");
-            sb.Append("   Ordu ").Append(g.ArmySize).Append('/').Append(g.ArmyCapacity);
-            sb.Append("   İşçi ").Append(g.FreeBuilders).Append('/').Append(g.Builders);
-            GUI.Box(r, sb.ToString());
+            {
+                var cr = new Rect(x, 7, 168, 30);
+                int have = g.Wallet.Get(t), cap = g.CapacityOf(t);
+                GUI.Label(cr, have + "/" + cap + "  <size=12><color=#d8c9a8>+" + g.PerHour(t) + "</color></size>", UiTheme.Chip);
+                UiTheme.Dot(new Rect(cr.x + 5, cr.y + 5, 20, 20), ResColor(t));
+                if (have >= cap) GUI.Label(new Rect(cr.x + cr.width - 40, cr.y + 6, 38, 22), "<color=#ff9a5a>DOLU</color>", UiTheme.Small);
+                x += 174f;
+            }
+            var ar = new Rect(x, 7, 120, 30);
+            GUI.Label(ar, "Ordu " + g.ArmySize + "/" + g.ArmyCapacity, UiTheme.Chip);
+            UiTheme.Dot(new Rect(ar.x + 5, ar.y + 5, 20, 20), new Color(0.85f, 0.3f, 0.25f));
+            var wr = new Rect(x + 126, 7, 104, 30);
+            GUI.Label(wr, "İşçi " + g.FreeBuilders + "/" + g.Builders, UiTheme.Chip);
+            UiTheme.Dot(new Rect(wr.x + 5, wr.y + 5, 20, 20), new Color(0.45f, 0.75f, 0.4f));
         }
 
         private void DrawTabs(float w, float h)
         {
-            float bw = Mathf.Min(120f, (w - 8f) / TabNames.Length - 2f);
+            var bar = new Rect(0, h - 52, w, 52);
+            uiRects.Add(bar);
+            GUI.DrawTexture(bar, UiTheme.White, ScaleMode.StretchToFill, true, 0f, new Color(0.10f, 0.07f, 0.04f, 0.80f), 0f, 0f);
+            GUI.DrawTexture(new Rect(0, h - 52, w, 2), UiTheme.White, ScaleMode.StretchToFill, true, 0f, new Color(0.78f, 0.60f, 0.28f, 0.9f), 0f, 0f);
+            float bw = Mathf.Min(150f, (w - 12f) / TabNames.Length - 4f);
+            float x0 = (w - TabNames.Length * (bw + 4f)) * 0.5f;
             for (int i = 0; i < TabNames.Length; i++)
             {
                 bool badge = (i == (int)Tab.Quests && HasClaimable()) || (i == (int)Tab.Village && g.DamagedTowerCount() > 0);
-                GUI.color = (int)tab == i ? Color.yellow : (badge ? new Color(0.6f, 1f, 0.6f) : Color.white);
-                if (Btn(new Rect(4 + i * (bw + 2), h - 36, bw, 32), TabNames[i] + (badge ? " !" : ""))) { tab = (Tab)i; scrollPos = Vector2.zero; }
+                var r = new Rect(x0 + i * (bw + 4f), h - 46, bw, 40);
+                if (GUI.Button(r, TabNames[i], (int)tab == i ? UiTheme.TabOn : UiTheme.Tab)) { tab = (Tab)i; scrollPos = Vector2.zero; dirty = true; }
+                if (badge) { UiTheme.Dot(new Rect(r.xMax - 16, r.y - 4, 18, 18), new Color(0.95f, 0.25f, 0.2f)); GUI.Label(new Rect(r.xMax - 16, r.y - 5, 18, 18), "!", UiTheme.Center); }
             }
-            GUI.color = Color.white;
         }
 
         private bool HasClaimable()
@@ -100,60 +135,59 @@ namespace GameClient
 
         private void DrawPopup(float w, float h)
         {
-            var box = new Rect(w * 0.5f - 230f, h * 0.5f - 120f, 460f, 240f);
+            var lines = popups[0].Split(new[] { '\n' }, 2);
+            var dark = new GUIStyle(UiTheme.Big) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) } };
+            float bodyH = lines.Length > 1 ? dark.CalcHeight(new GUIContent(lines[1]), 456f) : 0f;
+            float bh = Mathf.Clamp(130f + bodyH, 200f, h - 20f);
+            var box = new Rect(w * 0.5f - 250f, (h - bh) * 0.5f, 500f, bh);
             uiRects.Add(new Rect(0, 0, w, h));
-            GUI.color = new Color(0f, 0f, 0f, 0.6f);
-            GUI.Box(new Rect(0, 0, w, h), "");
-            GUI.color = new Color(0.1f, 0.1f, 0.15f, 1f);
-            GUI.Box(box, "");
-            GUI.color = Color.white;
-            GUI.Label(new Rect(box.x + 14, box.y + 10, box.width - 28, box.height - 60), popups[0]);
-            if (GUI.Button(new Rect(box.x + box.width * 0.5f - 60, box.y + box.height - 46, 120, 34), popups.Count > 1 ? "Tamam (" + (popups.Count - 1) + " daha)" : "Tamam")) popups.RemoveAt(0);
+            GUI.DrawTexture(new Rect(0, 0, w, h), UiTheme.White, ScaleMode.StretchToFill, true, 0f, new Color(0f, 0f, 0f, 0.55f), 0f, 0f);
+            GUI.Box(box, "", UiTheme.Parchment);
+            var head = new GUIStyle(UiTheme.Title) { normal = { textColor = new Color(0.55f, 0.30f, 0.08f) } };
+            GUI.Label(new Rect(box.x + 16, box.y + 16, box.width - 32, 32), lines[0], head);
+            if (lines.Length > 1) GUI.Label(new Rect(box.x + 22, box.y + 58, box.width - 44, box.height - 120), lines[1], dark);
+            if (GUI.Button(new Rect(box.x + box.width * 0.5f - 80, box.y + box.height - 56, 160, 42), popups.Count > 1 ? "Tamam (" + (popups.Count - 1) + " daha)" : "Tamam", UiTheme.BtnGreen)) popups.RemoveAt(0);
         }
 
         private void DrawStatusLine(float w, float h)
         {
-            var rs = new Rect(4, h - 72, w - 8, 32);
-            string msg = Time.time < toastUntil ? toast : (valid ? "Savunma GEÇERLİ" : "GEÇERSİZ: " + validationError);
-            msg += "   [Yol " + layout.RoadCount + "/" + layout.RoadLimit + " | Giriş " + layout.EntranceCount + " | Kule " + g.Towers.Count + "/" + GameRules.MaxTowers(g.Level) + "]";
-            GUI.color = Time.time < toastUntil ? Color.white : (valid ? new Color(0.6f, 1f, 0.6f) : new Color(1f, 0.8f, 0.5f));
-            GUI.Box(rs, msg);
-            GUI.color = Color.white;
+            bool showToast = Time.time < toastUntil;
+            string msg = showToast ? toast : (valid ? "Savunma hazır" : validationError);
+            msg += "     Yol " + layout.RoadCount + "/" + layout.RoadLimit + "   Giriş " + layout.EntranceCount + "   Kule " + g.Towers.Count + "/" + GameRules.MaxTowers(g.Level);
+            float tw = Mathf.Min(w - 20f, 760f);
+            var rs = new Rect((w - tw) * 0.5f, h - 92, tw, 34);
+            GUI.Label(rs, msg, showToast || valid ? UiTheme.Pill : UiTheme.PillBad);
             uiRects.Add(rs);
         }
 
         // ---------- Köy ----------
         private void DrawVillage(float w, float h)
         {
-            float bw = Mathf.Min(78f, (w - 8f) / ToolNames.Length - 2f);
+            float bw = Mathf.Min(86f, (w - 12f) / ToolNames.Length - 3f);
             for (int i = 0; i < ToolNames.Length; i++)
-            {
-                GUI.color = (int)tool == i ? Color.yellow : Color.white;
-                if (Btn(new Rect(4 + i * (bw + 2), 34, bw, 32), ToolNames[i])) { tool = (Tool)i; if (tool != Tool.Select) selCell = new GridPos(-1, -1); dirty = true; }
-            }
-            GUI.color = Color.white;
+                if (SelBtn(new Rect(6 + i * (bw + 3), 50, bw, 34), ToolNames[i], (int)tool == i)) { tool = (Tool)i; if (tool != Tool.Select) selCell = new GridPos(-1, -1); dirty = true; }
 
-            float y = 70;
+            float y = 90;
             if (tool == Tool.Building)
             {
                 var bt = selBuilding; var bd = ContentCatalog.Building(bt);
                 string txt = "Bina: " + bd.Name + (g.Level < bd.UnlockLevel ? " (Sv " + bd.UnlockLevel + ")" : "") + "  " + GameRules.Scale(GameRules.BuildCostOf(bt), g.Config, g.Level, 100);
-                if (Btn(new Rect(4, y, 420, 30), txt)) selBuilding = (BuildingType)(((int)selBuilding + 1) % 11);
+                if (Btn(new Rect(6, y, 440, 34), "< " + txt + " >")) selBuilding = (BuildingType)(((int)selBuilding + 1) % 11);
             }
             else if (tool == Tool.Tower)
             {
                 var td = ContentCatalog.Tower(selTower);
                 string txt = "Kule: " + td.Name + (g.Level < td.UnlockLevel ? " (Sv " + td.UnlockLevel + ")" : "") + "  " + GameRules.Scale(td.BuildCost, g.Config, g.Level, 100);
-                if (Btn(new Rect(4, y, 420, 30), txt)) selTower = (TowerType)(((int)selTower + 1) % 4);
+                if (Btn(new Rect(6, y, 440, 34), "< " + txt + " >")) selTower = (TowerType)(((int)selTower + 1) % 4);
             }
             else if (tool == Tool.Trap)
             {
-                if (Btn(new Rect(4, y, 220, 30), "Tuzak: " + TrapName(selTrap))) selTrap = (TrapType)(((int)selTrap % 3) + 1);
+                if (Btn(new Rect(6, y, 240, 34), "< Tuzak: " + TrapName(selTrap) + " >")) selTrap = (TrapType)(((int)selTrap % 3) + 1);
             }
             if (g.DamagedTowerCount() > 0)
             {
                 string e;
-                if (Btn(new Rect(w - 250, 34, 246, 32), "Tüm kuleleri onar (" + g.DamagedTowerCount() + ")")) { if (g.TryRepairAll(out e)) { Toast("Kuleler onarıldı"); dirty = true; } else Toast(e); }
+                if (Btn(new Rect(w - 256, 90, 250, 34), "Tüm kuleleri onar (" + g.DamagedTowerCount() + ")")) { if (g.TryRepairAll(out e)) { Toast("Kuleler onarıldı"); dirty = true; } else Toast(e); }
             }
 
             if (tool == Tool.Select && layout.InBounds(selCell)) DrawSelectPanel(w, h);
@@ -163,28 +197,28 @@ namespace GameClient
             {
                 var rr = g.LastRaid;
                 string t = "Son baskın: %" + rr.Result.OverallDamagePct + " hasar, " + (rr.Result.Victory ? "saldırgan kazandı" : "savundun") + ", kayıp: " + rr.LootLost + ", hasarlı kule: " + rr.TowersDamaged;
-                var r = new Rect(4, h - 106, w - 8, 30);
-                GUI.Box(r, t); uiRects.Add(r);
+                var r = new Rect(6, h - 134, w - 12, 36);
+                GUI.Label(r, t, rr.Result.Victory ? UiTheme.PillBad : UiTheme.Pill); uiRects.Add(r);
             }
             DrawStatusLine(w, h);
         }
 
         private void DrawSelectPanel(float w, float h)
         {
-            var r = new Rect(w - 320, 70, 316, 260);
+            var r = new Rect(w - 336, 132, 330, 280);
             Panel(r);
-            float x = r.x + 8, y = r.y + 6, iw = r.width - 16;
+            float x = r.x + 12, y = r.y + 10, iw = r.width - 24;
             var p = selCell;
             if (g.Buildings.TryGetValue(p, out var b))
             {
                 var d = ContentCatalog.Building(b.Type);
-                GUI.Label(new Rect(x, y, iw, 24), d.Name + "  Sv " + b.Level); y += 24;
+                GUI.Label(new Rect(x, y, iw, 26), d.Name + "  Sv " + b.Level, UiTheme.Header); y += 28;
                 int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, b.Level), g.Research.Mods().BuildingHp);
                 GUI.Label(new Rect(x, y, iw, 24), "Can: " + hp); y += 22;
                 var prod = GameRules.ProducedBy(b.Type);
                 if (prod.HasValue) { GUI.Label(new Rect(x, y, iw, 24), "Üretim: " + (int)((long)GameRules.BasePerHour(prod.Value) * ContentCatalog.ScalePct(b.Level) / 100) + " " + ResName(prod.Value) + "/sa"); y += 22; }
                 if (d.IsDepot) { GUI.Label(new Rect(x, y, iw, 24), "Depo: +" + GameRules.DepotCapacity(d.Stores, b.Level) + " " + ResName(d.Stores)); y += 22; }
-                if (b.Type == BuildingType.Barracks) { GUI.Label(new Rect(x, y, iw, 24), "Ordu kapasitesi: +" + 6 * b.Level); y += 22; }
+                if (b.Type == BuildingType.Barracks) { GUI.Label(new Rect(x, y, iw, 24), "Ordu kapasitesi: +" + (GameRules.ArmyCapacity(g.BarracksLevelSum()) - GameRules.ArmyCapacity(g.BarracksLevelSum() - b.Level))); y += 22; }
                 if (b.Type == BuildingType.University) { GUI.Label(new Rect(x, y, iw, 24), "Araştırma Sv " + b.Level + "'e kadar"); y += 22; }
                 if (b.Type == BuildingType.VillagerHouse) { GUI.Label(new Rect(x, y, iw, 24), "+1 işçi (en çok 5)"); y += 22; }
                 y = DrawUpgradeRow(x, y, iw, JobKind.Building, p, SoldierType.Swordsman);
@@ -192,7 +226,7 @@ namespace GameClient
             else if (g.Towers.TryGetValue(p, out var t))
             {
                 var d = ContentCatalog.Tower(t.Type);
-                GUI.Label(new Rect(x, y, iw, 24), d.Name + "  Sv " + t.Level); y += 24;
+                GUI.Label(new Rect(x, y, iw, 26), d.Name + "  Sv " + t.Level, UiTheme.Header); y += 28;
                 var m = g.Research.Mods();
                 int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level), m.TowerHp);
                 int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage);
@@ -218,7 +252,7 @@ namespace GameClient
             GUI.Label(new Rect(x, y, iw, 44), "Sv " + info.TargetLevel + ": " + info.Cost + " | " + Dur(info.Seconds)); y += 44;
             if (info.Block != null) { GUI.Label(new Rect(x, y, iw, 44), info.Block); return y + 44; }
             string err;
-            if (GUI.Button(new Rect(x, y, iw, 30), "Yükselt")) { if (g.TryStartUpgrade(kind, p, s, out err)) { Toast("Yükseltme başladı"); } else Toast(err); }
+            if (GUI.Button(new Rect(x, y, iw, 34), "Yükselt", UiTheme.BtnGreen)) { if (g.TryStartUpgrade(kind, p, s, out err)) { Toast("Yükseltme başladı"); } else Toast(err); }
             uiRects.Add(new Rect(x, y, iw, 30));
             return y + 34;
         }
@@ -226,9 +260,9 @@ namespace GameClient
         // ---------- Kışla ----------
         private void DrawBarracks(float w, float h)
         {
-            var r = new Rect(6, 34, w - 12, h - 76);
+            var r = new Rect(8, 50, w - 16, h - 108);
             Panel(r, "KIŞLA  -  Ordu " + g.ArmySize + "/" + g.ArmyCapacity + (g.BarracksLevelSum() == 0 ? "   (Önce Köy sekmesinden Kışla kur!)" : ""));
-            GUILayout.BeginArea(new Rect(r.x + 6, r.y + 30, r.width - 12, r.height - 36));
+            GUILayout.BeginArea(new Rect(r.x + 10, r.y + 36, r.width - 20, r.height - 44));
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             string err;
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
@@ -248,7 +282,7 @@ namespace GameClient
                 GUILayout.EndHorizontal();
             }
             GUILayout.Space(8);
-            GUILayout.Label("EĞİTİM SIRASI (" + g.Queue.Items.Count + ")");
+            GUILayout.Label("EĞİTİM SIRASI (" + g.Queue.Items.Count + ")", UiTheme.Header);
             int cancelIdx = -1;
             for (int i = 0; i < g.Queue.Items.Count; i++)
             {
@@ -260,7 +294,7 @@ namespace GameClient
             }
             if (cancelIdx >= 0) { if (g.TryCancelTrain(cancelIdx, out err)) Toast("İptal edildi"); else Toast(err); }
             GUILayout.Space(8);
-            GUILayout.Label("YÜKSELTMELER (" + g.Jobs.Count + "/" + g.Builders + " işçi)");
+            GUILayout.Label("YÜKSELTMELER (" + g.Jobs.Count + "/" + g.Builders + " işçi)", UiTheme.Header);
             foreach (var j in g.Jobs)
             {
                 string nm = j.Kind == JobKind.Soldier ? ContentCatalog.Soldier(j.Soldier).Name : (j.Kind == JobKind.Building && g.Buildings.TryGetValue(j.Pos, out var bs) ? ContentCatalog.Building(bs.Type).Name : (g.Towers.TryGetValue(j.Pos, out var ts2) ? ContentCatalog.Tower(ts2.Type).Name : "Yapı"));
@@ -273,21 +307,19 @@ namespace GameClient
         // ---------- Araştırma ----------
         private void DrawResearch(float w, float h)
         {
-            var r = new Rect(6, 34, w - 12, h - 76);
+            var r = new Rect(8, 50, w - 16, h - 108);
             Panel(r);
             float bw = Mathf.Min(110f, (r.width - 16f) / TreeNames.Length - 2f);
             for (int i = 0; i < TreeNames.Length; i++)
             {
-                GUI.color = researchTree == i ? Color.yellow : Color.white;
-                if (Btn(new Rect(r.x + 6 + i * (bw + 2), r.y + 4, bw, 28), TreeNames[i])) { researchTree = i; scrollPos = Vector2.zero; }
+                if (SelBtn(new Rect(r.x + 8 + i * (bw + 2), r.y + 8, bw, 32), TreeNames[i], researchTree == i)) { researchTree = i; scrollPos = Vector2.zero; }
             }
-            GUI.color = Color.white;
 
             string head = "Üniversite Sv " + g.UniversityLevel + (g.Level < ResearchState.UniversityUnlockLevel ? " (Sv5'te açılır, sonra Üniversite kur)" : "") + "   Yuva " + g.Research.Active.Count + "/" + g.Research.Slots;
             foreach (var a in g.Research.Active) head += "   | " + ResearchCatalog.Get(a.Id).Name + " " + Dur(a.RemainingSeconds);
-            GUI.Label(new Rect(r.x + 8, r.y + 36, r.width - 16, 24), head);
+            GUI.Label(new Rect(r.x + 12, r.y + 44, r.width - 24, 24), head, UiTheme.Small);
 
-            GUILayout.BeginArea(new Rect(r.x + 6, r.y + 62, r.width - 12, r.height - 160));
+            GUILayout.BeginArea(new Rect(r.x + 8, r.y + 70, r.width - 16, r.height - 172));
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             for (int lv = 1; lv <= ResearchCatalog.MaxLevel; lv++)
             {
@@ -301,9 +333,8 @@ namespace GameClient
                     var d = ResearchCatalog.Find((ResearchTree)researchTree, lv, c);
                     if (d == null) { GUILayout.Label("", GUILayout.Width(250)); continue; }
                     string st = g.Research.IsDone(d.Id) ? "[OK]" : (g.Research.IsActive(d.Id) ? "[...]" : (g.Research.LockReason(d, g.Level, g.UniversityLevel) == null ? "[>]" : "[X]"));
-                    GUI.color = selResearch == d.Id ? Color.yellow : (g.Research.IsDone(d.Id) ? new Color(0.6f, 1f, 0.6f) : Color.white);
-                    if (GUILayout.Button(st + " " + d.Name, GUILayout.Width(250), GUILayout.Height(38))) selResearch = d.Id;
-                    GUI.color = Color.white;
+                    var style = selResearch == d.Id ? UiTheme.BtnOn : (g.Research.IsDone(d.Id) ? UiTheme.BtnGreen : GUI.skin.button);
+                    if (GUILayout.Button(st + " " + d.Name, style, GUILayout.Width(250), GUILayout.Height(38))) selResearch = d.Id;
                 }
                 GUILayout.EndHorizontal();
             }
@@ -321,7 +352,8 @@ namespace GameClient
             if (reason == null)
             {
                 string err;
-                if (Btn(new Rect(dr.x + dr.width - 160, dr.y + 24, 150, 36), "BAŞLAT")) { if (g.TryResearch(sel.Id, out err)) { AddLog("Araştırma başladı: " + sel.Name); } else Toast(err); }
+                uiRects.Add(new Rect(dr.x + dr.width - 160, dr.y + 24, 150, 40));
+                if (GUI.Button(new Rect(dr.x + dr.width - 160, dr.y + 24, 150, 40), "BAŞLAT", UiTheme.BtnGreen)) { if (g.TryResearch(sel.Id, out err)) { AddLog("Araştırma başladı: " + sel.Name); } else Toast(err); }
             }
         }
 
@@ -349,15 +381,15 @@ namespace GameClient
         // ---------- Görevler ----------
         private void DrawQuests(float w, float h)
         {
-            var r = new Rect(6, 34, w - 12, h - 76);
+            var r = new Rect(8, 50, w - 16, h - 108);
             Panel(r, "GÖREVLER");
-            GUILayout.BeginArea(new Rect(r.x + 6, r.y + 30, r.width - 12, r.height - 36));
+            GUILayout.BeginArea(new Rect(r.x + 10, r.y + 36, r.width - 20, r.height - 44));
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             var list = g.Quests.Visible(g.Level);
             string claimId = null;
             for (int pass = 0; pass < 2; pass++)
             {
-                GUILayout.Label(pass == 0 ? "— GÜNLÜK —" : "— KİLOMETRE TAŞLARI —");
+                GUILayout.Label(pass == 0 ? "GÜNLÜK GÖREVLER" : "KİLOMETRE TAŞLARI", UiTheme.Header);
                 foreach (var q in list)
                 {
                     if ((q.Kind == QuestKind.Daily) != (pass == 0)) continue;
@@ -365,7 +397,7 @@ namespace GameClient
                     GUILayout.BeginHorizontal(GUILayout.Height(34));
                     GUILayout.Label(q.Name + "   " + g.Quests.ProgressOf(q.Id) + "/" + q.Target + "\nÖdül: " + QuestCatalog.RewardFor(q, g.Config, g.Level) + " + " + q.Xp + " XP", GUILayout.Width(w - 220));
                     GUI.enabled = done;
-                    if (GUILayout.Button("AL", GUILayout.Width(90), GUILayout.Height(34))) claimId = q.Id;
+                    if (GUILayout.Button("AL", done ? UiTheme.BtnGreen : GUI.skin.button, GUILayout.Width(90), GUILayout.Height(36))) claimId = q.Id;
                     GUI.enabled = true;
                     GUILayout.EndHorizontal();
                 }
@@ -392,28 +424,32 @@ namespace GameClient
         private void DrawAttack(float w, float h)
         {
             EnsureTargets();
-            var r = new Rect(6, 34, w - 12, h - 76);
+            var r = new Rect(8, 50, w - 16, h - 108);
             Panel(r, "SALDIRI HEDEFLERİ   (Ordun: " + (g.ArmySize - g.Queue.Items.Count) + " asker hazır)");
             string[] dn = { "KOLAY", "NORMAL", "ZOR" };
             float cw = (r.width - 40f) / 3f;
             for (int d = 0; d < 3; d++)
             {
                 var t = targets[d];
-                var cr = new Rect(r.x + 10 + d * (cw + 10), r.y + 36, cw, 230);
-                GUI.Box(cr, "");
-                GUI.Label(new Rect(cr.x + 8, cr.y + 6, cr.width - 16, 200),
-                    dn[d] + "\n" + t.Name + "  (Sv " + t.Level + ")\nKule: " + t.Defense.Towers.Count + "   Bina: " + t.Defense.Buildings.Count + "\nGiriş: " + t.Defense.Layout.EntranceCount + "   Tuzak: " + t.Defense.Traps.Count +
-                    "\nYağma havuzu: " + t.Pool + "\nXP çarpanı: x" + ((100 + 12 * (t.Level - 1)) / 100f).ToString("0.00"));
-                if (Btn(new Rect(cr.x + 8, cr.y + 180, cr.width - 16, 40), "SALDIR")) StartBattle(t);
+                var cr = new Rect(r.x + 10 + d * (cw + 10), r.y + 40, cw, 240);
+                GUI.Box(cr, "", UiTheme.Parchment);
+                var dark = new GUIStyle(UiTheme.Skin.label) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) } };
+                var head = new GUIStyle(UiTheme.Title) { fontSize = 20, normal = { textColor = d == 0 ? new Color(0.2f, 0.5f, 0.15f) : (d == 1 ? new Color(0.6f, 0.38f, 0.05f) : new Color(0.7f, 0.15f, 0.1f)) } };
+                GUI.Label(new Rect(cr.x + 8, cr.y + 10, cr.width - 16, 28), dn[d], head);
+                GUI.Label(new Rect(cr.x + 14, cr.y + 42, cr.width - 28, 140),
+                    "<b>" + t.Name + "</b>  (Sv " + t.Level + ")\nKule: " + t.Defense.Towers.Count + "   Bina: " + t.Defense.Buildings.Count + "\nGiriş: " + t.Defense.Layout.EntranceCount + "   Tuzak: " + t.Defense.Traps.Count +
+                    "\nYağma: " + t.Pool + "\nXP çarpanı: x" + ((100 + GameState.BattleXpPctPerTargetLevel * (t.Level - 1)) / 100f).ToString("0.00"), dark);
+                uiRects.Add(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42));
+                if (GUI.Button(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42), "SALDIR", UiTheme.BtnRed)) StartBattle(t);
             }
-            if (Btn(new Rect(r.x + 10, r.y + 276, 160, 32), "Hedefleri yenile")) { targetSeed++; targets = null; }
-            GUI.Label(new Rect(r.x + 10, r.y + 316, r.width - 20, 120), "İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Mızraklı kuleler atlıya, Elf kuleleri periye güçlüdür; Büyücü kalabalığa, Goblin kaynak binalarına etkilidir. Zafer için yapıların ortalama hasarı %51'i geçmeli.");
+            if (Btn(new Rect(r.x + 10, r.y + 290, 180, 36), "Hedefleri yenile")) { targetSeed++; targets = null; }
+            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Mızraklı kuleler atlıya, Elf kuleleri periye güçlüdür; Büyücü kalabalığa, Goblin kaynak binalarına etkilidir. Zafer için yapıların ortalama hasarı %51'i geçmeli.</color>");
         }
 
         // ---------- Menü ----------
         private void DrawMenu(float w, float h)
         {
-            var r = new Rect(6, 34, w - 12, h - 76);
+            var r = new Rect(8, 50, w - 16, h - 108);
             Panel(r, "MENÜ");
             float y = r.y + 34;
             string stats = "Savaş: " + g.BattlesFought + "  Zafer: " + g.BattlesWon + "  Yıldız: " + g.TotalStars + "   Araştırma: " + g.Research.Done.Count + "/" + ResearchCatalog.All.Count;
@@ -431,9 +467,8 @@ namespace GameClient
             if (Btn(new Rect(x + 156, y, 150, 34), "Kaynak +5000")) { foreach (ResourceType t in System.Enum.GetValues(typeof(ResourceType))) g.Wallet.TryAdd(t, 5000, g.Level, out _, out _); }
             if (Btn(new Rect(x + 312, y, 170, 34), "Sv 30 yap (test)")) { AddLevelUpPopups(g.AddXp(200000)); dirty = true; }
             y += 50;
-            GUI.color = confirmNew ? new Color(1f, 0.5f, 0.5f) : Color.white;
-            if (Btn(new Rect(x, y, 260, 34), confirmNew ? "EMİN MİSİN? Tekrar bas: tüm ilerleme silinir" : "Yeni oyun (sil)")) { if (confirmNew) { confirmNew = false; NewGameConfirmed(); } else confirmNew = true; }
-            GUI.color = Color.white;
+            uiRects.Add(new Rect(x, y, 300, 38));
+            if (GUI.Button(new Rect(x, y, 300, 38), confirmNew ? "EMİN MİSİN? Tekrar bas: tüm ilerleme silinir" : "Yeni oyun (sil)", UiTheme.BtnRed)) { if (confirmNew) { confirmNew = false; NewGameConfirmed(); } else confirmNew = true; }
             y += 48;
             var sb = new StringBuilder("Son olaylar:\n");
             foreach (var l in log) sb.Append("• ").Append(l).Append('\n');
@@ -444,49 +479,53 @@ namespace GameClient
         private void DrawBattleGui(float w, float h)
         {
             int n = ContentCatalog.SoldierTypeCount;
-            float bw = Mathf.Min(130f, (w - 8f) / n - 2f);
+            float bw = Mathf.Min(120f, (w - 8f) / n - 3f);
             for (int i = 0; i < n; i++)
             {
                 var t = (SoldierType)i;
-                GUI.color = t == selSoldier ? Color.yellow : (sim.StockOf(t) > 0 ? Color.white : new Color(1f, 1f, 1f, 0.4f));
-                if (Btn(new Rect(4 + i * (bw + 2), 34, bw, 36), ContentCatalog.Soldier(t).Name + " " + sim.StockOf(t))) selSoldier = t;
+                if (sim.StockOf(t) <= 0 && t != selSoldier) GUI.color = new Color(1f, 1f, 1f, 0.45f);
+                var br = new Rect(4 + i * (bw + 3), 50, bw, 52);
+                if (SelBtn(br, ContentCatalog.Soldier(t).Name + "\n" + sim.StockOf(t), t == selSoldier)) selSoldier = t;
+                GUI.color = Color.white;
+                UiTheme.Dot(new Rect(br.x + 4, br.y + 4, 12, 12), VillageArt.TunicOf(t));
             }
-            GUI.color = Color.white;
             if (!battleOver)
             {
-                if (Btn(new Rect(4, 74, 110, 32), "Geri Çek") && !sim.Finished) sim.Retreat();
-                if (Btn(new Rect(118, 74, 90, 32), "Hız " + speed + "x")) speed = speed == 1 ? 3 : (speed == 3 ? 6 : 1);
+                uiRects.Add(new Rect(4, 108, 120, 36));
+                if (GUI.Button(new Rect(4, 108, 120, 36), "Geri Çek", UiTheme.BtnRed) && !sim.Finished) sim.Retreat();
+                if (Btn(new Rect(128, 108, 100, 36), "Hız " + speed + "x")) speed = speed == 1 ? 3 : (speed == 3 ? 6 : 1);
             }
             int aliveSoldiers = 0;
             foreach (var s in sim.Soldiers) if (s.Alive) aliveSoldiers++;
-            var rs = new Rect(4, h - 40, w - 8, 36);
+            var rs = new Rect(6, h - 46, w - 12, 40);
             string msg = Time.time < toastUntil ? toast : curTarget.Name + " (Sv " + curTarget.Level + ")  |  " + (sim.Tick / 10) + " sn / 180  |  Hasar %" + LiveDamagePct() + " (zafer %51)  |  Sahada " + aliveSoldiers + "   [kırmızı alana dokun/basılı tut]";
-            GUI.Box(rs, msg); uiRects.Add(rs);
+            GUI.Label(rs, msg, UiTheme.Pill); uiRects.Add(rs);
             if (battleOver && lastResult != null) DrawResult(w, h);
         }
 
         private void DrawResult(float w, float h)
         {
             var r = lastResult;
-            var box = new Rect(w * 0.5f - 200f, h * 0.5f - 150f, 400f, 300f);
+            var box = new Rect(w * 0.5f - 220f, h * 0.5f - 170f, 440f, 340f);
             uiRects.Add(box);
-            GUI.color = new Color(0f, 0f, 0f, 0.9f);
-            GUI.Box(box, "");
-            GUI.color = Color.white;
-            float y = box.y + 8f;
-            Line(box, ref y, r.Victory ? "ZAFER  -  yıldız " + r.Stars + "/3" : "YENİLGİ  -  yıldız 0/3");
+            GUI.Box(box, "", UiTheme.Parchment);
+            var head = new GUIStyle(UiTheme.Title) { fontSize = 30, normal = { textColor = r.Victory ? new Color(0.25f, 0.55f, 0.15f) : new Color(0.7f, 0.15f, 0.1f) } };
+            GUI.Label(new Rect(box.x, box.y + 12, box.width, 40), r.Victory ? "ZAFER!" : "YENİLGİ", head);
+            for (int i = 0; i < 3; i++)
+                UiTheme.Dot(new Rect(box.x + box.width * 0.5f - 66 + i * 46, box.y + 56, 40, 40), i < r.Stars ? new Color(1f, 0.82f, 0.2f) : new Color(0.55f, 0.48f, 0.40f));
+            float y = box.y + 104f;
             Line(box, ref y, "Genel hasar: %" + r.OverallDamagePct + "   XP: +" + (lastOutcome != null ? lastOutcome.XpGained : r.Xp));
-            Line(box, ref y, "Yağma: " + r.Loot);
+            Line(box, ref y, "Yağma: " + (r.Loot.Wood + r.Loot.Stone + r.Loot.Gold + r.Loot.Iron > 0 ? r.Loot.ToString() : "yok"));
             Line(box, ref y, "Ölü " + BattleResult.Total(r.LostDead) + "  Yaralı " + BattleResult.Total(r.LostInjured) + "  Feda " + BattleResult.Total(r.LostSacrificed));
             Line(box, ref y, "Dönen asker: " + BattleResult.Total(r.Returned));
             if (lastOutcome != null && lastOutcome.LevelUps.Count > 0) Line(box, ref y, "SEVİYE ATLADIN → Sv " + g.Level);
-            if (GUI.Button(new Rect(box.x + 130f, box.y + box.height - 50f, 140f, 38f), "Tamam")) CloseBattle();
+            if (GUI.Button(new Rect(box.x + box.width * 0.5f - 80f, box.y + box.height - 56f, 160f, 42f), "Tamam", UiTheme.BtnGreen)) CloseBattle();
         }
 
         private static void Line(Rect box, ref float y, string text)
         {
-            GUI.Label(new Rect(box.x + 14f, y, box.width - 28f, 28f), text);
-            y += 30f;
+            GUI.Label(new Rect(box.x + 24f, y, box.width - 48f, 28f), text, new GUIStyle(UiTheme.Skin.label) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) } });
+            y += 28f;
         }
     }
 }

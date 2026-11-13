@@ -20,116 +20,99 @@ namespace GameClient
             return m;
         }
 
-        private void Cube(GridPos p, Vector3 scale, float centerY, Color c) => Cube(new Vector3(p.X, centerY, p.Y), scale, c);
-
-        private void Cube(Vector3 pos, Vector3 scale, Color c)
-        {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            Destroy(go.GetComponent<Collider>());
-            go.transform.SetParent(viewRoot, false);
-            go.transform.localPosition = pos;
-            go.transform.localScale = scale;
-            go.GetComponent<MeshRenderer>().sharedMaterial = Mat(c);
-        }
-
         private bool IsRoad(int x, int y) => layout.Get(new GridPos(x, y)) == CellKind.Road;
 
-        /// <summary>Komşu yollara otomatik bağlanan yol parçası: merkez + bağlı yönlere kollar.</summary>
-        private void DrawRoad(GridPos p)
+        private Transform envRoot;
+        private int envSize = -1;
+
+        /// <summary>Gökyüzü, ışık, sis ve ortam rengi: sıcak öğleden sonra köy havası.</summary>
+        private void SetupAtmosphere()
         {
-            var tier = layout.GetRoadTier(p);
-            Color baseC, rail, stripe;
-            switch (tier)
-            {
-                case RoadTier.Reinforced:
-                    baseC = new Color(0.66f, 0.52f, 0.30f); rail = new Color(0.92f, 0.74f, 0.20f); stripe = new Color(0.50f, 0.38f, 0.20f); break;
-                case RoadTier.Iron:
-                    baseC = new Color(0.40f, 0.42f, 0.47f); rail = new Color(0.72f, 0.74f, 0.80f); stripe = new Color(0.30f, 0.32f, 0.36f); break;
-                default:
-                    baseC = new Color(0.62f, 0.50f, 0.34f); rail = baseC; stripe = new Color(0.44f, 0.34f, 0.21f); break;
-            }
-            const float slabH = 0.14f, slabY = 0.02f;
-            var c = new Vector3(p.X, 0f, p.Y);
-            Cube(c + new Vector3(0, slabY, 0), new Vector3(0.5f, slabH, 0.5f), baseC);
-            if (tier != RoadTier.Wood) Cube(c + new Vector3(0, 0.1f, 0), new Vector3(0.16f, 0.1f, 0.16f), rail);
-            int[] dx = { 0, 1, 0, -1 };
-            int[] dy = { 1, 0, -1, 0 };
-            bool[] open = { IsRoad(p.X, p.Y + 1), IsRoad(p.X + 1, p.Y), IsRoad(p.X, p.Y - 1) || layout.IsEntrance(p), IsRoad(p.X - 1, p.Y) };
-            for (int i = 0; i < 4; i++)
-            {
-                if (!open[i]) continue;
-                bool alongX = dx[i] != 0;
-                var dir = new Vector3(dx[i], 0, dy[i]);
-                var armPos = c + dir * 0.375f + new Vector3(0, slabY, 0);
-                var armSize = alongX ? new Vector3(0.25f, slabH, 0.5f) : new Vector3(0.5f, slabH, 0.25f);
-                Cube(armPos, armSize, baseC);
-                if (tier == RoadTier.Wood)
-                {
-                    var sSize = alongX ? new Vector3(0.04f, slabH + 0.01f, 0.5f) : new Vector3(0.5f, slabH + 0.01f, 0.04f);
-                    Cube(c + dir * 0.375f + new Vector3(0, slabY, 0), sSize, stripe);
-                }
-                else
-                {
-                    var perp = alongX ? new Vector3(0, 0, 1) : new Vector3(1, 0, 0);
-                    var rSize = alongX ? new Vector3(0.25f, 0.2f, 0.05f) : new Vector3(0.05f, 0.2f, 0.25f);
-                    Cube(armPos + perp * 0.22f + new Vector3(0, 0.03f, 0), rSize, rail);
-                    Cube(armPos - perp * 0.22f + new Vector3(0, 0.03f, 0), rSize, rail);
-                }
-            }
+            VillageArt.Init(baseMat);
+            cam.backgroundColor = new Color(0.56f, 0.76f, 0.92f);
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Trilight;
+            RenderSettings.ambientSkyColor = new Color(0.86f, 0.90f, 1.0f);
+            RenderSettings.ambientEquatorColor = new Color(0.72f, 0.72f, 0.64f);
+            RenderSettings.ambientGroundColor = new Color(0.36f, 0.32f, 0.27f);
+            RenderSettings.fog = true;
+            RenderSettings.fogMode = FogMode.Linear;
+            RenderSettings.fogColor = new Color(0.66f, 0.80f, 0.90f);
+            RenderSettings.fogStartDistance = 40f;
+            RenderSettings.fogEndDistance = 75f;
+            Light sun = null;
+            foreach (var l in FindObjectsByType<Light>(FindObjectsSortMode.None)) if (l.type == LightType.Directional) { sun = l; break; }
+            if (sun == null) sun = new GameObject("Sun").AddComponent<Light>();
+            sun.type = LightType.Directional;
+            sun.color = new Color(1f, 0.94f, 0.82f);
+            sun.intensity = 1.55f;
+            sun.shadows = LightShadows.Soft;
+            sun.shadowStrength = 0.55f;
+            sun.transform.rotation = Quaternion.Euler(52f, -35f, 0f);
+        }
+
+        private void EnsureEnvironment()
+        {
+            if (envRoot != null && envSize == layout.Size) return;
+            if (envRoot != null) Destroy(envRoot.gameObject);
+            envRoot = new GameObject("Environment").transform;
+            envSize = layout.Size;
+            VillageArt.BuildEnvironment(envRoot, layout.Size, VillageLayout.AttackZoneRows);
+            BatchStatic(envRoot.gameObject);
+        }
+
+        /// <summary>Hareketsiz parçaları birleştirir (draw call azaltır); ArtMotion taşıyanlar ayrı kalır.</summary>
+        private static void BatchStatic(GameObject root)
+        {
+            var list = new List<GameObject>();
+            foreach (var r in root.GetComponentsInChildren<MeshRenderer>())
+                if (r.GetComponentInParent<ArtMotion>() == null) list.Add(r.gameObject);
+            if (list.Count > 1) StaticBatchingUtility.Combine(list.ToArray(), root);
         }
 
         private void Rebuild()
         {
             view = sim != null ? curTarget.Defense : g.MakeDefense();
+            EnsureEnvironment();
             if (viewRoot != null) Destroy(viewRoot.gameObject);
             viewRoot = new GameObject("View").transform;
             int n = layout.Size;
-            var grass1 = new Color(0.30f, 0.55f, 0.30f);
-            var grass2 = new Color(0.27f, 0.50f, 0.27f);
-            var edge = new Color(0.9f, 0.8f, 0.3f);
+            bool building = sim == null && tab == Tab.Village && tool != Tool.Select && tool != Tool.Pan;
             for (int x = 0; x < n; x++)
                 for (int y = 0; y < n; y++)
                 {
                     var p = new GridPos(x, y);
-                    var gc = ((x + y) & 1) == 0 ? grass1 : grass2;
-                    if (y == 0) gc = Color.Lerp(gc, edge, 0.35f);
-                    Cube(p, new Vector3(0.96f, 0.1f, 0.96f), -0.05f, gc);
+                    var c = new Vector3(x, 0f, y);
+                    int seed = x * 31 + y * 17;
+                    // zemin karosu: yumuşak çim, inşa modunda hafif ızgara
+                    var gc = Color.Lerp(VillageArt.Grass, VillageArt.GrassDark, VillageArt.Rand(seed, 1) * 0.45f);
+                    if (building && ((x + y) & 1) == 0) gc = Color.Lerp(gc, Color.white, 0.07f);
+                    VillageArt.Part(viewRoot, VillageArt.Shape.Box, c + new Vector3(0, -0.05f, 0), new Vector3(building ? 0.96f : 1.0f, 0.1f, building ? 0.96f : 1.0f), VillageArt.GrassMat(gc));
                     switch (layout.Get(p))
                     {
                         case CellKind.Road:
-                            DrawRoad(p);
-                            if (view.Traps.TryGetValue(p, out var tr)) Cube(p, new Vector3(0.3f, 0.05f, 0.3f), 0.13f, TrapColor(tr));
+                            var open = new[] { IsRoad(x, y + 1), IsRoad(x + 1, y), IsRoad(x, y - 1) || layout.IsEntrance(p), IsRoad(x - 1, y) };
+                            VillageArt.BuildRoad(viewRoot, c, layout.GetRoadTier(p), open, seed);
+                            if (view.Traps.TryGetValue(p, out var tr)) VillageArt.BuildTrap(viewRoot, c, tr);
                             break;
                         case CellKind.Building:
-                            if (IsDestroyed(p)) { Cube(p, new Vector3(0.6f, 0.15f, 0.6f), 0.08f, new Color(0.2f, 0.18f, 0.16f)); break; }
+                            if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
                                 var bt = view.Buildings.TryGetValue(p, out var bs) ? bs.Type : BuildingType.VillagerHouse;
-                                int bl = bs != null ? bs.Level : 1;
-                                float h = 0.5f + Mathf.Min(0.6f, bl * 0.03f);
-                                Cube(p, new Vector3(0.7f, h, 0.7f), h * 0.5f, BuildingColor(bt));
-                                if (p.Equals(selCell) && sim == null) Cube(p, new Vector3(0.9f, 0.05f, 0.9f), 0.02f, Color.yellow);
+                                VillageArt.BuildBuilding(viewRoot, bt, bs != null ? bs.Level : 1, seed, c);
                             }
                             break;
                         case CellKind.Tower:
-                            if (IsDestroyed(p)) { Cube(p, new Vector3(0.6f, 0.15f, 0.6f), 0.08f, new Color(0.2f, 0.18f, 0.16f)); break; }
+                            if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
                                 var tt = view.Towers.TryGetValue(p, out var ts) ? ts.Type : TowerType.Archer;
-                                int perm = ts != null ? ts.PermanentDamagePct : 0;
-                                var body = perm > 0 ? new Color(0.38f, 0.32f, 0.32f) : new Color(0.55f, 0.58f, 0.65f);
-                                float th = 1.0f + Mathf.Min(0.8f, (ts != null ? ts.Level : 1) * 0.03f);
-                                Cube(p, new Vector3(0.45f, th, 0.45f), th * 0.5f, body);
-                                Cube(p, new Vector3(0.65f, 0.2f, 0.65f), th + 0.1f, TowerColor(tt));
-                                if (p.Equals(selCell) && sim == null) Cube(p, new Vector3(0.9f, 0.05f, 0.9f), 0.02f, Color.yellow);
+                                VillageArt.BuildTower(viewRoot, tt, ts != null ? ts.Level : 1, ts != null && ts.PermanentDamagePct > 0, c);
                             }
                             break;
                     }
-                    if (layout.IsEntrance(p)) Cube(p, new Vector3(0.5f, 0.2f, 0.5f), 0.15f, new Color(0.95f, 0.45f, 0.1f));
+                    if (layout.IsEntrance(p)) VillageArt.BuildGate(viewRoot, c);
+                    if (p.Equals(selCell) && sim == null) VillageArt.BuildSelection(viewRoot, c);
                 }
-            var z1 = new Color(0.55f, 0.25f, 0.22f);
-            var z2 = new Color(0.48f, 0.21f, 0.19f);
-            for (int x = 0; x < n; x++)
-                for (int r = 1; r <= VillageLayout.AttackZoneRows; r++)
-                    Cube(new GridPos(x, -r), new Vector3(0.96f, 0.1f, 0.96f), -0.05f, ((x + r) & 1) == 0 ? z1 : z2);
+            BatchStatic(viewRoot.gameObject);
             dirty = false;
             if (sim == null) valid = g.VillageValid(out validationError);
         }
@@ -180,19 +163,7 @@ namespace GameClient
             }
         }
 
-        private static Color SoldierColor(SoldierType t)
-        {
-            switch (t)
-            {
-                case SoldierType.Swordsman: return new Color(0.75f, 0.8f, 0.95f);
-                case SoldierType.Archer: return new Color(0.4f, 0.9f, 0.4f);
-                case SoldierType.Mage: return new Color(0.8f, 0.4f, 1f);
-                case SoldierType.Goblin: return new Color(0.3f, 0.55f, 0.15f);
-                case SoldierType.Cavalry: return new Color(0.6f, 0.35f, 0.15f);
-                case SoldierType.Spearman: return new Color(1f, 0.65f, 0.2f);
-                default: return new Color(1f, 0.6f, 0.85f);
-            }
-        }
+        private static Color SoldierColor(SoldierType t) => VillageArt.TunicOf(t);
 
         private static string TrapName(TrapType t)
         {

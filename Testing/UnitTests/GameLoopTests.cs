@@ -214,6 +214,21 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void NewGame_SaveLoadTwice_KeepsEntranceAndValidity()
+        {
+            var g = GameState.NewGame();
+            g.Advance(0, 20770);
+            string err;
+            Assert.IsTrue(g.VillageValid(out err), err);
+            StringAssert.Contains("ent 5 0", GameSave.Save(g, 1));
+            var h = GameSave.Load(GameSave.Save(g, 1), g.Config, out _);
+            h.Advance(1200, 20770);
+            var k = GameSave.Load(GameSave.Save(h, 2), g.Config, out _);
+            Assert.AreEqual(1, k.Layout.EntranceCount, GameSave.Save(h, 2));
+            Assert.IsTrue(k.VillageValid(out err), err);
+        }
+
+        [Test]
         public void Load_OldSaveWithoutRaidLine_StillWorks()
         {
             var g = GameState.NewGame();

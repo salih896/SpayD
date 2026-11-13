@@ -31,5 +31,13 @@ Sonuç (bot, tam ordu, 6 tohum): Kolay ≈ %100, Normal ≈ %85-95 (0,7-2,8 yıl
 
 Bilinen sınırlar / sonraki tur: bot askerleri tek seferde yayıyor (insan oyuncu daha iyi oynar → Normal pratikte daha kolay olabilir); Normal hedefi biraz kolay, ince ayar gerçek oyun testinden sonra. Kaynak üretimi/maliyetleri, görev ödülleri, araştırma süre/maliyeti bu turda değişmedi.
 
+## Denge turu 2 (14.11.2026) — 10 asker + GDD kule hakkı (5→10)
+Kule sayısı 33'ten 10'a inince ordular her şeyi eziyordu (%100 zafer, baskınların hiçbiri savunulamıyordu). Değişiklikler:
+- Kule can/hasar ×2,5 (az ama güçlü kule).
+- Ordu kapasitesi 20 + 1,2 × kışla seviyesi (Sv30 ≈ 80-90).
+- Hedef kuleleri `GameRules.ExpectedTowerLevel` (Sv10→3, 15→5, 20→8, 25→11, 30→16); baskıncı askerleri `ExpectedStructureLevel`.
+- Hedef kule sayısı: Kolay %50, Normal %80, Zor %100 (+1 seviye) kule hakkı. Baskıncı ordusu 6 + 1,5×Sv.
+Sonuç (bot): saldırıların %77-80'i zafer (ort. ~2 yıldız), Normal ~%70, Zor ~%25; Sv30 ≈ 23 gün (2 saatte bir) / 45 gün (4 saatte bir); baskınların bir kısmı savunuluyor.
+
 ## Test durumu
-Core: 117 EditMode testi geçti (13.11.2026).
+Core: 118 EditMode testi geçti (14.11.2026).
