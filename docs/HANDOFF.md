@@ -26,18 +26,17 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 ## 4. Henüz doğrulanmayanlar / bilinen eksikler
 - Core'da otomatik testle doğrulandı (`Testing/UnitTests/GameLoopTests.cs`, 13.11.2026): zafer yolu, günlük baskın + rapor, kayıt-yükleme (yükleme sonrası aynı ilerleme), araştırma başlat/bitir, çoklu seviye atlama sırası. Düzeltilen hatalar: (1) saat geri gidince / test menüsü "+1 gün" sonrası ikinci baskın ve günlük görevlerin geri sarılması, (2) baskın raporunun oyun yeniden açılınca kaybolması.
 - Hâlâ ekranda elle denenecek (Unity Play, ~10 dk): Menü "Sv 30 yap" → seviye penceresi; Saldır → Kolay hedef → ZAFER ekranı (yıldız, yağma, XP); Menü "+1 gün" → alt bantta "Son baskın" yazısı; oyunu kapat-aç → rapor ve kaynaklar duruyor mu; Araştırma → BAŞLAT → "+1 saat" → tamamlandı bildirimi. Android/iOS cihaz denenmedi.
-- Sv30 testte 16 adet Sv1 askerle Sv28 köye saldırı kesin yenilgi (beklenen) → asker seviye gelişimi ve ordu kapasitesi dengesi oynayarak ayarlanacak.
 - Element ağaçlarının çapraz kilitleri YOK. 3. sütun ön koşulu bir varsayım.
 - Yol malzeme basamağı (Tahta/Altın+Tahta/Demir) yükseltme ve araştırması istemciye bağlı değil (TechTrees'te yol kaydı gelmedi). Yol araştırma maliyeti örnek.
 - Harita genişletme (11→15) uygulanmadı (koşullu onay vardı).
-- Tüm sayılar yer tutucu: XP eğrisi 100+12l+2l², seviye ölçeği 100+20l+2l², araştırma süre/maliyet, üretim/kapasite, TowerScalePct=200, görev ödülleri. Başlangıç noktası: `docs/balance-report.txt` (test çıktısı), `docs/balance-and-engagement.md`.
+- Denge turu 1 yapıldı (simülasyonla; ayrıntı `docs/balance-and-engagement.md`, çıktı `docs/balance-report.txt`): XP eğrisi 100+40l+8l², yapay rakip gücü `GameRules.ExpectedStructureLevel`'a bağlı, ordu kapasitesi 10+3×kışla. Hâlâ yer tutucu: kaynak üretim/maliyet, görev ödülleri, araştırma süre/maliyet, seviye ölçeği 100+20l+2l².
 - Arayüz geçici OnGUI; görseller kutu/küp. Ses, müzik, animasyon, efekt yok.
 - Açık sorular tam liste: `docs/open-questions.md` (banka/altın madeni açılış seviyesi çakışması, kalkan = koruma mı, vb.).
 
 ## 5. Sıradaki işler (öneri sırası)
 1. **Ortam:** ✔ Depo açıldı (`Documents\GameStudio-repo`), eksik Unity iskeleti (ProjectSettings, Packages, sahne, .meta) depoya eklendi, `Tools/run-tests.ps1` yazıldı, GitHub özel deposu kuruldu: `salih896/SpayD` (origin; eski bundle uzak deposu `bundle` adıyla duruyor).
 2. **Elle test turu:** ✔ Core tarafı otomatik testlerle bitti (2 hata düzeltildi). ⏳ Ekran kontrolü kullanıcıda (Bölüm 4 listesi).
-3. **Denge turu:** Zafer kazanılabilir ama kolay olmayan savaş; asker/kule hasarları, ordu kapasitesi, XP/ödül hızları, günlük baskın sıklığı. Hedef: Sv1→30 toplam birkaç hafta aktif oyun.
+3. **Denge turu:** ✔ Tur 1 bitti: Sv30 ≈ 24 gün (2 saatte bir giren) / 45 gün (4 saatte bir); Normal ≈ %90, Zor ≈ %25 zafer (bot). Sonraki ince ayar gerçek oyun testinden sonra (`BalanceSimTests` raporu her test koşusunda yenilenir).
 4. **Eksik sistemler:** yol malzeme yükseltmesi + araştırması, Element kilitleri, onarım maliyeti/süresi, harita genişletme (onay şartıyla), tuzak çeşitleri/gelişimi.
 5. **İlk Android build:** cihazda performans (60 FPS orta cihaz, ≤300 asker, <150 draw call), dokunmatik kontrol, ekran boyutları. İlk Aşama 2 hedefini gerçekten tamamlar.
 6. **İnceleme geçişi:** kodu başkası yazmış gibi eleştir (güvenlik, determinizm, taşma/sınır durumları).

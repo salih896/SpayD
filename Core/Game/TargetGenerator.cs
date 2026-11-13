@@ -30,7 +30,7 @@ namespace GameCore.Game
         };
 
         /// <summary>Kule sayısı çarpanı (%): denge ayarı. Varsayılan 100.</summary>
-        public static int TowerScalePct = 200;
+        public static int TowerScalePct = 100;
 
         public static int LevelFor(int playerLevel, int difficulty)
         {
@@ -91,8 +91,14 @@ namespace GameCore.Game
             foreach (var p in cells) keyed.Add(new KeyValuePair<int, GridPos>(rng.Next(1000) + (AdjacentRoad(layout, p) ? 0 : 5000), p));
             keyed.Sort((a, b) => a.Key.CompareTo(b.Key));
 
-            var setup = new DefenseSetup(layout);
-            int towerTarget = Math.Max(1, ((level + 1) / 2 + (difficulty - 1)) * TowerScalePct / 100);
+            // Savunma araştırması: o seviyedeki tipik oyuncunun kule/bina bonusu kadar (oyuncu saldırırken kendi araştırmasını kullanır)
+            int rp = ExpectedDefenseResearchPermille(level);
+            var setup = new DefenseSetup(layout) { Mods = new CombatMods { TowerDamage = rp, TowerHp = rp, BuildingHp = rp } };
+            // Kule sayısı: o seviyedeki oyuncunun kule hakkının bir oranı (Kolay %60, Normal %90, Zor %100).
+            // Seviyeler: tipik oyuncunun yapı seviyesi (GameRules.ExpectedStructureLevel), Kolay -1 / Zor +1.
+            int countPct = difficulty == 0 ? 60 : (difficulty == 2 ? 100 : 90);
+            int towerTarget = Math.Max(1, GameRules.MaxTowers(level) * countPct / 100 * TowerScalePct / 100);
+            int structLevel = Math.Max(1, Math.Min(GameRules.MaxStructureLevel(level), GameRules.ExpectedStructureLevel(level) + (difficulty == 0 ? -1 : difficulty == 2 ? 1 : 0)));
             var towerTypes = new List<TowerType>();
             foreach (TowerType t in Enum.GetValues(typeof(TowerType))) if (ContentCatalog.Tower(t).UnlockLevel <= level) towerTypes.Add(t);
             if (towerTypes.Count == 0) towerTypes.Add(TowerType.Archer); // Sv1 hedeflerde de en az bir okçu kulesi olsun
@@ -108,7 +114,7 @@ namespace GameCore.Game
                 if (towers < towerTarget && AdjacentRoad(layout, p))
                 {
                     var tt = towerTypes[ti++ % towerTypes.Count];
-                    if (layout.TryPlace(p, CellKind.Tower, out e)) { setup.Towers[p] = new TowerSpec(tt, level, 0); towers++; }
+                    if (layout.TryPlace(p, CellKind.Tower, out e)) { setup.Towers[p] = new TowerSpec(tt, structLevel, 0); towers++; }
                 }
             }
             foreach (var kv in keyed)
@@ -117,7 +123,7 @@ namespace GameCore.Game
                 if (blds >= bldTarget) break;
                 if (layout.Get(p) != CellKind.Empty) continue;
                 var bt = bldTypes[bi++ % bldTypes.Count];
-                if (layout.TryPlace(p, CellKind.Building, out e)) { setup.Buildings[p] = new BuildingSpec(bt, level); blds++; }
+                if (layout.TryPlace(p, CellKind.Building, out e)) { setup.Buildings[p] = new BuildingSpec(bt, structLevel); blds++; }
             }
 
             // Tuzaklar (Sv3+): yol hücrelerine, girişe değil
@@ -141,6 +147,9 @@ namespace GameCore.Game
             var pool = GameRules.Scale(new ResourceCost(350 * level, 200 * level, 100 * level, 50 * level), cfg, level, pct);
             return new TargetInfo { Name = Names[rng.Next(Names.Length)], Level = level, Difficulty = difficulty, Defense = setup, Pool = pool, Seed = seed };
         }
+
+        /// <summary>Tipik oyuncunun o seviyedeki savunma araştırma bonusu (‰). Sv10≈%1.6, Sv20≈%6.6, Sv30≈%15 (simülasyondan kaba tahmin).</summary>
+        public static int ExpectedDefenseResearchPermille(int level) => level * level / 6;
 
         private static bool RoadNeighbour(VillageLayout l, GridPos p)
         {

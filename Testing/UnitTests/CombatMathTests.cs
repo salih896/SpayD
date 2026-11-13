@@ -89,7 +89,7 @@ namespace GameCore.Tests
         public void Xp_CurveAndLevels()
         {
             Assert.AreEqual(100, ProgressionRules.XpToNextLevel(1));
-            Assert.AreEqual(114, ProgressionRules.XpToNextLevel(2));
+            Assert.AreEqual(148, ProgressionRules.XpToNextLevel(2)); // 100 + 40l + 8l², l = 1
             Assert.AreEqual(1, ProgressionRules.LevelFromTotalXp(99, out int into));
             Assert.AreEqual(99, into);
             Assert.AreEqual(2, ProgressionRules.LevelFromTotalXp(100, out into));

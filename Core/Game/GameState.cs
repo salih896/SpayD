@@ -49,7 +49,9 @@ namespace GameCore.Game
     public sealed class GameState
     {
         public const int MaxOfflineSeconds = 24 * 3600;
-        public const int PlacementXpBuilding = 20, PlacementXpTower = 30, UpgradeXpPerLevel = 12;
+        public const int PlacementXpBuilding = 20, PlacementXpTower = 30, UpgradeXpPerLevel = 8;
+        /// <summary>Savaş XP'si hedef seviyesinin her basamağında bu kadar % artar (denge simülasyonuyla ayarlandı).</summary>
+        public const int BattleXpPctPerTargetLevel = 6;
 
         /// <summary>Bina/kule kurma veya yükseltme tamamlanınca kazanılan seviye atlamaları; arayüz okuyup boşaltır.</summary>
         public readonly List<LevelUpInfo> PendingLevelUps = new List<LevelUpInfo>();
@@ -517,7 +519,7 @@ namespace GameCore.Game
             Quests.Report(QuestEvent.StarsEarned, r.Stars, lvl);
             Quests.Report(QuestEvent.TowersDestroyed, towersDown, lvl);
             Quests.Report(QuestEvent.LootTaken, lootTotal, lvl);
-            o.XpGained = (int)((long)r.Xp * (100 + 12 * (Math.Max(1, targetLevel) - 1)) / 100);
+            o.XpGained = (int)((long)r.Xp * (100 + BattleXpPctPerTargetLevel * (Math.Max(1, targetLevel) - 1)) / 100);
             o.LevelUps = AddXp(o.XpGained);
             return o;
         }

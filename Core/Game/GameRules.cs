@@ -16,6 +16,16 @@ namespace GameCore.Game
 
         public static int MaxTowers(int playerLevel) => 3 + playerLevel;
 
+        /// <summary>
+        /// O oyuncu seviyesindeki tipik aktif oyuncunun kule/asker/bina ortalama seviyesi (denge simülasyonundan kalibre,
+        /// bkz. docs/balance-report.txt). Yapay hedef köyler ve günlük baskın gücü buna bağlıdır; ham oyuncu seviyesine değil.
+        /// </summary>
+        public static int ExpectedStructureLevel(int playerLevel)
+        {
+            int l = Math.Max(1, Math.Min(MaxLevel, playerLevel));
+            return Math.Max(1, Math.Min(MaxStructureLevel(l), (120 * l + 6 * l * l) / 750)); // Sv10→2, 15→4, 20→6, 25→9, 30→12
+        }
+
         /// <summary>Yapı/kule seviyesi oyuncu seviyesini geçemez.</summary>
         public static int MaxStructureLevel(int playerLevel) => Math.Min(MaxLevel, playerLevel);
 
@@ -63,7 +73,7 @@ namespace GameCore.Game
         public static int Builders(int villagerHouses) => 1 + Math.Min(5, villagerHouses);
 
         /// <summary>Kışla toplam seviyesi başına ordu kapasitesi.</summary>
-        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 10 + 6 * barracksLevelSum;
+        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 10 + 3 * barracksLevelSum;
 
         // ---- Üretim ve depo ----
         public static ResourceType? ProducedBy(BuildingType t)

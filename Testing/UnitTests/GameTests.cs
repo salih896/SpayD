@@ -216,53 +216,5 @@ namespace GameCore.Tests
             Assert.IsNull(GameSave.Load("rubbish", ResourceConfig.CreateDefault(), out ts));
             Assert.IsNull(GameSave.Load("", ResourceConfig.CreateDefault(), out ts));
         }
-
-        // ---------- Denge raporu (docs/balance-report.txt) ----------
-        [Test]
-        public void BalanceReport_WritesFile()
-        {
-            var sb = new StringBuilder();
-            sb.AppendLine("NORMAL hedef, otomatik bot. satır: seviye | kule çarpanı % | ordu doluluk % | asker seviyesi=L-3 | kazanma/8 | ort hasar | ort yıldız | kule sayısı");
-            int saved = TargetGenerator.TowerScalePct;
-            foreach (int lvl in new[] { 3, 5, 8, 10, 15, 20, 30 })
-                foreach (int ts in new[] { 100, 150, 200, 300 })
-                    foreach (int fill in new[] { 50, 100 })
-                    {
-                        TargetGenerator.TowerScalePct = ts;
-                        int wins = 0, dmg = 0, stars = 0, towers = 0;
-                        for (int seed = 0; seed < 8; seed++)
-                        {
-                            var tgt = TargetGenerator.Generate(lvl, 1, seed);
-                            var stock = IdealArmy(lvl, fill);
-                            var levels = new Dictionary<SoldierType, int>();
-                            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = System.Math.Max(1, lvl - 3);
-                            var sim = BotBattle.Run(tgt.Defense, stock, levels, null, seed + 1);
-                            var res = sim.Result(tgt.Pool, ResourceConfig.CreateDefault(), tgt.Level);
-                            if (res.Victory) wins++;
-                            dmg += res.OverallDamagePct; stars += res.Stars; towers += tgt.Defense.Towers.Count;
-                        }
-                        sb.AppendLine(lvl + " | " + ts + " | " + fill + " | " + wins + "/8 | " + dmg / 8 + " | " + (stars / 8.0).ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + " | " + towers / 8);
-                    }
-            TargetGenerator.TowerScalePct = saved;
-            string path = Path.Combine(Directory.GetCurrentDirectory(), "..", "docs", "balance-report.txt");
-            try { File.WriteAllText(path, sb.ToString()); } catch { /* yazılamazsa sessiz geç */ }
-            Assert.Pass(sb.ToString());
-        }
-
-        private static Dictionary<SoldierType, int> IdealArmy(int lvl, int fillPct = 100)
-        {
-            int cap = GameRules.ArmyCapacity(lvl) * fillPct / 100;
-            var unlocked = new List<SoldierType>();
-            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
-                if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) unlocked.Add((SoldierType)i);
-            if (unlocked.Count == 0) unlocked.Add(SoldierType.Swordsman);
-            var stock = new Dictionary<SoldierType, int>();
-            for (int i = 0; i < cap; i++)
-            {
-                var t = unlocked[i % unlocked.Count];
-                stock[t] = (stock.TryGetValue(t, out var n) ? n : 0) + 1;
-            }
-            return stock;
-        }
     }
 }

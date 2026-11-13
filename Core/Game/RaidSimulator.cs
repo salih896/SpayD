@@ -22,7 +22,7 @@ namespace GameCore.Game
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
                 if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= level) unlocked.Add((SoldierType)i);
             if (unlocked.Count == 0) unlocked.Add(SoldierType.Swordsman);
-            int total = 4 + level + level / 2;
+            int total = 4 + level; // GEÇİCİ: oyuncunun ordu kapasitesinin kabaca yarısı
             for (int i = 0; i < total; i++)
             {
                 var t = unlocked[i % unlocked.Count];
@@ -39,7 +39,7 @@ namespace GameCore.Game
             if (!g.VillageValid(out err) || g.Towers.Count == 0) return null;
 
             var levels = new Dictionary<SoldierType, int>();
-            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = Math.Max(1, level - 2);
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = GameRules.ExpectedStructureLevel(level); // tipik oyuncu asker seviyesi
             var sim = BotBattle.Run(g.MakeDefense(), RaiderArmy(level), levels, null, 9001 + day * 17 + level);
             var res = sim.Result(g.ResourcesNow(), g.Config, level);
 
