@@ -310,11 +310,11 @@ namespace GameCore.Tests
         {
             var sb = new StringBuilder();
             sb.AppendLine("DENGE RAPORU (otomatik, BalanceSimTests). Bot: kurallara uyan açgözlü oyuncu; günde 16 saat uyanık.");
-            sb.AppendLine("Hedef (öneri): Sv30 ≈ 21-35 gün (2 saatte bir giren aktif oyuncu); Normal ~%60-80 zafer, Kolay ~%90+, Zor ~%25-50.");
+            sb.AppendLine("Hedef (kullanıcı kararı 14.11.2026): Sv30 ≈ 100 gün (2 saatte bir giren aktif oyuncu); Normal ~%60-80 zafer, Kolay ~%90+, Zor ~%25-50.");
             foreach (int every in new[] { 2, 4 })
             {
                 var p = new PlayerSim(every);
-                p.Run(90);
+                p.Run(200);
                 sb.AppendLine();
                 sb.AppendLine("=== Giriş aralığı: " + every + " saat ===");
                 var days = new StringBuilder("Seviyeye ulaşılan gün: ");

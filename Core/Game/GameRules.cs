@@ -46,14 +46,14 @@ namespace GameCore.Game
         public static int ExpectedStructureLevel(int playerLevel)
         {
             int l = Math.Max(1, Math.Min(MaxLevel, playerLevel));
-            return Math.Max(1, Math.Min(MaxStructureLevel(l), (120 * l + 6 * l * l) / 750)); // asker: Sv10→2, 15→4, 20→6, 25→9, 30→12
+            return Math.Max(1, Math.Min(MaxStructureLevel(l), (l * l + 22 * l) / 90)); // asker: Sv10→3, 15→6, 20→9, 25→13, 30→17 (100 günlük ilerleme)
         }
 
         /// <summary>Tipik oyuncunun KULE seviyesi (kule sayısı az olduğu için askerden hızlı yükselir). Hedef köy kuleleri buna bağlı.</summary>
         public static int ExpectedTowerLevel(int playerLevel)
         {
             int l = Math.Max(1, Math.Min(MaxLevel, playerLevel));
-            return Math.Max(1, Math.Min(MaxStructureLevel(l), (4 * l * l + 30 * l + 300) / 300)); // Sv10→3, 15→5, 20→8, 25→11, 30→16
+            return Math.Max(1, Math.Min(MaxStructureLevel(l), (l * l + 10 * l) / 40)); // Sv10→5, 15→9, 20→15, 25→21, 30→30 (100 günlük ilerleme)
         }
 
         /// <summary>Yapı/kule seviyesi oyuncu seviyesini geçemez.</summary>

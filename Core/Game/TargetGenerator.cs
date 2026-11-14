@@ -149,8 +149,8 @@ namespace GameCore.Game
             return new TargetInfo { Name = Names[rng.Next(Names.Length)], Level = level, Difficulty = difficulty, Defense = setup, Pool = pool, Seed = seed };
         }
 
-        /// <summary>Tipik oyuncunun o seviyedeki savunma araştırma bonusu (‰). Sv10≈%1.6, Sv20≈%6.6, Sv30≈%15 (simülasyondan kaba tahmin).</summary>
-        public static int ExpectedDefenseResearchPermille(int level) => level * level / 6;
+        /// <summary>Tipik oyuncunun o seviyedeki savunma araştırma bonusu (‰). Sv10≈%3, Sv20≈%13, Sv30≈%30 (simülasyondan kaba tahmin).</summary>
+        public static int ExpectedDefenseResearchPermille(int level) => level * level / 3; // 100 günlük ilerlemede oyuncu çok araştırma yapar
 
         private static bool RoadNeighbour(VillageLayout l, GridPos p)
         {

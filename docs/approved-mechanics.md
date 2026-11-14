@@ -69,4 +69,5 @@
 43. Asker yetenekleri (kullanıcı isteği 14.11.2026): her askere Sv5/10/20'de açılan 3 yetenek, savaşta otomatik (liste `Core/Combat/SoldierAbilities.cs`). Asker geliştirme süresi eğitim süresiyle orantılı. Kışla'da askere dokununca şimdiki/sonraki değerler, görsel ve yetenekler görünür.
 44. Yol basamakları 5 (Tahta → Taş → Altın+Tahta → Demir → Kristal; #23'ü genişletir). Geliştirme işçi + süre ister (10 dk / 30 dk / 1 sa / 2 sa), seviye şartı Sv5/15/25/28. Savaş etkisi: düşman yavaşlaması %0/10/15/25/35, tuzak hasarı %100/100/110/150/200. Değerler GEÇİCİ.
 45. Tuzaklar: 8 tür (Çivili Sv3, Kaygan Sv5, Ateşli Sv8, Zehirli Sv10, Buz Sv12, Patlayıcı Sv15 tek sefer, Kapan Sv18, Şimşek Sv22), ücretli, uçanları etkilemez. Tuzak hakkı 4; Akademi "Tuzak Ustalığı" (12 sa; 3000 odun, 1500 taş) ile 6. Değerler GEÇİCİ.
+46. İlerleme hızı (kullanıcı kararı 14.11.2026): Sv30'a ≈ 100 gün (2 saatte bir giren aktif oyuncu; sim 101 gün, 4 saatte bir giren ≈ 146 gün). XP eğrisi 100 + 120l + 26l² (toplam ≈ 252 bin); hedef köy eğrileri buna göre yeniden ayarlandı.
 
