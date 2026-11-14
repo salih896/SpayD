@@ -32,6 +32,8 @@ namespace GameCore.Combat
         public GridPos Entrance, LastCell;
         public List<GridPos> Path; public int PathIndex;
         public int Cooldown, SlowUntil, BurnUntil, BurnPerTick;
+        public int RootUntil, AttackCount, NextHealTick;
+        public SoldierPerks Perks = new SoldierPerks();
     }
 
     /// <summary>
@@ -117,12 +119,13 @@ namespace GameCore.Combat
             if (!def.Flying && entrances.Count == 0) { error = "Savunmada giriş yok"; return false; }
 
             int lvl = levels.TryGetValue(type, out var l) ? Math.Max(1, l) : 1;
+            var perks = SoldierAbilities.PerksFor(type, lvl);
             var s = new SimSoldier
             {
-                Id = soldiers.Count, Type = type, Level = lvl,
+                Id = soldiers.Count, Type = type, Level = lvl, Perks = perks,
                 MaxHp = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, lvl), AttackerMods.SoldierHp), Attack = CombatMods.Apply(ContentCatalog.Scaled(def.Attack, lvl), AttackerMods.SoldierDamage),
-                IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli, SpeedMilli = def.SpeedMilli,
-                ArmorPct = def.ArmorPct, FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli,
+                IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli * (100 + perks.RangePct) / 100, SpeedMilli = def.SpeedMilli * (100 + perks.SpeedPct) / 100,
+                ArmorPct = Math.Min(80, def.ArmorPct + perks.ArmorAdd), FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli + perks.SplashAdd,
                 Flying = def.Flying, Mounted = def.Mounted,
                 X = x * 1000, Y = -row * 1000, Phase = def.Flying ? 1 : 0
             };
@@ -240,6 +243,7 @@ namespace GameCore.Combat
 
         private void Hit(SimSoldier s, int dmg)
         {
+            if (s.Perks.DmgTakenPermille > 0) dmg = Math.Max(1, dmg * (1000 - s.Perks.DmgTakenPermille) / 1000);
             s.Hp -= dmg;
             if (s.Hp <= 0) { s.Hp = 0; s.Alive = false; }
         }
@@ -248,6 +252,18 @@ namespace GameCore.Combat
         {
             if (!s.Alive) return;
             if (Tick < s.BurnUntil) { Hit(s, s.BurnPerTick); if (!s.Alive) return; }
+            // Yetenekler: yenilenme ve şifa (otomatik)
+            if (s.Perks.RegenPermille > 0 && Tick % 10 == 0) s.Hp = Math.Min(s.MaxHp, s.Hp + Math.Max(1, s.MaxHp * s.Perks.RegenPermille / 1000));
+            if (s.Perks.HealPermille > 0 && Tick >= s.NextHealTick)
+            {
+                s.NextHealTick = Tick + 20;
+                for (int i = 0; i < soldiers.Count; i++)
+                {
+                    var o = soldiers[i];
+                    if (o.Alive && CombatMath.DistSq(s.X, s.Y, o.X, o.Y) <= 2000L * 2000L)
+                        o.Hp = Math.Min(o.MaxHp, o.Hp + Math.Max(1, o.MaxHp * s.Perks.HealPermille / 1000));
+                }
+            }
 
             SimStructure target = (s.TargetId >= 0 && structures[s.TargetId].Alive) ? structures[s.TargetId] : null;
             if (target == null)
@@ -272,7 +288,16 @@ namespace GameCore.Combat
 
         private void AttackStructure(SimSoldier s, SimStructure target)
         {
-            Damage(target, s.Attack);
+            var pk = s.Perks;
+            int pct = 100;
+            if (target.Kind == StructKind.Tower) pct += pk.VsTowerPct;
+            if (target.IsResource) pct += pk.VsResourcePct;
+            if (s.Hp * 2 < s.MaxHp) pct += pk.LowHpAtkPct;
+            int dmg = s.Attack * pct / 100;
+            s.AttackCount++;
+            if (pk.FirstHitMultPct > 0 && s.AttackCount == 1) dmg = dmg * pk.FirstHitMultPct / 100;
+            if (pk.EveryN > 0 && s.AttackCount % pk.EveryN == 0) dmg = dmg * pk.EveryMultPct / 100;
+            Damage(target, dmg);
             if (s.SplashMilli > 0)
             {
                 long sr2 = (long)s.SplashMilli * s.SplashMilli;
@@ -281,7 +306,7 @@ namespace GameCore.Combat
                     var o = structures[i];
                     if (o == target || !o.Alive) continue;
                     if (CombatMath.DistSq(target.CenterX, target.CenterY, o.CenterX, o.CenterY) <= sr2)
-                        Damage(o, Math.Max(1, s.Attack / 2));
+                        Damage(o, Math.Max(1, dmg / 2));
                 }
             }
         }
@@ -294,7 +319,8 @@ namespace GameCore.Combat
 
         private void Move(SimSoldier s, SimStructure target)
         {
-            int speed = Tick < s.SlowUntil ? s.SpeedMilli / 2 : s.SpeedMilli;
+            if (!s.Perks.ImmuneSlow && Tick < s.RootUntil) return; // kapan/buz: yerinde
+            int speed = (!s.Perks.ImmuneSlow && Tick < s.SlowUntil) ? s.SpeedMilli / 2 : s.SpeedMilli;
             if (speed < 1) speed = 1;
             if (s.Flying) { MoveToward(s, target.CenterX, target.CenterY, speed); return; }
 
@@ -305,6 +331,7 @@ namespace GameCore.Combat
             }
             if (s.Path == null || s.PathIndex >= s.Path.Count) return;
             var c = s.Path[s.PathIndex];
+            if (!s.Perks.ImmuneSlow) speed = Math.Max(1, speed * (100 - RoadRules.SlowPct(setup.Layout.GetRoadTier(c))) / 100); // yol malzemesi yavaşlatır
             if (MoveToward(s, c.X * 1000, c.Y * 1000, speed)) { s.LastCell = c; s.PathIndex++; ApplyTrap(s, c); }
         }
 
@@ -319,15 +346,59 @@ namespace GameCore.Combat
             return false;
         }
 
+        private readonly HashSet<GridPos> usedTraps = new HashSet<GridPos>();
+
+        /// <summary>Tuzak tetikleme (TrapCatalog). Uçanlar etkilenmez; yol malzemesi hasarı artırır; Patlayıcı savaş başına bir kez.</summary>
         private void ApplyTrap(SimSoldier s, GridPos cell)
         {
             if (s.Flying || !setup.Traps.TryGetValue(cell, out var trap)) return;
-            switch (trap)
+            var d = TrapCatalog.Get(trap);
+            if (d == null || (d.OneShot && usedTraps.Contains(cell))) return;
+            int bonus = RoadRules.TrapBonusPct(setup.Layout.GetRoadTier(cell));
+            if (d.Damage > 0)
             {
-                case TrapType.Spikes: Hit(s, CombatMath.ReduceByArmor(20, s.ArmorPct)); break;        // GEÇİCİ değerler
-                case TrapType.Slippery: s.SlowUntil = Tick + 30; break;
-                case TrapType.Fire: s.BurnUntil = Tick + 30; s.BurnPerTick = Math.Max(1, 3 * (100 - s.FireResistPct) / 100); break;
+                int dmg = d.Damage * bonus / 100;
+                if (d.SplashMilli > 0)
+                {
+                    long r2 = (long)d.SplashMilli * d.SplashMilli;
+                    for (int i = 0; i < soldiers.Count; i++)
+                    {
+                        var o = soldiers[i];
+                        if (o.Alive && !o.Flying && CombatMath.DistSq(cell.X * 1000, cell.Y * 1000, o.X, o.Y) <= r2) Hit(o, CombatMath.ReduceByArmor(dmg, o.ArmorPct));
+                    }
+                }
+                else Hit(s, CombatMath.ReduceByArmor(dmg, s.ArmorPct));
             }
+            if (!s.Perks.ImmuneSlow)
+            {
+                if (d.RootTicks > 0) s.RootUntil = Math.Max(s.RootUntil, Tick + d.RootTicks);
+                if (d.SlowTicks > 0) s.SlowUntil = Math.Max(s.SlowUntil, Tick + d.RootTicks + d.SlowTicks);
+            }
+            if (d.DotTicks > 0)
+            {
+                int per = d.DotPerTick * bonus / 100;
+                if (d.FireDot) per = per * (100 - s.FireResistPct) / 100;
+                s.BurnUntil = Tick + d.DotTicks; s.BurnPerTick = Math.Max(1, per);
+            }
+            if (d.ChainCount > 0)
+            {
+                var hit = new HashSet<int> { s.Id }; var cur = s;
+                for (int n = 0; n < d.ChainCount; n++)
+                {
+                    SimSoldier next = null; long best = 2000L * 2000L + 1;
+                    for (int j = 0; j < soldiers.Count; j++)
+                    {
+                        var o = soldiers[j];
+                        if (!o.Alive || o.Flying || hit.Contains(o.Id)) continue;
+                        long dd = CombatMath.DistSq(cur.X, cur.Y, o.X, o.Y);
+                        if (dd < best) { best = dd; next = o; }
+                    }
+                    if (next == null) break;
+                    Hit(next, CombatMath.ReduceByArmor(d.Damage * bonus / 100 * 70 / 100, next.ArmorPct));
+                    hit.Add(next.Id); cur = next;
+                }
+            }
+            if (d.OneShot) usedTraps.Add(cell);
         }
 
         // ---------- Hedef ve yol ----------

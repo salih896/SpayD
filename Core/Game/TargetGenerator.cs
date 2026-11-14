@@ -130,10 +130,11 @@ namespace GameCore.Game
             if (level >= 3)
             {
                 var roads = layout.CellsOf(CellKind.Road);
-                int trapCount = Math.Min(roads.Count / 3, level / 3);
-                var kinds = new List<TrapType> { TrapType.Spikes };
-                if (level >= 5) kinds.Add(TrapType.Slippery);
-                if (level >= 10) kinds.Add(TrapType.Fire);
+                // tipik oyuncu: tuzak hakkı 4, Sv14+ araştırmayla 6; tuzak türleri seviyeyle açılır
+                int trapCount = Math.Min(roads.Count / 3, Math.Min(level >= 14 ? GameRules.ResearchTrapSlots : GameRules.StartTrapSlots, level / 3 + 1));
+                var kinds = new List<TrapType>();
+                for (int k = 1; k <= TrapCatalog.Count; k++) if (TrapCatalog.Get((TrapType)k).UnlockLevel <= level) kinds.Add((TrapType)k);
+                if (kinds.Count == 0) kinds.Add(TrapType.Spikes);
                 for (int i = 0; i < trapCount && roads.Count > 0; i++)
                 {
                     var p = roads[rng.Next(roads.Count)];

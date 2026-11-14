@@ -122,14 +122,22 @@ namespace GameCore.Tests
             Assert.IsTrue(g.RoadResearchDone);
             Assert.IsTrue(ev.Exists(e => e.Contains("Yol geliştirme")));
 
-            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Sv10'da altın kilitli");
-            StringAssert.Contains("Altın", err);
-            g.TotalXp = XpFor(25);
+            // Sv10: Taş basamağı açık (işçi + süre)
             Assert.IsTrue(g.TryUpgradeRoad(road, out err), err);
-            Assert.AreEqual(RoadTier.Reinforced, g.Layout.GetRoadTier(road));
-            Assert.IsTrue(g.TryUpgradeRoad(road, out err), err);
-            Assert.AreEqual(RoadTier.Iron, g.Layout.GetRoadTier(road));
-            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Demir en üst");
+            Assert.AreEqual(RoadTier.Wood, g.Layout.GetRoadTier(road), "Süre dolmadan değişmez");
+            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Zaten geliştiriliyor");
+            g.Advance(RoadRules.UpgradeSeconds(RoadTier.Stone), 0);
+            Assert.AreEqual(RoadTier.Stone, g.Layout.GetRoadTier(road));
+            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Altın+Tahta Sv15");
+            StringAssert.Contains("Sv 15", err);
+            g.TotalXp = XpFor(30);
+            foreach (var next in new[] { RoadTier.Reinforced, RoadTier.Iron, RoadTier.Crystal })
+            {
+                Assert.IsTrue(g.TryUpgradeRoad(road, out err), next + ": " + err);
+                g.Advance(RoadRules.UpgradeSeconds(next), 0);
+                Assert.AreEqual(next, g.Layout.GetRoadTier(road));
+            }
+            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Kristal en üst");
             Assert.IsFalse(g.TryUpgradeRoad(P(0, 10), out err), "Yol değil");
         }
 

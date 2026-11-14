@@ -56,6 +56,7 @@ namespace GameCore.Game
             }
             foreach (var id in g.AcademyClaimed) sb.AppendLine("aq " + id);
             sb.AppendLine("rr " + (g.RoadResearchDone ? 1 : 0) + " " + g.RoadResearchRemaining);
+            sb.AppendLine("trr " + (g.TrapResearchDone ? 1 : 0) + " " + g.TrapResearchRemaining);
             foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds);
             return sb.ToString();
         }
@@ -126,6 +127,7 @@ namespace GameCore.Game
                             break;
                         case "aq": g.AcademyClaimed.Add(p[1]); break;
                         case "rr": g.RoadResearchDone = p[1] == "1"; g.RoadResearchRemaining = int.Parse(p[2]); break;
+                        case "trr": g.TrapResearchDone = p[1] == "1"; g.TrapResearchRemaining = int.Parse(p[2]); break;
                         case "job":
                             g.Jobs.Add(new UpgradeJob { Kind = (JobKind)int.Parse(p[1]), Pos = new GridPos(int.Parse(p[2]), int.Parse(p[3])), Soldier = (SoldierType)int.Parse(p[4]), TargetLevel = int.Parse(p[5]), RemainingSeconds = int.Parse(p[6]) });
                             break;

@@ -9,7 +9,7 @@ using GameCore.Village;
 
 namespace GameCore.Game
 {
-    public enum JobKind { Building, Tower, Soldier }
+    public enum JobKind { Building, Tower, Soldier, Road }
 
     public sealed class UpgradeJob
     {
@@ -80,6 +80,10 @@ namespace GameCore.Game
         /// <summary>Yol geliştirme araştırması: tamamlandı mı, sürüyorsa kalan saniye (-1 = başlamadı).</summary>
         public bool RoadResearchDone;
         public int RoadResearchRemaining = -1;
+        /// <summary>Tuzak Ustalığı araştırması (tuzak hakkı 4 → 6).</summary>
+        public bool TrapResearchDone;
+        public int TrapResearchRemaining = -1;
+        public int MaxTraps => TrapResearchDone ? GameRules.ResearchTrapSlots : GameRules.StartTrapSlots;
 
         public GameState(ResourceConfig cfg)
         {
@@ -186,16 +190,33 @@ namespace GameCore.Game
             return true;
         }
 
+        /// <summary>Yol geliştirme: araştırma + seviye şartı + işçi + kaynak; süre dolunca basamak yükselir (JobKind.Road).</summary>
         public bool TryUpgradeRoad(GridPos p, out string error)
         {
             if (!RoadRules.CanUpgrade(RoadResearchDone, out error)) return false;
             if (Layout.Get(p) != CellKind.Road) { error = "Geliştirmek için bir yola dokun"; return false; }
-            if (Layout.GetRoadTier(p) == RoadTier.Iron) { error = "Bu yol zaten en üst seviyede (Demir)"; return false; }
-            var cost = RoadRules.UpgradeCost(Layout.GetRoadTier(p) + 1);
-            if (!Wallet.CanAfford(cost, Level, SpendArea.Upgrade, out error)) return false;
-            if (!Layout.TryUpgradeRoad(p, out error)) return false;
-            Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error);
+            var cur = Layout.GetRoadTier(p);
+            if (RoadRules.IsMax(cur)) { error = "Bu yol zaten en üst seviyede (Kristal)"; return false; }
+            if (IsUpgrading(JobKind.Road, p, SoldierType.Swordsman)) { error = "Bu yol zaten geliştiriliyor"; return false; }
+            var next = RoadRules.Next(cur);
+            if (Level < RoadRules.MinLevel(next)) { error = RoadRules.Name(next) + " yol Sv " + RoadRules.MinLevel(next) + "'te açılır"; return false; }
+            if (FreeBuilders <= 0) { error = "Boş işçi yok"; return false; }
+            var cost = RoadRules.UpgradeCost(next);
+            if (!Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error)) return false;
+            int secs = (int)Math.Max(5, (long)RoadRules.UpgradeSeconds(next) * (1000 - Math.Min(900, Research.Total(ResearchStat.BuildTime))) / 1000);
+            Jobs.Add(new UpgradeJob { Kind = JobKind.Road, Pos = p, TargetLevel = (int)next, RemainingSeconds = secs });
             error = null;
+            return true;
+        }
+
+        public bool TryStartTrapResearch(out string error)
+        {
+            error = null;
+            if (TrapResearchDone) { error = "Tuzak Ustalığı zaten tamamlandı"; return false; }
+            if (TrapResearchRemaining > 0) { error = "Araştırma sürüyor"; return false; }
+            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
+            if (!Wallet.TrySpend(GameRules.TrapResearchCost, Level, SpendArea.Research, out error)) return false;
+            TrapResearchRemaining = GameRules.TrapResearchSeconds;
             return true;
         }
         public int ArmyCapacity => GameRules.ArmyCapacity(BarracksLevelSum());
@@ -319,6 +340,11 @@ namespace GameCore.Game
             int trained = Queue.Advance(seconds, Inventory);
             if (trained > 0) { Quests.Report(QuestEvent.SoldiersTrained, trained, lvl); events.Add(trained + " asker eğitildi"); }
 
+            if (TrapResearchRemaining > 0)
+            {
+                TrapResearchRemaining -= seconds;
+                if (TrapResearchRemaining <= 0) { TrapResearchRemaining = -1; TrapResearchDone = true; events.Add("Tuzak Ustalığı tamamlandı: 6 tuzak hakkı"); }
+            }
             if (RoadResearchRemaining > 0)
             {
                 RoadResearchRemaining -= seconds;
@@ -339,7 +365,7 @@ namespace GameCore.Game
                 if (j.RemainingSeconds > 0) continue;
                 Jobs.RemoveAt(i);
                 events.Add(CompleteJob(j));
-                PendingLevelUps.AddRange(AddXp(UpgradeXpPerLevel * j.TargetLevel));
+                PendingLevelUps.AddRange(AddXp(UpgradeXpPerLevel * (j.Kind == JobKind.Road ? RoadRules.Rank((RoadTier)j.TargetLevel) : j.TargetLevel)));
                 Quests.Report(QuestEvent.BuildingsUpgraded, 1, lvl);
             }
             RecomputeCapacity();
@@ -364,6 +390,9 @@ namespace GameCore.Game
                 case JobKind.Tower:
                     if (Towers.TryGetValue(j.Pos, out var t)) { t.Level = j.TargetLevel; return ContentCatalog.Tower(t.Type).Name + " Sv " + j.TargetLevel; }
                     return "Kule yükseltildi";
+                case JobKind.Road:
+                    Layout.SetRoadTier(j.Pos, (RoadTier)j.TargetLevel);
+                    return "Yol: " + RoadRules.Name((RoadTier)j.TargetLevel);
                 default:
                     SoldierLevels[j.Soldier] = j.TargetLevel;
                     return ContentCatalog.Soldier(j.Soldier).Name + " Sv " + j.TargetLevel;
@@ -417,7 +446,7 @@ namespace GameCore.Game
         public bool TryRemove(GridPos p, out string error)
         {
             error = null;
-            foreach (var j in Jobs) if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && j.Pos.Equals(p)) { error = "Yükseltme sürerken silinemez"; return false; }
+            foreach (var j in Jobs) if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.Road) && j.Pos.Equals(p)) { error = "Yükseltme sürerken silinemez"; return false; }
             int lvl = Level;
             ResourceCost refund = default;
             if (Buildings.TryGetValue(p, out var b)) refund = GameRules.Scale(GameRules.BuildCostOf(b.Type), Config, lvl, GameRules.SellRefundPct);
@@ -434,8 +463,17 @@ namespace GameCore.Game
             error = null;
             if (Layout.Get(p) != CellKind.Road) { error = "Tuzak yalnızca yola konur"; return false; }
             if (Layout.IsEntrance(p)) { error = "Girişe tuzak konmaz"; return false; }
-            if (Traps.TryGetValue(p, out var cur) && cur == t) { Traps.Remove(p); return true; }
+            if (Traps.TryGetValue(p, out var cur) && cur == t) { Traps.Remove(p); return true; } // aynı tuzağa dokun = kaldır
+            var d = TrapCatalog.Get(t);
+            if (d == null) { error = "Geçersiz tuzak"; return false; }
+            int lvl = Level;
+            if (lvl < d.UnlockLevel) { error = d.Name + " tuzağı Sv " + d.UnlockLevel + "'te açılır"; return false; }
+            if (!Traps.ContainsKey(p) && Traps.Count >= MaxTraps)
+            { error = "Tuzak hakkı " + MaxTraps + (TrapResearchDone ? "" : " (Akademi'de Tuzak Ustalığı ile " + GameRules.ResearchTrapSlots + ")"); return false; }
+            var cost = GameRules.Scale(d.Cost, Config, lvl, 100);
+            if (!Wallet.TrySpend(cost, lvl, SpendArea.Building, out error)) return false;
             Traps[p] = t;
+            error = null;
             return true;
         }
 
@@ -458,12 +496,16 @@ namespace GameCore.Game
                 case JobKind.Tower:
                     if (!Towers.TryGetValue(pos, out var t)) { info.Block = "Kule yok"; return info; }
                     cur = t.Level; baseCost = ContentCatalog.Tower(t.Type).BuildCost; break;
+                case JobKind.Road:
+                    info.Block = "Yol için TryUpgradeRoad kullanılır"; return info;
                 default:
                     cur = SoldierLevel(soldier); baseCost = MulCost(ContentCatalog.Soldier(soldier).Cost, 8); break;
             }
             info.TargetLevel = cur + 1;
             info.Cost = GameRules.UpgradeCost(baseCost, info.TargetLevel, Config, lvl, Research.Total(ResearchStat.UpgradeCost));
             info.Seconds = GameRules.UpgradeSeconds(info.TargetLevel, Research.Total(ResearchStat.BuildTime));
+            // asker türüne göre süre: uzun eğitilen asker daha uzun geliştirilir (eğitim 3 dk = 1x; 2 dk 0,67x … 10 dk 3,3x)
+            if (kind == JobKind.Soldier) info.Seconds = (int)Math.Max(5, (long)info.Seconds * Math.Max(120, ContentCatalog.Soldier(soldier).TrainSeconds) / 180);
             if (info.TargetLevel > GameRules.MaxStructureLevel(lvl)) info.Block = info.TargetLevel > GameRules.MaxLevel ? "En üst seviye" : "Oyuncu seviyesi " + info.TargetLevel + " gerekli";
             else if (kind == JobKind.Soldier && BarracksMaxLevel() < info.TargetLevel) info.Block = "Kışla Sv " + info.TargetLevel + " gerekli";
             else if (kind == JobKind.Soldier && lvl < ContentCatalog.Soldier(soldier).UnlockLevel) info.Block = "Asker henüz açılmadı";

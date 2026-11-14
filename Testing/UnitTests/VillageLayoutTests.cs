@@ -267,10 +267,13 @@ namespace GameCore.Tests
             v.TryPlace(P(2, 2), CellKind.Road, out _);
             v.TryPlace(P(2, 3), CellKind.Road, out _);
             Assert.IsTrue(v.TryUpgradeRoad(P(2, 2), out _));
-            Assert.AreEqual(RoadTier.Reinforced, v.GetRoadTier(P(2, 2)));
+            Assert.AreEqual(RoadTier.Stone, v.GetRoadTier(P(2, 2)));
             Assert.AreEqual(RoadTier.Wood, v.GetRoadTier(P(2, 3)));   // diğer yol etkilenmez
-            Assert.IsTrue(v.TryUpgradeRoad(P(2, 2), out _));
-            Assert.AreEqual(RoadTier.Iron, v.GetRoadTier(P(2, 2)));
+            foreach (var t in new[] { RoadTier.Reinforced, RoadTier.Iron, RoadTier.Crystal })
+            {
+                Assert.IsTrue(v.TryUpgradeRoad(P(2, 2), out _));
+                Assert.AreEqual(t, v.GetRoadTier(P(2, 2)));          // Tahta → Taş → Altın+Tahta → Demir → Kristal
+            }
             Assert.IsFalse(v.TryUpgradeRoad(P(2, 2), out _));         // en üstte
             Assert.IsFalse(v.TryUpgradeRoad(P(8, 8), out _));         // yol değil
         }

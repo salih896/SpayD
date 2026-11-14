@@ -7,7 +7,8 @@ namespace GameCore.Village
     public enum CellKind { Empty = 0, Road = 1, Building = 2, Tower = 3 }
 
     /// <summary>Yol malzemesi (GDD Bölüm 5): tahta, altın+tahta, demir. Maliyet/araştırma kuralları henüz yok.</summary>
-    public enum RoadTier { Wood = 0, Reinforced = 1, Iron = 2 }
+    /// <summary>Yol malzemesi. Sıra RoadRules.Rank ile: Tahta → Taş → Altın+Tahta → Demir → Kristal (değerler kayıt uyumu için korunur).</summary>
+    public enum RoadTier { Wood = 0, Reinforced = 1, Iron = 2, Stone = 3, Crystal = 4 }
 
     /// <summary>
     /// Savunma köyü düzeni (saf C#). Grid boyutu ve limitler parametriktir.
@@ -123,8 +124,8 @@ namespace GameCore.Village
             error = null;
             if (Get(p) != CellKind.Road) { error = "Geliştirmek için bir yola dokun"; return false; }
             var t = GetRoadTier(p);
-            if (t == RoadTier.Iron) { error = "Bu yol zaten en üst seviyede"; return false; }
-            roadTiers[p] = t + 1;
+            if (RoadRules.IsMax(t)) { error = "Bu yol zaten en üst seviyede"; return false; }
+            roadTiers[p] = RoadRules.Next(t);
             return true;
         }
 

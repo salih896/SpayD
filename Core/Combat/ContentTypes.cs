@@ -10,7 +10,7 @@ namespace GameCore.Combat
         Forest = 0, LumberDepot = 1, StoneQuarry = 2, StoneDepot = 3, GoldMine = 4, Bank = 5,
         IronMine = 6, IronDepot = 7, Barracks = 8, University = 9, VillagerHouse = 10
     }
-    public enum TrapType { None = 0, Spikes = 1, Slippery = 2, Fire = 3 }
+    public enum TrapType { None = 0, Spikes = 1, Slippery = 2, Fire = 3, Poison = 4, Frost = 5, Bomb = 6, Snare = 7, Shock = 8 }
 
     /// <summary>Asker tanımı. TÜM SAYILAR GEÇİCİDİR (dengeleme aşamasında değişecek). Süreler tick (10/sn), uzaklıklar mili-hücre (1000 = 1 hücre).</summary>
     public sealed class SoldierDef

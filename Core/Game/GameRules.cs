@@ -16,6 +16,11 @@ namespace GameCore.Game
 
         /// <summary>Kule hakkı (kullanıcı kararı 14.11.2026, GDD Bölüm 9'u günceller): sabit 5, Akademi görevleriyle +3 → en çok 8. Seviyeyle artmaz.</summary>
         public const int StartTowerSlots = 5, MaxTowerSlots = 8;
+        /// <summary>Tuzak hakkı (kullanıcı isteği): başta 4, Akademi "Tuzak Ustalığı" araştırmasıyla 6.</summary>
+        public const int StartTrapSlots = 4, ResearchTrapSlots = 6;
+        /// <summary>Tuzak Ustalığı araştırması (GEÇİCİ): 12 saat; 3000 odun, 1500 taş.</summary>
+        public const int TrapResearchSeconds = 12 * 3600;
+        public static readonly ResourceCost TrapResearchCost = new ResourceCost(3000, 1500);
         /// <summary>Köylü evi: başta 1, Akademi görevleriyle en çok 3.</summary>
         public const int StartVillagerHouses = 1, MaxVillagerHouses = 3;
 
