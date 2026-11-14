@@ -330,6 +330,73 @@ namespace GameCore.Tests
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Her seviye için 10 rastgele savaş: rastgele zorluk + rastgele köy (TargetGenerator), rastgele ordu
+        /// (açık türlerden karışık, tipik ordu büyüklüğü, tipik asker seviyesi ±1, tipik araştırma). Sabit tohum: tekrarlanabilir.
+        /// Çıktı: docs/battle-matrix.txt.
+        /// </summary>
+        public static string RunBattleMatrix(int trials = 10)
+        {
+            var rng = new System.Random(20261114);
+            var cfg = ResourceConfig.CreateDefault();
+            string[] dn = { "Kolay", "Normal", "Zor" };
+            var sb = new StringBuilder();
+            sb.AppendLine("SAVAŞ MATRİSİ — her seviyede " + trials + " rastgele savaş (rastgele savunma + rastgele ordu, bot yerleştirme). Sabit tohum 20261114.");
+            sb.AppendLine("Sv | Zafer | Ort.hasar | Ort.yıldız | Kolay/Normal/Zor zafer | Ort.kule | Ort.tuzak | Ordu | Asker sv | Kayıp %");
+            int totalW = 0, totalN = 0;
+            for (int lvl = 1; lvl <= 30; lvl++)
+            {
+                var types = new List<SoldierType>();
+                for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) types.Add((SoldierType)i);
+                if (types.Count == 0) types.Add(SoldierType.Swordsman); // Sv1-2: kışla yok; karşılaştırma için Kılıçlı
+                int army = lvl < 3 ? 10 : 20 + lvl * 2;
+                int baseLv = GameRules.ExpectedStructureLevel(lvl);
+                int ap = TargetGenerator.ExpectedAttackResearchPermille(lvl);
+                int wins = 0, dmg = 0, stars = 0, towers = 0, traps = 0, lostPct = 0;
+                int[] dW = new int[3], dN = new int[3];
+                int lvSum = 0;
+                for (int t = 0; t < trials; t++)
+                {
+                    int diff = rng.Next(3);
+                    var tgt = TargetGenerator.Generate(lvl, diff, rng.Next(1, 1000000));
+                    var stock = new Dictionary<SoldierType, int>();
+                    for (int i = 0; i < army; i++) { var st = types[rng.Next(types.Count)]; stock[st] = (stock.TryGetValue(st, out var n) ? n : 0) + 1; }
+                    var levels = new Dictionary<SoldierType, int>();
+                    foreach (var st in types) { int sl = System.Math.Max(1, baseLv + rng.Next(-1, 2)); levels[st] = sl; lvSum += sl; }
+                    var sim = BotBattle.Run(tgt.Defense, stock, levels, new CombatMods { SoldierDamage = ap, SoldierHp = ap }, rng.Next(1, 1000000));
+                    var res = sim.Result(tgt.Pool, cfg, tgt.Level);
+                    dN[diff]++;
+                    if (res.Victory) { wins++; dW[diff]++; }
+                    dmg += res.OverallDamagePct; stars += res.Stars; towers += tgt.Defense.Towers.Count; traps += tgt.Defense.Traps.Count;
+                    lostPct += (BattleResult.Total(res.LostDead) + BattleResult.Total(res.LostInjured)) * 100 / army;
+                }
+                totalW += wins; totalN += trials;
+                var ci = CultureInfo.InvariantCulture;
+                sb.Append(lvl.ToString().PadLeft(2)).Append(" | ").Append(wins).Append("/").Append(trials)
+                  .Append(" | %").Append(dmg / trials)
+                  .Append(" | ").Append((stars / (double)trials).ToString("0.0", ci))
+                  .Append(" | ").Append(dW[0]).Append("/").Append(dN[0]).Append("  ").Append(dW[1]).Append("/").Append(dN[1]).Append("  ").Append(dW[2]).Append("/").Append(dN[2])
+                  .Append(" | ").Append((towers / (double)trials).ToString("0.0", ci))
+                  .Append(" | ").Append((traps / (double)trials).ToString("0.0", ci))
+                  .Append(" | ").Append(army)
+                  .Append(" | ").Append((lvSum / (double)(trials * types.Count)).ToString("0.0", ci))
+                  .Append(" | %").Append(lostPct / trials)
+                  .AppendLine(lvl < 3 ? "   (kışla Sv3'te açılır; yalnızca karşılaştırma)" : "");
+            }
+            sb.AppendLine();
+            sb.AppendLine("TOPLAM: " + totalW + "/" + totalN + " zafer (%" + totalW * 100 / totalN + ")");
+            return sb.ToString();
+        }
+
+        [Test]
+        public void BattleMatrix_RandomTenTrialsPerLevel()
+        {
+            string text = RunBattleMatrix(10);
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "..", "docs", "battle-matrix.txt");
+            try { File.WriteAllText(path, text); } catch { }
+            Assert.Pass(text);
+        }
+
         [Test]
         public void BalanceReport_ActivePlayerSimulation()
         {
