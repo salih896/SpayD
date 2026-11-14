@@ -623,21 +623,104 @@ namespace GameClient
         /// <summary>Asker modelleri okunabilirlik için hücreye göre büyük çizilir (izometrik uzak kamera).</summary>
         public const float SoldierScale = 1.8f;
 
-        private static readonly Color[] ArmorByTier =
+        // ---------- Asker geliştirme görselleri: HER seviye bir görsel ekler (birikimli, Sv2..Sv30) ----------
+        private static readonly string[] LevelVisuals =
         {
-            new Color(0, 0, 0, 0), new Color(0.50f, 0.33f, 0.18f), new Color(0.58f, 0.60f, 0.64f), new Color(0.82f, 0.85f, 0.90f), new Color(1f, 0.80f, 0.25f)
+            "", "", "Kemer", "Deri yelek", "Bileklik", "Deri omuzluk", "Demir göğüslük", "Demir omuzluk", "Miğfer siperi", "Sorguç", "Pelerin",
+            "Çelik parıltısı", "Mavi aura", "İşlemeli pelerin", "Silah parıltısı", "Yörünge kıvılcımı", "Altın toka", "Altın omuzluk", "Mor aura",
+            "Boynuzlu miğfer", "Hale", "Altın zırh", "İkinci kıvılcım", "Uzun pelerin", "Parlayan gözler", "Taç", "Altın aura", "Üçüncü kıvılcım",
+            "Işık kanatları", "Işık sütunu", "Efsane parıltısı"
         };
 
-        /// <summary>Seviyeyle gelişen asker görünümü (GDD: Kılıçlı → Eğitimli → Uzman → Zırhlı → Gladyatör): göğüs zırhı, sorguç, pelerin.</summary>
-        private static void Gear(Transform g, int tier, SoldierType t)
+        /// <summary>Bu seviyeye geliştirince eklenen görselin adı (arayüz için).</summary>
+        public static string LevelVisualName(int level) => level >= 2 && level < LevelVisuals.Length ? LevelVisuals[level] : "";
+
+        /// <summary>Rütbe (GDD Bölüm 11 gelişim fikri: Kılıçlı → Eğitimli → Uzman → Zırhlı → Gladyatör).</summary>
+        public static string RankName(int level) =>
+            level >= 25 ? "Efsane" : level >= 20 ? "Kahraman" : level >= 15 ? "Usta" : level >= 10 ? "Zırhlı" : level >= 6 ? "Uzman" : level >= 3 ? "Eğitimli" : "Acemi";
+
+        private static readonly Color Leather = new Color(0.50f, 0.33f, 0.18f), IronC = new Color(0.58f, 0.60f, 0.64f), Steel = new Color(0.86f, 0.89f, 0.94f);
+
+        private static Material MetalFor(int level, int ironAt, int steelAt, int goldAt)
         {
-            if (tier <= 0 || t == SoldierType.Catapult || t == SoldierType.DragonRider || t == SoldierType.Cavalry) return;
-            float s = t == SoldierType.Giant ? 2f : (t == SoldierType.Goblin ? 0.8f : (t == SoldierType.Fairy ? 0.7f : 1f));
-            var armor = Mat(ArmorByTier[tier], tier >= 3 ? 0.85f : 0.3f, tier >= 4 ? 0.15f : 0f);
-            Part(g, Shape.Box, new Vector3(0, 0.17f * s, -0.005f), new Vector3(0.15f, 0.1f, 0.13f) * s, armor);
-            if (tier >= 2) foreach (var x in new[] { -0.08f, 0.08f }) Part(g, Shape.Ball, new Vector3(x * s, 0.22f * s, 0), new Vector3(0.07f, 0.05f, 0.07f) * s, armor);
-            if (tier >= 3) Part(g, Shape.Cone, new Vector3(0, 0.42f * s, -0.01f), new Vector3(0.04f, 0.09f, 0.06f) * s, new Color(0.85f, 0.15f, 0.15f));
-            if (tier >= 4) Part(g, Shape.Box, new Vector3(0, 0.15f * s, -0.075f * s), new Vector3(0.14f, 0.22f, 0.01f) * s, Mat(new Color(0.65f, 0.1f, 0.12f), 0.2f), new Vector3(-8, 0, 0));
+            if (level >= goldAt) return Mat(GoldC, 0.85f, 0.25f);
+            if (level >= steelAt) return Mat(Steel, 0.9f, 0.05f);
+            if (level >= ironAt) return Mat(IronC, 0.6f);
+            return Mat(Leather, 0.25f);
+        }
+
+        /// <summary>İnsansı asker ekipmanı (a: gövde kökü, s: boy ölçeği). Her seviye bir parça ekler veya malzemeyi yükseltir.</summary>
+        private static void HumanGear(Transform a, int L, float s)
+        {
+            if (L >= 2) Part(a, Shape.Box, new Vector3(0, 0.1f, 0) * s, new Vector3(0.15f, 0.025f, 0.13f) * s, Mat(Color.Lerp(Leather, Dark, 0.3f), 0.2f));
+            if (L >= 16) Part(a, Shape.Box, new Vector3(0, 0.1f, 0.066f) * s, new Vector3(0.035f, 0.03f, 0.01f) * s, Mat(GoldC, 0.9f, 0.4f));
+            if (L >= 3) Part(a, Shape.Box, new Vector3(0, 0.17f, 0) * s, new Vector3(0.152f, 0.09f, 0.132f) * s, MetalFor(L, 6, 11, 21));
+            if (L >= 4) foreach (var x in new[] { -0.085f, 0.085f }) Part(a, Shape.Box, new Vector3(x, 0.12f, 0.01f) * s, new Vector3(0.035f, 0.05f, 0.035f) * s, MetalFor(L, 7, 11, 21));
+            if (L >= 5) foreach (var x in new[] { -0.08f, 0.08f }) Part(a, Shape.Ball, new Vector3(x, 0.22f, 0) * s, new Vector3(0.075f, 0.05f, 0.075f) * s, MetalFor(L, 7, 11, 17));
+            if (L >= 8) Part(a, Shape.Box, new Vector3(0, 0.325f, 0.056f) * s, new Vector3(0.1f, 0.018f, 0.02f) * s, Mat(IronC, 0.7f));
+            if (L >= 9) Part(a, Shape.Cone, new Vector3(0, 0.42f, -0.01f) * s, new Vector3(0.04f, 0.09f, 0.06f) * s, new Color(0.85f, 0.15f, 0.15f));
+            if (L >= 10)
+            {
+                float capeH = L >= 23 ? 0.28f : 0.22f;
+                var capeC = L >= 21 ? new Color(0.45f, 0.08f, 0.40f) : new Color(0.65f, 0.1f, 0.12f);
+                Part(a, Shape.Box, new Vector3(0, 0.26f - capeH * 0.5f, -0.075f) * s, new Vector3(0.14f, capeH, 0.01f) * s, Mat(capeC, 0.2f), new Vector3(-8, 0, 0));
+                if (L >= 13) Part(a, Shape.Box, new Vector3(0, 0.26f - capeH + 0.01f, -0.083f) * s, new Vector3(0.145f, 0.02f, 0.012f) * s, Mat(GoldC, 0.9f, 0.3f), new Vector3(-8, 0, 0));
+            }
+            if (L >= 14) Part(a, Shape.Ball, new Vector3(0.095f, 0.2f, 0.05f) * s, new Vector3(0.05f, 0.05f, 0.05f) * s, Mat(L >= 21 ? GoldC : new Color(0.5f, 0.85f, 1f), 0.9f, 2.2f));
+            if (L >= 19) foreach (var x in new[] { -1f, 1f }) Part(a, Shape.Cone, new Vector3(0.06f * x, 0.385f, 0) * s, new Vector3(0.025f, 0.08f, 0.025f) * s, new Color(0.95f, 0.92f, 0.82f), new Vector3(0, 0, -40f * x));
+            if (L >= 24) foreach (var x in new[] { -0.022f, 0.022f }) Part(a, Shape.Ball, new Vector3(x, 0.315f, 0.052f) * s, new Vector3(0.016f, 0.016f, 0.016f) * s, Mat(new Color(0.4f, 0.95f, 1f), 0.9f, 3f));
+            if (L >= 25) Part(a, Shape.Cyl, new Vector3(0, 0.39f, 0) * s, new Vector3(0.1f, 0.03f, 0.1f) * s, Mat(GoldC, 0.95f, 0.5f));
+        }
+
+        /// <summary>İnsansı olmayan birim (Mancınık) için: Sv2-11 metal levha/perçin, Sv9 bayrak; efektler ortak.</summary>
+        private static void FrameGear(Transform a, int L)
+        {
+            var spots = new[]
+            {
+                new Vector3(-0.13f, 0.11f, 0.12f), new Vector3(0.13f, 0.11f, 0.12f), new Vector3(-0.13f, 0.11f, -0.12f), new Vector3(0.13f, 0.11f, -0.12f), new Vector3(0, 0.11f, 0.18f),
+                new Vector3(0, 0.11f, -0.18f), new Vector3(-0.09f, 0.25f, 0.04f), new Vector3(0.09f, 0.25f, 0.04f), new Vector3(-0.13f, 0.11f, 0), new Vector3(0.13f, 0.11f, 0)
+            };
+            for (int lv = 2; lv <= Mathf.Min(L, 11); lv++)
+                Part(a, Shape.Box, spots[lv - 2], new Vector3(0.05f, 0.05f, 0.05f), MetalFor(L, 6, 11, 21));
+            if (L >= 9) Flag(a, new Vector3(0.11f, 0.1f, -0.15f), 0.35f, new Color(0.85f, 0.15f, 0.15f));
+        }
+
+        /// <summary>Sv12+ efektleri (tüm türler): aura, yörünge kıvılcımları, hale, ışık kanatları/sütunu, efsane parıltısı.</summary>
+        private static void LevelEffects(Transform g, int L, float foot, float headY)
+        {
+            if (L >= 12)
+            {
+                var ac = L >= 26 ? GoldC : (L >= 18 ? new Color(0.7f, 0.35f, 1f) : new Color(0.35f, 0.7f, 1f));
+                var aura = Part(g, Shape.Cyl, new Vector3(0, 0.012f, 0), new Vector3(0.2f * foot, 0.004f, 0.2f * foot), Mat(ac, 0.5f, 0.9f));
+                Animate(aura, ArtMotion.Kind.Bob, 3f, 0.004f);
+            }
+            if (L >= 15)
+            {
+                var orbit = Group(g, "orbit", new Vector3(0, headY * 0.55f, 0));
+                Animate(orbit.gameObject, ArtMotion.Kind.Spin, 4f);
+                var sc = Mat(L >= 21 ? GoldC : new Color(0.6f, 0.9f, 1f), 0.9f, 3f);
+                Part(orbit, Shape.Ball, new Vector3(0.12f * foot, 0, 0), Vector3.one * 0.028f, sc);
+                if (L >= 22) Part(orbit, Shape.Ball, new Vector3(-0.12f * foot, 0.04f, 0), Vector3.one * 0.028f, sc);
+                if (L >= 27) Part(orbit, Shape.Ball, new Vector3(0, -0.04f, 0.12f * foot), Vector3.one * 0.028f, sc);
+            }
+            if (L >= 20)
+            {
+                var halo = Part(g, Shape.Cyl, new Vector3(0, headY + 0.04f, 0), new Vector3(L >= 30 ? 0.16f : 0.12f, 0.006f, L >= 30 ? 0.16f : 0.12f), Mat(new Color(1f, 0.92f, 0.5f), 0.9f, 2.5f));
+                Animate(halo, ArtMotion.Kind.Bob, 2f, 0.01f);
+            }
+            if (L >= 28)
+                foreach (var x in new[] { -1f, 1f })
+                {
+                    var wg = Group(g, "lightWing", new Vector3(0.04f * x, headY * 0.6f, -0.06f));
+                    Part(wg, Shape.Box, new Vector3(0.1f * x, 0.03f, 0), new Vector3(0.2f, 0.01f, 0.08f), Mat(new Color(1f, 0.95f, 0.75f), 0.9f, 2f), new Vector3(0, 0, 25f * x));
+                    Animate(wg.gameObject, ArtMotion.Kind.Flap, 5f, 15f * x);
+                }
+            if (L >= 29) { var col = Part(g, Shape.Cyl, new Vector3(0, headY + 0.13f, 0), new Vector3(0.012f, 0.14f, 0.012f), Mat(new Color(1f, 0.95f, 0.8f), 0.9f, 2.5f)); Animate(col, ArtMotion.Kind.Bob, 2.5f, 0.015f); }
+            if (L >= 30)
+            {
+                var ring = Part(g, Shape.Cyl, new Vector3(0, 0.02f, 0), new Vector3(0.28f * foot, 0.003f, 0.28f * foot), Mat(new Color(1f, 0.9f, 0.5f), 0.9f, 1.4f));
+                Animate(ring, ArtMotion.Kind.Bob, 1.5f, 0.01f, 1f);
+            }
         }
 
         public static Transform BuildSoldier(Transform parent, SoldierType t, int level = 1)
@@ -645,8 +728,8 @@ namespace GameClient
             int tier = SoldierTier(level);
             var root = Group(parent, t.ToString(), Vector3.zero, 0f, SoldierScale * (1f + tier * 0.04f));
             var g = Group(root, "model", Vector3.zero);
-            Gear(g, tier, t);
             var tunic = TunicOf(t);
+            int L = Mathf.Clamp(level, 1, 30);
             switch (t)
             {
                 case SoldierType.Swordsman:
@@ -677,6 +760,8 @@ namespace GameClient
                     var rider = Group(g, "rider", new Vector3(0, 0.18f, -0.02f));
                     Human(rider, tunic, Skin, 0.9f, true, false);
                     Part(rider, Shape.Box, new Vector3(0.08f, 0.16f, 0.06f), new Vector3(0.02f, 0.18f, 0.03f), Mat(StoneLight, 0.8f), new Vector3(40, 0, 0));
+                    HumanGear(rider, L, 0.9f);
+                    if (L >= 6) Part(g, Shape.Box, new Vector3(0, 0.15f, 0), new Vector3(0.135f, 0.07f, 0.24f), MetalFor(L, 6, 11, 21)); // at zırhı
                     break;
                 case SoldierType.Spearman:
                     Human(g, tunic, Skin, 1f, true, false);
@@ -720,8 +805,21 @@ namespace GameClient
                     }
                     var dr = Group(g, "rider", new Vector3(0, 0.22f, -0.02f));
                     Human(dr, new Color(0.25f, 0.25f, 0.3f), Skin, 0.7f, true, false);
+                    HumanGear(dr, L, 0.7f);
                     break;
             }
+            // insansı askerlerde ekipman; diğerlerinde gövde süsü; Sv12+ efektler herkes için
+            switch (t)
+            {
+                case SoldierType.Swordsman: case SoldierType.Archer: case SoldierType.Mage: case SoldierType.Spearman: HumanGear(g, L, 1f); break;
+                case SoldierType.Goblin: HumanGear(g, L, 0.8f); break;
+                case SoldierType.Fairy: HumanGear(g, L, 0.7f); break;
+                case SoldierType.Giant: HumanGear(g, L, 2f); break;
+                case SoldierType.Catapult: FrameGear(g, L); break;
+            }
+            float foot = t == SoldierType.Giant || t == SoldierType.DragonRider ? 1.8f : (t == SoldierType.Cavalry || t == SoldierType.Catapult ? 1.4f : 1f);
+            float headY = t == SoldierType.Giant ? 0.82f : (t == SoldierType.Cavalry ? 0.58f : (t == SoldierType.DragonRider ? 0.5f : (t == SoldierType.Catapult ? 0.4f : (t == SoldierType.Fairy ? 0.3f : (t == SoldierType.Goblin ? 0.34f : 0.42f)))));
+            LevelEffects(g, L, foot, headY);
             return root;
         }
 

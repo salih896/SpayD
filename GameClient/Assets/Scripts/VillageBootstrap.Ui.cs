@@ -399,12 +399,13 @@ namespace GameClient
                 int lvl = g.SoldierLevel(t);
                 bool locked = g.Level < d.UnlockLevel;
                 GUILayout.BeginHorizontal(GUILayout.Height(44));
-                GUILayout.Label((locked ? "[Sv " + d.UnlockLevel + "'de açılır] " : "") + d.Name + "  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "\nCan " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  Hız " + d.SpeedMilli, GUILayout.Width(320));
+                GUILayout.Label((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  Hız " + d.SpeedMilli + "</size>", GUILayout.Width(320));
                 GUI.enabled = !locked;
                 int ts = Mathf.Max(5, (int)((long)d.TrainSeconds * (1000 - g.Research.Total(ResearchStat.TrainTime)) / 1000));
                 if (GUILayout.Button("Eğit\n" + d.Cost + " | " + Dur(ts), GUILayout.Width(210))) { if (g.TryTrain(t, out err)) AddLog(d.Name + " eğitimi sıraya alındı"); else Toast(err); }
                 var up = g.PreviewUpgrade(JobKind.Soldier, new GridPos(0, 0), t);
-                string utxt = up.Block != null ? "Yükselt\n" + up.Block : "Sv " + up.TargetLevel + " yükselt\n" + up.Cost + " | " + Dur(up.Seconds);
+                string vis = VillageArt.LevelVisualName(up.TargetLevel);
+                string utxt = (up.Block != null ? "Yükselt: " + up.Block : "Sv " + up.TargetLevel + " yükselt  " + up.Cost + " | " + Dur(up.Seconds)) + (vis.Length > 0 ? "\n<size=12><color=#ffd560>+ " + vis + "</color></size>" : "");
                 if (GUILayout.Button(utxt, GUILayout.Width(260))) { if (g.TryStartUpgrade(JobKind.Soldier, new GridPos(0, 0), t, out err)) Toast("Yükseltme başladı"); else Toast(err); }
                 GUI.enabled = true;
                 GUILayout.EndHorizontal();
