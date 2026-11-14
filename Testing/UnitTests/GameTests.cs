@@ -48,7 +48,7 @@ namespace GameCore.Tests
             g.TotalXp = 100000;
             g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
             var d5 = ResearchCatalog.Find(ResearchTree.Economy, 5, 1);
-            StringAssert.Contains("Üniversite", g.Research.LockReason(d5, g.Level, g.UniversityLevel));
+            StringAssert.Contains("Akademi", g.Research.LockReason(d5, g.Level, g.UniversityLevel));
         }
 
         [Test]

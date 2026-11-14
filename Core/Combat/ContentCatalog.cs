@@ -56,7 +56,7 @@ namespace GameCore.Combat
             new BuildingDef { Type = BuildingType.IronMine, Name = "Demir Madeni", Hp = 600, IsResource = true, UnlockLevel = 25 },
             new BuildingDef { Type = BuildingType.IronDepot, Name = "Demir Deposu", Hp = 700, IsResource = true, IsDepot = true, Stores = ResourceType.Iron, UnlockLevel = 25 },
             new BuildingDef { Type = BuildingType.Barracks, Name = "Kışla", Hp = 500, UnlockLevel = 3 },
-            new BuildingDef { Type = BuildingType.University, Name = "Üniversite", Hp = 600, UnlockLevel = 5 },
+            new BuildingDef { Type = BuildingType.University, Name = "Akademi", Hp = 600, UnlockLevel = 5 },
             new BuildingDef { Type = BuildingType.VillagerHouse, Name = "Köylü Evi", Hp = 300, UnlockLevel = 1 },
         };
 

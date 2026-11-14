@@ -17,6 +17,15 @@ namespace GameCore.Village
         /// <summary>Seviye başına +1 yol: Sv1=10, Sv2=11, Sv3=12 ... Savunmada TAM bu sayıda yol olmalı.</summary>
         public static int RoadLimitForLevel(int level) => BaseRoadCount + (level < 1 ? 0 : level - 1);
 
+        /// <summary>
+        /// Tek yolun bir basamak geliştirme maliyeti (approved #23: Tahta → Altın+Tahta → Demir). GEÇİCİ (open-questions).
+        /// Altın+Tahta altın ister (Sv15'te açılır), Demir demir ister (Sv25) — kilitli kaynak harcanamadığı için seviye kapısı kendiliğinden oluşur.
+        /// </summary>
+        public static ResourceCost UpgradeCost(RoadTier next)
+        {
+            return next == RoadTier.Iron ? new ResourceCost(400, 0, 150, 80) : new ResourceCost(300, 0, 100, 0);
+        }
+
         /// <summary>Yol geliştirme her zaman açıktır ama önce araştırması yapılmış olmalı.</summary>
         public static bool CanUpgrade(bool researchDone, out string reason)
         {

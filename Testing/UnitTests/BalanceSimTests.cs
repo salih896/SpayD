@@ -107,6 +107,8 @@ namespace GameCore.Tests
                     if (!G.Quests.IsActive(q, G.Level) || G.Quests.IsClaimed(q.Id) || !G.Quests.IsComplete(q)) continue;
                     if (G.TryClaimQuest(q.Id, out _, out _)) any = true;
                 }
+                foreach (var t in AcademyTasks.All)
+                    if (!G.AcademyClaimed.Contains(t.Id) && G.AcademyTaskComplete(t) && G.TryClaimAcademy(t.Id, out _)) any = true;
             }
         }
 
@@ -175,7 +177,7 @@ namespace GameCore.Tests
             foreach (TowerType t in Enum.GetValues(typeof(TowerType))) if (ContentCatalog.Tower(t).UnlockLevel <= G.Level) types.Add(t);
             if (types.Count == 0) return;
             int guard = 40;
-            while (G.Towers.Count < GameRules.MaxTowers(G.Level) && guard-- > 0)
+            while (G.Towers.Count < G.MaxTowers && guard-- > 0)
             {
                 var tt = types[towerCycle % types.Count];
                 bool placed = false;

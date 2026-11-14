@@ -153,8 +153,8 @@ namespace GameCore.Progression
         {
             if (done.Contains(d.Id)) return "Tamamlandı";
             if (IsActive(d.Id)) return "Sürüyor";
-            if (playerLevel < UniversityUnlockLevel || universityLevel < 1) return "Üniversite Sv" + UniversityUnlockLevel + "'te açılır";
-            if (universityLevel < d.Level) return "Üniversite Sv " + d.Level + " gerekli";
+            if (playerLevel < UniversityUnlockLevel || universityLevel < 1) return "Akademi Sv" + UniversityUnlockLevel + "'te açılır";
+            if (universityLevel < d.Level) return "Akademi Sv " + d.Level + " gerekli";
             if (d.Column == 3)
             {
                 if (!done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 1)) || !done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 2)))

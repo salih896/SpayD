@@ -14,9 +14,25 @@ namespace GameCore.Game
         public const int StarterWood = 600;
         public const int SellRefundPct = 50;
 
-        /// <summary>Kule hakkı (GDD Bölüm 9, KESİN KARAR): başlangıçta 5, ilerledikçe en çok 10. Sv2'de 5, her 5 seviyede +1, Sv27+ = 10.</summary>
-        public const int StartTowerSlots = 5, MaxTowerSlots = 10;
-        public static int MaxTowers(int playerLevel) => Math.Min(MaxTowerSlots, StartTowerSlots + Math.Max(0, playerLevel - 2) / 5);
+        /// <summary>Kule hakkı (kullanıcı kararı 14.11.2026, GDD Bölüm 9'u günceller): sabit 5, Akademi görevleriyle +3 → en çok 8. Seviyeyle artmaz.</summary>
+        public const int StartTowerSlots = 5, MaxTowerSlots = 8;
+        /// <summary>Köylü evi: başta 1, Akademi görevleriyle en çok 3.</summary>
+        public const int StartVillagerHouses = 1, MaxVillagerHouses = 3;
+
+        /// <summary>Yapı başına üst sınır (kullanıcı kararı): üretim binaları ve depolar 1'er; Kışla 3; Akademi 1; Köylü evi en çok 3 (görevle açılır).</summary>
+        public static int MaxBuildingCount(BuildingType t)
+        {
+            switch (t)
+            {
+                case BuildingType.Barracks: return 3;
+                case BuildingType.VillagerHouse: return MaxVillagerHouses;
+                default: return 1;
+            }
+        }
+
+        /// <summary>Tipik oyuncunun o seviyedeki kule hakkı (görevleri zamanla alır). Yapay hedef köylerin kule sayısı buna bağlı.</summary>
+        public static int ExpectedTowerSlots(int playerLevel) =>
+            Math.Min(MaxTowerSlots, StartTowerSlots + (playerLevel >= 8 ? 1 : 0) + (playerLevel >= 14 ? 1 : 0) + (playerLevel >= 20 ? 1 : 0));
 
         /// <summary>
         /// O oyuncu seviyesindeki tipik aktif oyuncunun kule/asker/bina ortalama seviyesi (denge simülasyonundan kalibre,

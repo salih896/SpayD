@@ -75,6 +75,11 @@ namespace GameCore.Game
         public int LastRaidDay = -1;
         public RaidReport LastRaid;
         public long LastUnixSeconds;
+        /// <summary>Alınmış Akademi görevleri (yapı hakkı verir).</summary>
+        public HashSet<string> AcademyClaimed = new HashSet<string>();
+        /// <summary>Yol geliştirme araştırması: tamamlandı mı, sürüyorsa kalan saniye (-1 = başlamadı).</summary>
+        public bool RoadResearchDone;
+        public int RoadResearchRemaining = -1;
 
         public GameState(ResourceConfig cfg)
         {
@@ -92,7 +97,7 @@ namespace GameCore.Game
             get { ProgressionRules.LevelFromTotalXp(TotalXp, out int x); return x; }
         }
 
-        /// <summary>Yeni oyun: Sv1, 10 yol hakkı (giriş + yol), orman + kereste deposu + köylü evi.</summary>
+        /// <summary>Yeni oyun (approved #3): Sv1, 10 yol hakkı (giriş + yol), yalnızca orman + köylü evi. Kereste deposunu oyuncu kurar (#4).</summary>
         public static GameState NewGame(ResourceConfig cfg = null)
         {
             var g = new GameState(cfg ?? ResourceConfig.CreateDefault());
@@ -101,7 +106,6 @@ namespace GameCore.Game
             g.Layout.ToggleEntrance(new GridPos(5, 0), out e);
             for (int y = 1; y <= 9; y++) g.Layout.TryPlace(new GridPos(5, y), CellKind.Road, out e);
             g.AddBuildingDirect(new GridPos(4, 3), BuildingType.Forest, 1);
-            g.AddBuildingDirect(new GridPos(6, 3), BuildingType.LumberDepot, 1);
             g.AddBuildingDirect(new GridPos(4, 6), BuildingType.VillagerHouse, 1);
             g.Wallet.SetAmount(ResourceType.Wood, GameRules.StarterWood);
             g.RecomputeCapacity();
@@ -143,6 +147,57 @@ namespace GameCore.Game
         }
 
         public int UniversityLevel => MaxBuildingLevelOf(BuildingType.University);
+
+        // ---------- Yapı hakları (Akademi görevleri) ----------
+        private int ClaimedCount(AcademyReward r)
+        {
+            int n = 0;
+            foreach (var id in AcademyClaimed) { var t = AcademyTasks.Get(id); if (t != null && t.Reward == r) n++; }
+            return n;
+        }
+
+        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.StartTowerSlots + ClaimedCount(AcademyReward.TowerSlot));
+        public int MaxVillagerHouses => Math.Min(GameRules.MaxVillagerHouses, GameRules.StartVillagerHouses + ClaimedCount(AcademyReward.VillagerHouse));
+        public int MaxCountOf(BuildingType t) => t == BuildingType.VillagerHouse ? MaxVillagerHouses : GameRules.MaxBuildingCount(t);
+
+        public bool AcademyTaskComplete(AcademyTask t) => t.Progress(this) >= t.Target;
+
+        public bool TryClaimAcademy(string id, out string error)
+        {
+            var t = AcademyTasks.Get(id);
+            if (t == null) { error = "Görev yok"; return false; }
+            if (AcademyClaimed.Contains(id)) { error = "Bu görev zaten alındı"; return false; }
+            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
+            if (!AcademyTaskComplete(t)) { error = "Görev tamamlanmadı (" + t.Progress(this) + "/" + t.Target + ")"; return false; }
+            AcademyClaimed.Add(id);
+            error = null;
+            return true;
+        }
+
+        // ---------- Yol geliştirme ----------
+        public bool TryStartRoadResearch(out string error)
+        {
+            error = null;
+            if (RoadResearchDone) { error = "Yol geliştirme araştırması zaten tamamlandı"; return false; }
+            if (RoadResearchRemaining > 0) { error = "Araştırma sürüyor"; return false; }
+            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
+            if (!Wallet.TrySpend(RoadRules.ResearchCost, Level, SpendArea.Research, out error)) return false;
+            RoadResearchRemaining = RoadRules.ResearchDurationSeconds;
+            return true;
+        }
+
+        public bool TryUpgradeRoad(GridPos p, out string error)
+        {
+            if (!RoadRules.CanUpgrade(RoadResearchDone, out error)) return false;
+            if (Layout.Get(p) != CellKind.Road) { error = "Geliştirmek için bir yola dokun"; return false; }
+            if (Layout.GetRoadTier(p) == RoadTier.Iron) { error = "Bu yol zaten en üst seviyede (Demir)"; return false; }
+            var cost = RoadRules.UpgradeCost(Layout.GetRoadTier(p) + 1);
+            if (!Wallet.CanAfford(cost, Level, SpendArea.Upgrade, out error)) return false;
+            if (!Layout.TryUpgradeRoad(p, out error)) return false;
+            Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error);
+            error = null;
+            return true;
+        }
         public int ArmyCapacity => GameRules.ArmyCapacity(BarracksLevelSum());
         public int ArmySize
         {
@@ -264,6 +319,12 @@ namespace GameCore.Game
             int trained = Queue.Advance(seconds, Inventory);
             if (trained > 0) { Quests.Report(QuestEvent.SoldiersTrained, trained, lvl); events.Add(trained + " asker eğitildi"); }
 
+            if (RoadResearchRemaining > 0)
+            {
+                RoadResearchRemaining -= seconds;
+                if (RoadResearchRemaining <= 0) { RoadResearchRemaining = -1; RoadResearchDone = true; events.Add("Yol geliştirme araştırması tamamlandı"); }
+            }
+
             foreach (var d in Research.Advance(seconds))
             {
                 Quests.Report(QuestEvent.ResearchDone, 1, lvl);
@@ -318,14 +379,20 @@ namespace GameCore.Game
             var def = ContentCatalog.Building(t);
             int lvl = Level;
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
-            if ((t == BuildingType.University || t == BuildingType.Barracks) && CountBuildings(t) >= (t == BuildingType.University ? 1 : 3))
-            { error = def.Name + " sınırına ulaştın"; return false; }
+            if (CountBuildings(t) >= MaxCountOf(t))
+            {
+                error = def.Name + " sınırı " + MaxCountOf(t) + (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses ? " (Akademi görevleriyle artar)" : "");
+                return false;
+            }
             var cost = GameRules.Scale(GameRules.BuildCostOf(t), Config, lvl, 100);
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
             if (!Layout.TryPlace(p, CellKind.Building, out error)) return false;
             Wallet.TrySpend(cost, lvl, SpendArea.Building, out error);
             Buildings[p] = new BuildingSpec(t, 1);
             PendingLevelUps.AddRange(AddXp(PlacementXpBuilding));
+            // approved #4: rehberin kurdurduğu kereste deposu bitince seviye 2 GARANTİ (XP formülünden bağımsız)
+            if (t == BuildingType.LumberDepot && Level < 2)
+                PendingLevelUps.AddRange(AddXp((int)(ProgressionRules.XpToNextLevel(1) - XpIntoLevel)));
             return true;
         }
 
@@ -334,7 +401,7 @@ namespace GameCore.Game
             var def = ContentCatalog.Tower(t);
             int lvl = Level;
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
-            if (Towers.Count >= GameRules.MaxTowers(lvl)) { error = "Kule sınırı " + GameRules.MaxTowers(lvl); return false; }
+            if (Towers.Count >= MaxTowers) { error = "Kule sınırı " + MaxTowers + (MaxTowers < GameRules.MaxTowerSlots ? " (Akademi görevleriyle " + GameRules.MaxTowerSlots + "'e çıkar)" : ""); return false; }
             var cost = GameRules.Scale(def.BuildCost, Config, lvl, 100);
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
             if (!Layout.TryPlace(p, CellKind.Tower, out error)) return false;

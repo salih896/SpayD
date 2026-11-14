@@ -153,7 +153,7 @@ namespace GameClient
         {
             bool showToast = Time.time < toastUntil;
             string msg = showToast ? toast : (valid ? "Savunma hazır" : validationError);
-            msg += "     Yol " + layout.RoadCount + "/" + layout.RoadLimit + "   Giriş " + layout.EntranceCount + "   Kule " + g.Towers.Count + "/" + GameRules.MaxTowers(g.Level);
+            msg += "     Yol " + layout.RoadCount + "/" + layout.RoadLimit + "   Giriş " + layout.EntranceCount + "   Kule " + g.Towers.Count + "/" + g.MaxTowers;
             float tw = Mathf.Min(w - 20f, 760f);
             var rs = new Rect((w - tw) * 0.5f, h - 92, tw, 34);
             GUI.Label(rs, msg, showToast || valid ? UiTheme.Pill : UiTheme.PillBad);
