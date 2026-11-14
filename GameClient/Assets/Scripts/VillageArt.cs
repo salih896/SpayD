@@ -381,6 +381,7 @@ namespace GameClient
             int tier = Tier(level);
             float lv = 1f + tier * 0.08f + Mathf.Min(0.1f, (level - 1) * 0.005f);
             var g = Group(parent, t.ToString(), pos, 0f, 1f);
+            if (t == TowerType.Wall) { BuildWall(g, tier, damaged); return g; }
             var body = tier == 0 ? WoodLight : (t == TowerType.Elf ? StoneLight : (tier >= 3 ? StoneLight : Stone));
             var stone = damaged ? Color.Lerp(StoneDark, Dark, 0.3f) : body;
             float h = 0.95f * lv;
@@ -418,14 +419,27 @@ namespace GameClient
                     var orb = Part(g, Shape.Ball, new Vector3(0, h + 0.86f, 0), new Vector3(0.16f, 0.16f, 0.16f), Mat(new Color(0.75f, 0.4f, 1f), 0.9f, 1.6f));
                     Animate(orb, ArtMotion.Kind.Bob, 2f, 0.05f, pos.x + pos.z);
                     break;
-                case TowerType.Spear:
-                    for (int i = 0; i < 6; i++)
+                case TowerType.Cannon:
+                    Part(g, Shape.Cyl, new Vector3(0, h + 0.1f, 0), new Vector3(0.3f, 0.08f, 0.3f), WoodDark);
+                    Part(g, Shape.Cyl, new Vector3(0, h + 0.22f, -0.1f), new Vector3(0.13f, 0.4f, 0.13f), Mat(new Color(0.18f, 0.18f, 0.2f), 0.6f), new Vector3(-65, 0, 0));
+                    Part(g, Shape.Cyl, new Vector3(0, h + 0.3f, -0.26f), new Vector3(0.16f, 0.04f, 0.16f), Mat(tier >= 3 ? GoldC : Iron, 0.7f), new Vector3(-65, 0, 0));
+                    for (int i = 0; i < 3; i++) Part(g, Shape.Ball, new Vector3(0.14f - i * 0.07f, h + 0.1f, 0.14f), new Vector3(0.07f, 0.07f, 0.07f), Mat(new Color(0.15f, 0.15f, 0.16f), 0.5f));
+                    break;
+                case TowerType.Ice:
+                    Part(g, Shape.Cone, new Vector3(0, h + 0.2f, 0), new Vector3(0.46f, 0.18f, 0.46f), new Color(0.92f, 0.96f, 1f));
+                    for (int i = 0; i < 3 + Mathf.Min(2, tier); i++)
                     {
-                        float a = i * Mathf.PI / 3f;
-                        Part(g, Shape.Cone, new Vector3(Mathf.Cos(a) * 0.3f, h * 0.5f, Mathf.Sin(a) * 0.3f), new Vector3(0.05f, 0.24f, 0.05f), Iron, new Vector3(Mathf.Sin(a) * 90f, 0, -Mathf.Cos(a) * 90f));
+                        float a = i * Mathf.PI * 2f / (3 + Mathf.Min(2, tier));
+                        Part(g, Shape.Pyramid, new Vector3(Mathf.Cos(a) * 0.12f, h + 0.36f, Mathf.Sin(a) * 0.12f), new Vector3(0.07f, 0.28f, 0.07f), Mat(new Color(0.55f, 0.9f, 1f), 0.95f, 1.2f), new Vector3(Mathf.Sin(a) * 15f, 0, -Mathf.Cos(a) * 15f));
                     }
-                    Part(g, Shape.Pyramid, new Vector3(0, h + 0.3f, 0), new Vector3(0.42f, 0.3f, 0.42f), new Color(0.75f, 0.45f, 0.2f));
-                    Flag(g, new Vector3(0, h + 0.45f, 0), 0.3f, new Color(0.95f, 0.55f, 0.15f));
+                    var core = Part(g, Shape.Pyramid, new Vector3(0, h + 0.5f, 0), new Vector3(0.1f, 0.34f, 0.1f), Mat(new Color(0.7f, 0.95f, 1f), 0.95f, 2f));
+                    Animate(core, ArtMotion.Kind.Spin, 1f);
+                    break;
+                case TowerType.Lightning:
+                    Part(g, Shape.Cyl, new Vector3(0, h + 0.3f, 0), new Vector3(0.04f, 0.5f, 0.04f), Mat(Iron, 0.8f));
+                    for (int i = 0; i < 2 + Mathf.Min(2, tier); i++) Part(g, Shape.Cyl, new Vector3(0, h + 0.15f + i * 0.09f, 0), new Vector3(0.16f - i * 0.02f, 0.015f, 0.16f - i * 0.02f), Mat(new Color(0.75f, 0.5f, 0.25f), 0.8f));
+                    var bolt = Part(g, Shape.Ball, new Vector3(0, h + 0.6f, 0), new Vector3(0.15f, 0.15f, 0.15f), Mat(new Color(1f, 0.95f, 0.45f), 0.9f, 2.6f));
+                    Animate(bolt, ArtMotion.Kind.Bob, 6f, 0.02f, pos.x);
                     break;
                 case TowerType.Elf:
                     Part(g, Shape.Ball, new Vector3(0, h + 0.22f, 0), new Vector3(0.6f, 0.42f, 0.6f), Leaf);
@@ -438,6 +452,36 @@ namespace GameClient
                 for (int i = 0; i < 3; i++)
                     Part(g, Shape.Box, new Vector3(-0.2f + i * 0.18f, 0.05f, -0.32f), new Vector3(0.1f, 0.08f, 0.09f), StoneDark, new Vector3(0, i * 30f, 15f));
             return g;
+        }
+
+        /// <summary>Duvar: kademe 0 ahşap çit (kazık), 1 taş duvar, 2 mazgallı, 3 altın şerit, 4 sancak + kristal. Seviye boyunu artırır.</summary>
+        private static void BuildWall(Transform g, int tier, bool damaged)
+        {
+            if (tier == 0)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    float x = -0.4f + i * 0.16f;
+                    Part(g, Shape.Cyl, new Vector3(x, 0.24f, 0), new Vector3(0.12f, 0.48f, 0.12f), damaged ? WoodDark : Wood);
+                    Part(g, Shape.Cone, new Vector3(x, 0.54f, 0), new Vector3(0.12f, 0.14f, 0.12f), WoodLight);
+                }
+                Part(g, Shape.Box, new Vector3(0, 0.3f, -0.07f), new Vector3(0.9f, 0.05f, 0.03f), WoodDark);
+                return;
+            }
+            float wh = 0.45f + tier * 0.07f;
+            var stone = damaged ? StoneDark : (tier >= 3 ? StoneLight : Stone);
+            Part(g, Shape.Box, new Vector3(0, 0.04f, 0), new Vector3(0.98f, 0.08f, 0.44f), StoneDark);
+            Part(g, Shape.Box, new Vector3(0, wh * 0.5f, 0), new Vector3(0.94f, wh, 0.34f), stone);
+            for (int i = 0; i < 4; i++) Part(g, Shape.Box, new Vector3(-0.33f + i * 0.22f, wh * 0.45f, -0.172f), new Vector3(0.18f, 0.004f, 0.004f), StoneDark); // taş derzleri
+            if (tier >= 2)
+                for (int i = 0; i < 5; i++) Part(g, Shape.Box, new Vector3(-0.38f + i * 0.19f, wh + 0.06f, 0), new Vector3(0.12f, 0.12f, 0.34f), stone);
+            if (tier >= 3) Part(g, Shape.Box, new Vector3(0, wh - 0.03f, -0.175f), new Vector3(0.95f, 0.04f, 0.01f), Mat(GoldC, 0.85f, 0.25f));
+            if (tier >= 4)
+            {
+                foreach (var x in new[] { -0.4f, 0.4f }) Flag(g, new Vector3(x, wh + 0.12f, 0), 0.35f, new Color(0.55f, 0.15f, 0.65f));
+                var gem = Part(g, Shape.Pyramid, new Vector3(0, wh * 0.6f, -0.18f), new Vector3(0.1f, 0.14f, 0.02f), Mat(new Color(0.55f, 0.9f, 1f), 0.95f, 2f));
+                Animate(gem, ArtMotion.Kind.Bob, 2f, 0.01f);
+            }
         }
 
         // ---------- Yol, giriş, tuzak ----------
@@ -840,7 +884,9 @@ namespace GameClient
             switch (t)
             {
                 case TowerType.Archer: Part(g, Shape.Box, Vector3.zero, new Vector3(0.02f, 0.02f, 0.22f), WoodDark); break;
-                case TowerType.Spear: Part(g, Shape.Box, Vector3.zero, new Vector3(0.03f, 0.03f, 0.34f), Iron); break;
+                case TowerType.Cannon: Part(g, Shape.Ball, Vector3.zero, new Vector3(0.13f, 0.13f, 0.13f), Mat(new Color(0.12f, 0.12f, 0.13f), 0.5f)); break;
+                case TowerType.Ice: Part(g, Shape.Pyramid, Vector3.zero, new Vector3(0.06f, 0.06f, 0.24f), Mat(new Color(0.6f, 0.95f, 1f), 0.95f, 2.5f), new Vector3(90, 0, 0)); break;
+                case TowerType.Lightning: Part(g, Shape.Box, Vector3.zero, new Vector3(0.03f, 0.03f, 0.5f), Mat(new Color(1f, 0.95f, 0.5f), 0.9f, 3.5f)); break;
                 case TowerType.Mage: Part(g, Shape.Ball, Vector3.zero, new Vector3(0.14f, 0.14f, 0.14f), Mat(new Color(0.8f, 0.45f, 1f), 0.9f, 2.5f)); break;
                 default: Part(g, Shape.Ball, Vector3.zero, new Vector3(0.08f, 0.08f, 0.08f), Mat(new Color(0.4f, 1f, 0.75f), 0.9f, 2.5f)); break;
             }

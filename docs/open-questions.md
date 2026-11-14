@@ -67,4 +67,6 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Yol basamağının oyuna etkisi ne olsun? (öneri: Demir yolda askerler yavaşlar veya tuzak hasarı artar) Şu an yalnızca görünüm.
 - Tek yol geliştirmesi anlık; süre eklensin mi?
 - Eski kayıtlarda sınırı aşan yapılar (ör. 27 köylü evi) korunuyor; yeni kurulum engelleniyor. Fazlası kaldırılsın mı?
+- Duvar kule hakkından mı sayılsın, ayrı bir duvar hakkı mı olsun? (şu an kule hakkından)
+- Duvarlı savunmalar botun baskınlarını hep durdurdu (sim 33/33); baskıncı ordusu güçlendirilsin mi?
 

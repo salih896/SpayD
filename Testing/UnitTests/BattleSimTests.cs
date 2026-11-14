@@ -77,9 +77,9 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void SpearTower_CannotShootFairy_ButElfTowerCan()
+        public void Wall_CannotShootFairy_ButElfTowerCan()
         {
-            var spear = Basic(tower: new TowerSpec(TowerType.Spear));
+            var spear = Basic(tower: new TowerSpec(TowerType.Wall));
             var sim = new BattleSim(spear, new Dictionary<SoldierType, int> { { SoldierType.Fairy, 1 } }, null, 1);
             sim.Deploy(SoldierType.Fairy, 5, 1, out _);
             for (int i = 0; i < 150; i++) sim.Step();

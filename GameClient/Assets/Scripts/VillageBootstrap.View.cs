@@ -148,7 +148,7 @@ namespace GameClient
             {
                 case TowerType.Archer: return new Color(0.2f, 0.7f, 0.25f);
                 case TowerType.Mage: return new Color(0.65f, 0.25f, 0.85f);
-                case TowerType.Spear: return new Color(0.8f, 0.5f, 0.2f);
+                case TowerType.Wall: return new Color(0.6f, 0.6f, 0.6f);
                 default: return new Color(0.2f, 0.75f, 0.75f);
             }
         }

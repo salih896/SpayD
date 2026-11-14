@@ -276,9 +276,9 @@ namespace GameClient
             for (int i = 0; i < ShopCats.Length; i++)
                 if (SelBtn(new Rect(r.x + 20 + i * (bw + 8), r.y + 30, bw, 38), ShopCats[i], shopCat == i)) { shopCat = i; scrollPos = Vector2.zero; }
 
-            float cw = 200f, ch = 210f;
+            float cw = 200f, ch = 232f;
             int perRow = Mathf.Max(1, (int)((r.width - 30f) / (cw + 10f)));
-            int count = shopCat < 2 ? ShopBuildings[shopCat].Length : 4;
+            int count = shopCat < 2 ? ShopBuildings[shopCat].Length : BattleSim.TowerTypeCount;
             var inner = new Rect(0, 0, r.width - 50f, Mathf.Ceil(count / (float)perRow) * (ch + 10f));
             scrollPos = GUI.BeginScrollView(new Rect(r.x + 14, r.y + 78, r.width - 28, r.height - 90), scrollPos, inner);
             for (int i = 0; i < count; i++)
@@ -298,15 +298,15 @@ namespace GameClient
                     var tt = (TowerType)i; var d = ContentCatalog.Tower(tt);
                     name = d.Name; unlock = d.UnlockLevel; have = g.Towers.Count; limit = g.MaxTowers;
                     cost = GameRules.Scale(d.BuildCost, g.Config, g.Level, 100);
-                    sub = "Kule hakkı " + have + "/" + limit + (limit < GameRules.MaxTowerSlots ? " (görevle " + GameRules.MaxTowerSlots + ")" : "");
+                    sub = TowerRole(tt) + "\nKule hakkı " + have + "/" + limit + (limit < GameRules.MaxTowerSlots ? " (görevle " + GameRules.MaxTowerSlots + ")" : "");
                 }
                 bool locked = g.Level < unlock, full = have >= limit;
                 GUI.Box(cr, "", UiTheme.Parchment);
                 var dark = new GUIStyle(UiTheme.Skin.label) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) }, alignment = TextAnchor.UpperCenter };
                 GUI.Label(new Rect(cr.x + 8, cr.y + 10, cw - 16, 26), "<b>" + name + "</b>", dark);
                 UiTheme.Dot(new Rect(cr.x + cw * 0.5f - 34, cr.y + 40, 68, 68), shopCat == 0 ? ResColor(i < 2 ? ResourceType.Wood : (i < 4 ? ResourceType.Stone : (i < 6 ? ResourceType.Gold : ResourceType.Iron))) : (shopCat == 1 ? new Color(0.6f, 0.45f, 0.3f) : new Color(0.55f, 0.58f, 0.65f)));
-                GUI.Label(new Rect(cr.x + 8, cr.y + 112, cw - 16, 40), "<size=12>" + sub + "</size>", dark);
-                GUI.Label(new Rect(cr.x + 8, cr.y + 140, cw - 16, 22), "<size=13>" + (locked ? "Sv " + unlock + "'de açılır" : (shopCat < 2 ? have + "/" + limit + "   " : "") + cost) + "</size>", dark);
+                GUI.Label(new Rect(cr.x + 8, cr.y + 112, cw - 16, 44), "<size=12>" + sub + "</size>", dark);
+                GUI.Label(new Rect(cr.x + 8, cr.y + 158, cw - 16, 22), "<size=13>" + (locked ? "Sv " + unlock + "'de açılır" : (shopCat < 2 ? have + "/" + limit + "   " : "") + cost) + "</size>", dark);
                 if (!locked && !full)
                 {
                     if (GUI.Button(new Rect(cr.x + 20, cr.y + ch - 46, cw - 40, 36), "Kur", UiTheme.BtnGreen))
@@ -319,6 +319,20 @@ namespace GameClient
                 else GUI.Label(new Rect(cr.x + 20, cr.y + ch - 46, cw - 40, 36), locked ? "Kilitli" : "Sınırda", UiTheme.PillBad);
             }
             GUI.EndScrollView();
+        }
+
+        private static string TowerRole(TowerType t)
+        {
+            switch (t)
+            {
+                case TowerType.Archer: return "Hızlı, havayı da vurur";
+                case TowerType.Mage: return "Alan hasarı, zırh deler";
+                case TowerType.Wall: return "Saldırmaz; askerleri üstüne çeker";
+                case TowerType.Elf: return "Uçanlara çok güçlü";
+                case TowerType.Cannon: return "Büyük alan hasarı, hava yok";
+                case TowerType.Ice: return "Vurduğunu yavaşlatır";
+                default: return "Zincirleme şimşek (3 hedef)";
+            }
         }
 
         // ---------- Seçili yapı (alt orta kart) ----------
@@ -350,7 +364,7 @@ namespace GameClient
                 var m = g.Research.Mods();
                 int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level), m.TowerHp);
                 int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage);
-                string info = "Can " + hp + "   Hasar " + atk + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0");
+                string info = d.Attack <= 0 ? "Can " + hp + "   " + TowerRole(t.Type) : "Can " + hp + "   Hasar " + atk + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0") + "   " + TowerRole(t.Type);
                 if (g.Wears.TryGetValue(p, out var wr) && wr.PermanentDamagePct > 0)
                 {
                     info += "   <color=#ffb070>Hasar %" + wr.PermanentDamagePct + (wr.IsDisabled ? " (DEVRE DIŞI)" : "") + "</color>";
@@ -596,7 +610,7 @@ namespace GameClient
                 if (GUI.Button(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42), "SALDIR", UiTheme.BtnRed)) StartBattle(t);
             }
             if (Btn(new Rect(r.x + 10, r.y + 290, 180, 36), "Hedefleri yenile")) { targetSeed++; targets = null; }
-            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Mızraklı kuleler atlıya, Elf kuleleri periye güçlüdür; Büyücü kalabalığa, Goblin kaynak binalarına etkilidir. Zafer için yapıların ortalama hasarı %51'i geçmeli.</color>");
+            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer), Elf kulesi periye, Top kalabalığa güçlüdür; Buz yavaşlatır, Şimşek zincirleme vurur. Zafer için yapıların ortalama hasarı %51'i geçmeli.</color>");
         }
 
         // ---------- Menü ----------

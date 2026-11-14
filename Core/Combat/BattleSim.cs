@@ -62,6 +62,7 @@ namespace GameCore.Combat
         public bool Retreated { get; private set; }
         public IReadOnlyList<SimStructure> Structures => structures;
         public IReadOnlyList<SimSoldier> Soldiers => soldiers;
+        public static int TowerTypeCount => System.Enum.GetValues(typeof(TowerType)).Length;
         public int StockOf(SoldierType t) => stock.TryGetValue(t, out var n) ? n : 0;
 
         /// <summary>Saldıranın araştırma bonusları (Deploy'dan önce atanır).</summary>
@@ -183,6 +184,7 @@ namespace GameCore.Combat
                 if (!t.Alive || t.Kind != StructKind.Tower || t.Disabled) continue;
                 if (t.Cooldown > 0) { t.Cooldown--; continue; }
                 var def = ContentCatalog.Tower(t.TowerType);
+                if (def.Attack <= 0) continue; // Duvar ateş etmez
                 long r2 = (long)def.RangeMilli * def.RangeMilli;
                 SimSoldier best = null; long bestD = long.MaxValue;
                 for (int j = 0; j < soldiers.Count; j++)
@@ -197,6 +199,8 @@ namespace GameCore.Combat
                 if (best == null) continue;
                 int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage);
                 Hit(best, dmg);
+                if (def.SlowTicks > 0 && best.Alive) best.SlowUntil = Math.Max(best.SlowUntil, Tick + def.SlowTicks);
+                if (def.ChainCount > 0) Chain(best, def, dmg * 70 / 100);
                 if (def.SplashMilli > 0)
                 {
                     long sr2 = (long)def.SplashMilli * def.SplashMilli;
@@ -209,6 +213,28 @@ namespace GameCore.Combat
                     }
                 }
                 t.Cooldown = Math.Max(0, def.IntervalTicks - 1);
+            }
+        }
+
+        /// <summary>Şimşek sıçraması: son vurulandan 2 hücre içindeki en yakın canlı askere (uzaklık, sonra liste sırası; deterministik).</summary>
+        private void Chain(SimSoldier from, TowerDef def, int dmg)
+        {
+            var hit = new HashSet<int> { from.Id };
+            var cur = from;
+            for (int n = 0; n < def.ChainCount; n++)
+            {
+                SimSoldier next = null; long bestD = 2000L * 2000L + 1;
+                for (int j = 0; j < soldiers.Count; j++)
+                {
+                    var o = soldiers[j];
+                    if (!o.Alive || hit.Contains(o.Id) || (o.Flying && !def.CanHitAir)) continue;
+                    long d = CombatMath.DistSq(cur.X, cur.Y, o.X, o.Y);
+                    if (d < bestD) { bestD = d; next = o; }
+                }
+                if (next == null) return;
+                Hit(next, Math.Max(1, dmg));
+                hit.Add(next.Id);
+                cur = next;
             }
         }
 
@@ -316,6 +342,12 @@ namespace GameCore.Combat
 
         private int PriorityClass(SimSoldier s, SimStructure st)
         {
+            // Duvar: yakındaki yer askerlerini üstüne çeker (en yüksek öncelik)
+            if (!s.Flying && st.Kind == StructKind.Tower)
+            {
+                int taunt = ContentCatalog.Tower(st.TowerType).TauntMilli;
+                if (taunt > 0 && CombatMath.DistSq(s.X, s.Y, st.CenterX, st.CenterY) <= (long)taunt * taunt) return -1;
+            }
             switch (s.Type)
             {
                 case SoldierType.Goblin: return st.IsResource ? 0 : 1;

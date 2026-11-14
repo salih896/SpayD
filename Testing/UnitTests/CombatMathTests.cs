@@ -43,9 +43,18 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void SpearTower_HasBonusVsMounted()
+        public void Wall_DoesNotAttack_HasHighHpAndTaunt()
         {
-            var spear = ContentCatalog.Tower(TowerType.Spear);
+            var wall = ContentCatalog.Tower(TowerType.Wall);
+            Assert.AreEqual(0, wall.Attack);
+            Assert.Greater(wall.Hp, ContentCatalog.Tower(TowerType.Archer).Hp * 2);
+            Assert.Greater(wall.TauntMilli, 0);
+        }
+
+        [Test]
+        public void MountedBonusFormula_StillWorks()
+        {
+            var spear = new TowerDef { Attack = 75, BonusVsMountedPct = 150 };
             int vsInfantry = CombatMath.TowerDamage(spear, 1, false, false, 10);   // 75 * 0.9
             int vsCavalry = CombatMath.TowerDamage(spear, 1, false, true, 20);     // 187 * 0.8
             Assert.AreEqual(67, vsInfantry);
@@ -71,7 +80,8 @@ namespace GameCore.Tests
         [Test]
         public void SpearTower_CannotHitAir_ByDefinition()
         {
-            Assert.IsFalse(ContentCatalog.Tower(TowerType.Spear).CanHitAir);
+            Assert.IsFalse(ContentCatalog.Tower(TowerType.Wall).CanHitAir);
+            Assert.IsFalse(ContentCatalog.Tower(TowerType.Cannon).CanHitAir);
             Assert.IsTrue(ContentCatalog.Tower(TowerType.Elf).CanHitAir);
         }
 

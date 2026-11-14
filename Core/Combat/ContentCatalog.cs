@@ -41,8 +41,15 @@ namespace GameCore.Combat
         {
             new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 30, IntervalTicks = 8, RangeMilli = 5000, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
             new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 65, IntervalTicks = 20, RangeMilli = 4000, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = 6, BuildCost = new ResourceCost(200, 80) },
-            new TowerDef { Type = TowerType.Spear, Name = "Mızrak Kulesi", Hp = 1250, Attack = 75, IntervalTicks = 15, RangeMilli = 2500, BonusVsMountedPct = 150, CanHitAir = false, UnlockLevel = 4, BuildCost = new ResourceCost(160) },
+            // Duvar (kullanıcı kararı 14.11.2026: Mızrak Kulesi → Duvar): saldırmaz, çok dayanıklı, yakındaki yer askerlerini üstüne çeker
+            new TowerDef { Type = TowerType.Wall, Name = "Duvar", Hp = 3200, Attack = 0, IntervalTicks = 10, RangeMilli = 0, CanHitAir = false, TauntMilli = 2500, UnlockLevel = 4, BuildCost = new ResourceCost(160) },
             new TowerDef { Type = TowerType.Elf, Name = "Elf Kulesi", Hp = 750, Attack = 18, IntervalTicks = 4, RangeMilli = 4500, CanHitAir = true, BonusVsAirPct = 100, UnlockLevel = 8, BuildCost = new ResourceCost(180, 120) },
+            // Top: yavaş, yüksek alan hasarı, havayı vuramaz
+            new TowerDef { Type = TowerType.Cannon, Name = "Top Kulesi", Hp = 1100, Attack = 140, IntervalTicks = 30, RangeMilli = 4000, SplashMilli = 1200, CanHitAir = false, UnlockLevel = 10, BuildCost = new ResourceCost(300, 150) },
+            // Buz: düşük hasar, vurduğunu yavaşlatır
+            new TowerDef { Type = TowerType.Ice, Name = "Buz Kulesi", Hp = 900, Attack = 20, IntervalTicks = 10, RangeMilli = 4000, SlowTicks = 25, CanHitAir = true, UnlockLevel = 12, BuildCost = new ResourceCost(250, 200) },
+            // Şimşek: hedeften 2 askere daha sıçrar
+            new TowerDef { Type = TowerType.Lightning, Name = "Şimşek Kulesi", Hp = 850, Attack = 55, IntervalTicks = 18, RangeMilli = 4500, ChainCount = 2, CanHitAir = true, UnlockLevel = 16, BuildCost = new ResourceCost(300, 200, 120) },
         };
 
         private static readonly BuildingDef[] Buildings =

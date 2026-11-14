@@ -3,7 +3,8 @@ using GameCore.Economy;
 namespace GameCore.Combat
 {
     public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6, Giant = 7, Catapult = 8, DragonRider = 9 }
-    public enum TowerType { Archer = 0, Mage = 1, Spear = 2, Elf = 3 }
+    /// <summary>Kule türleri. 2 = Duvar (eski Mızrak Kulesi; kayıt uyumu için değer korunur).</summary>
+    public enum TowerType { Archer = 0, Mage = 1, Wall = 2, Elf = 3, Cannon = 4, Ice = 5, Lightning = 6 }
     public enum BuildingType
     {
         Forest = 0, LumberDepot = 1, StoneQuarry = 2, StoneDepot = 3, GoldMine = 4, Bank = 5,
@@ -29,6 +30,9 @@ namespace GameCore.Combat
         public int ArmorPiercePct;
         public bool CanHitAir;
         public int BonusVsAirPct, BonusVsMountedPct;
+        public int SlowTicks;     // Buz: vurduğu askeri bu kadar tick yavaşlatır (hız yarıya)
+        public int ChainCount;    // Şimşek: hedeften sonra sıçradığı ek asker sayısı (%70 hasar)
+        public int TauntMilli;    // Duvar: bu mesafedeki yer askerleri hedef seçerken duvarı önceler
         public int UnlockLevel;
         public ResourceCost BuildCost;
     }
