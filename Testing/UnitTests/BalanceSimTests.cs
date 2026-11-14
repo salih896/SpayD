@@ -388,6 +388,85 @@ namespace GameCore.Tests
             return sb.ToString();
         }
 
+        /// <summary>Bir seviyede rastgele savaş bloğu (matrisle aynı dağılım). Dönen: zafer sayısı.</summary>
+        public static int TrialBlock(int lvl, int trials, int seed)
+        {
+            var rng = new System.Random(seed);
+            var cfg = ResourceConfig.CreateDefault();
+            var types = new List<SoldierType>();
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) types.Add((SoldierType)i);
+            if (types.Count == 0) types.Add(SoldierType.Swordsman);
+            int army = lvl < 3 ? 10 : 20 + lvl * 2;
+            int baseLv = GameRules.ExpectedStructureLevel(lvl);
+            int ap = TargetGenerator.ExpectedAttackResearchPermille(lvl);
+            int wins = 0;
+            for (int t = 0; t < trials; t++)
+            {
+                int diff = rng.Next(3);
+                var tgt = TargetGenerator.Generate(lvl, diff, rng.Next(1, 1000000));
+                var stock = new Dictionary<SoldierType, int>();
+                for (int i = 0; i < army; i++) { var st = types[rng.Next(types.Count)]; stock[st] = (stock.TryGetValue(st, out var n) ? n : 0) + 1; }
+                var levels = new Dictionary<SoldierType, int>();
+                foreach (var st in types) levels[st] = System.Math.Max(1, baseLv + rng.Next(-1, 2));
+                var sim = BotBattle.Run(tgt.Defense, stock, levels, new CombatMods { SoldierDamage = ap, SoldierHp = ap }, rng.Next(1, 1000000));
+                if (sim.Result(tgt.Pool, cfg, tgt.Level).Victory) wins++;
+            }
+            return wins;
+        }
+
+        /// <summary>
+        /// Her seviye için hedef gücü düzeltmesini (‰) ikili aramayla bulur: rastgele savaşlarda ≈ %50 zafer.
+        /// Sv1-2 atlanır (kışla yok). Sonuç tablosu docs/power-calibration.txt'e yazılır; TargetGenerator.LevelPowerPermille'e işlenir.
+        /// </summary>
+        [Test, Explicit("Uzun kalibrasyon; elle çalıştırılır")]
+        public void CalibrateLevelPower()
+        {
+            var saved = (int[])TargetGenerator.LevelPowerPermille.Clone();
+            var outp = new int[31];
+            var sb = new StringBuilder("Sv | düzeltme ‰ | zafer/60\n");
+            for (int lvl = 3; lvl <= 30; lvl++)
+            {
+                int lo = -700, hi = 7000, best = 0, bestGap = 999;
+                for (int it = 0; it < 10; it++)
+                {
+                    int mid = (lo + hi) / 2;
+                    TargetGenerator.LevelPowerPermille[lvl] = mid;
+                    int w = TrialBlock(lvl, 60, 777 + lvl * 31);
+                    int gap = System.Math.Abs(w - 30);
+                    if (gap < bestGap) { bestGap = gap; best = mid; }
+                    if (w > 30) lo = mid; else hi = mid;
+                }
+                outp[lvl] = (best + 25) / 50 * 50; // 50'lik adımlara yuvarla
+                TargetGenerator.LevelPowerPermille[lvl] = outp[lvl];
+                sb.Append(lvl).Append(" | ").Append(outp[lvl]).Append(" | ").Append(TrialBlock(lvl, 60, 777 + lvl * 31)).Append("\n");
+            }
+            sb.Append("\nC#: { 0, 0, 0");
+            for (int lvl = 3; lvl <= 30; lvl++) sb.Append(", ").Append(outp[lvl]);
+            sb.Append(" }\n");
+            TargetGenerator.LevelPowerPermille = saved;
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "..", "docs", "power-calibration.txt");
+            try { File.WriteAllText(path, sb.ToString()); } catch { }
+            Assert.Pass(sb.ToString());
+        }
+
+        /// <summary>Doğrulama: kalibrasyonda kullanılmayan tohumlarla her seviyede 100 rastgele savaş.</summary>
+        [Test, Explicit("Uzun doğrulama; elle çalıştırılır")]
+        public void BattleMatrix_Verify100PerLevel()
+        {
+            var sb = new StringBuilder("DOĞRULAMA — her seviyede 100 rastgele savaş (kalibrasyondan bağımsız tohumlar 5000+Sv)\nSv | zafer %\n");
+            int tw = 0, tn = 0, inBand = 0;
+            for (int lvl = 3; lvl <= 30; lvl++)
+            {
+                int w = TrialBlock(lvl, 100, 5000 + lvl);
+                tw += w; tn += 100; if (w >= 45 && w <= 55) inBand++;
+                sb.Append(lvl).Append(" | ").Append(w).Append("\n");
+            }
+            sb.Append("\nTOPLAM %").Append(tw * 100 / tn).Append("  |  %45-55 bandındaki seviye: ").Append(inBand).Append("/28\n");
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "..", "docs", "battle-verify.txt");
+            try { File.WriteAllText(path, sb.ToString()); } catch { }
+            Assert.Pass(sb.ToString());
+        }
+
         [Test]
         public void BattleMatrix_RandomTenTrialsPerLevel()
         {

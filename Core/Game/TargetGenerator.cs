@@ -29,6 +29,12 @@ namespace GameCore.Game
             "Tuzlayurt", "Rüzgârburnu", "Taşköprü", "Ejderpınarı", "Sisliada", "Kervansaray", "Bozkır Hanı", "Çamlıbel"
         };
 
+        /// <summary>
+        /// Seviye başına hedef gücü düzeltmesi (‰; kule hasarı/canı ve bina canı). Rastgele savaş matrisinde her seviyede
+        /// ≈ %50 zafer için otomatik kalibre edilir (BalanceSimTests.CalibrateLevelPower → docs/power-calibration.txt). İndeks = seviye.
+        /// </summary>
+        public static int[] LevelPowerPermille = { 0, 0, 0, 3150, 150, -600, -100, 0, -150, 600, 350, 750, 750, 1800, 400, 150, 450, 5750, 5400, 550, 0, 4100, 3650, 50, 1950, 5000, 1250, 700, 3200, 5050, 1800 }; // kalibre 15.11.2026 (+1 düzeltme turu)
+
         /// <summary>Kule sayısı çarpanı (%): denge ayarı. Varsayılan 100.</summary>
         public static int TowerScalePct = 100;
 
@@ -92,7 +98,7 @@ namespace GameCore.Game
             keyed.Sort((a, b) => a.Key.CompareTo(b.Key));
 
             // Savunma araştırması: o seviyedeki tipik oyuncunun kule/bina bonusu kadar (oyuncu saldırırken kendi araştırmasını kullanır)
-            int rp = ExpectedDefenseResearchPermille(level);
+            int rp = Math.Max(-700, ExpectedDefenseResearchPermille(level) + LevelPowerPermille[Math.Max(1, Math.Min(30, level))]);
             var setup = new DefenseSetup(layout) { Mods = new CombatMods { TowerDamage = rp, TowerHp = rp, BuildingHp = rp } };
             // Kule sayısı: o seviyedeki oyuncunun kule hakkının bir oranı (Kolay %50, Normal %80, Zor %100).
             // Seviyeler: tipik oyuncunun kule seviyesi (GameRules.ExpectedTowerLevel), Kolay -1 / Zor +1.

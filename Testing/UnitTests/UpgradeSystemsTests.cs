@@ -124,12 +124,13 @@ namespace GameCore.Tests
 
         // ---------- Asker yetenekleri ----------
         [Test]
-        public void Abilities_UnlockAt5_10_20_AndApply()
+        public void Abilities_UnlockAt2_3_8_AndApply()
         {
-            Assert.AreEqual(0, SoldierAbilities.PerksFor(SoldierType.Swordsman, 4).DmgTakenPermille);
-            Assert.AreEqual(200, SoldierAbilities.PerksFor(SoldierType.Swordsman, 5).DmgTakenPermille);
-            Assert.AreEqual(30, SoldierAbilities.PerksFor(SoldierType.Swordsman, 10).LowHpAtkPct);
-            Assert.Greater(SoldierAbilities.PerksFor(SoldierType.Swordsman, 20).SplashAdd, 0);
+            Assert.AreEqual(0, SoldierAbilities.PerksFor(SoldierType.Swordsman, 1).DmgTakenPermille);
+            Assert.AreEqual(200, SoldierAbilities.PerksFor(SoldierType.Swordsman, 2).DmgTakenPermille);
+            Assert.AreEqual(30, SoldierAbilities.PerksFor(SoldierType.Swordsman, 3).LowHpAtkPct);
+            Assert.AreEqual(0, SoldierAbilities.PerksFor(SoldierType.Swordsman, 7).SplashAdd);
+            Assert.Greater(SoldierAbilities.PerksFor(SoldierType.Swordsman, 8).SplashAdd, 0);
             foreach (SoldierType t in System.Enum.GetValues(typeof(SoldierType))) Assert.AreEqual(3, SoldierAbilities.Of(t).Length, t.ToString());
 
             var archer1 = Run(Road(TrapType.None), SoldierType.Archer, 1, 1, 1);
