@@ -61,3 +61,10 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Seviye 30 test durumunda 16 adet Sv1 askerle Sv28 köye saldırı kesin yenilgi (beklenen): asker seviye yükseltmesi/ordu kapasitesi oynarken dengelenecek.
 - Sunucu/hesap/sıralama/eşleştirme/lonca/mağaza dokunulmadı; yerel kayıt (save.txt) geçicidir.
 - main'e birleştirme kullanıcı onayı bekler.
+
+## AÇIK (14.11.2026 – yapı sınırları/yol)
+- Akademi görev hedefleri (Akademi kur; 3 araştırma; Akademi Sv3; 5 zafer; 15 araştırma) geçicidir; değiştirmek ister misin?
+- Yol basamağının oyuna etkisi ne olsun? (öneri: Demir yolda askerler yavaşlar veya tuzak hasarı artar) Şu an yalnızca görünüm.
+- Tek yol geliştirmesi anlık; süre eklensin mi?
+- Eski kayıtlarda sınırı aşan yapılar (ör. 27 köylü evi) korunuyor; yeni kurulum engelleniyor. Fazlası kaldırılsın mı?
+

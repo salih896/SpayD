@@ -231,14 +231,47 @@ namespace GameClient
             Part(p, Shape.Box, pos, size, Mat(new Color(1f, 0.85f, 0.45f), 0.6f, 0.6f));
         }
 
+        // ---------- Seviye kademeleri (görünüm seviyeyle gelişir) ----------
+        /// <summary>Yapı kademesi: Sv1-4 → 0, 5-9 → 1, 10-14 → 2, 15-19 → 3, 20+ → 4.</summary>
+        public static int Tier(int level) => level >= 20 ? 4 : level >= 15 ? 3 : level >= 10 ? 2 : level >= 5 ? 1 : 0;
+
+        /// <summary>Asker kademesi (seviye daha yavaş yükselir): 1-2 → 0, 3-5 → 1, 6-9 → 2, 10-14 → 3, 15+ → 4.</summary>
+        public static int SoldierTier(int level) => level >= 15 ? 4 : level >= 10 ? 3 : level >= 6 ? 2 : level >= 3 ? 1 : 0;
+
+        private static readonly Color[] RoofByTier =
+        {
+            new Color(0.80f, 0.66f, 0.36f),   // saman
+            new Color(0.72f, 0.27f, 0.18f),   // kırmızı kiremit
+            new Color(0.30f, 0.42f, 0.66f),   // mavi arduvaz
+            new Color(0.28f, 0.26f, 0.34f),   // koyu arduvaz
+            new Color(0.45f, 0.16f, 0.30f),   // asil bordo
+        };
+
+        /// <summary>Her binaya kademe süsleri: taş temel (1+), fener (2+), altın kubbe/çatı süsü (3+), sancak + parıltı (4).</summary>
+        private static void Embellish(Transform g, int tier, int seed)
+        {
+            if (tier >= 1) Part(g, Shape.Box, new Vector3(0, 0.015f, 0), new Vector3(0.82f, 0.03f, 0.72f), StoneLight);
+            if (tier >= 2)
+            {
+                Part(g, Shape.Cyl, new Vector3(-0.36f, 0.12f, -0.32f), new Vector3(0.03f, 0.24f, 0.03f), WoodDark);
+                var lamp = Part(g, Shape.Ball, new Vector3(-0.36f, 0.26f, -0.32f), new Vector3(0.06f, 0.06f, 0.06f), Mat(new Color(1f, 0.8f, 0.4f), 0.4f, 1.8f));
+                Animate(lamp, ArtMotion.Kind.Bob, 3f, 0.004f, seed);
+            }
+            if (tier >= 3)
+                foreach (var x in new[] { -0.38f, 0.38f })
+                    Part(g, Shape.Pyramid, new Vector3(x, 0.07f, 0.34f), new Vector3(0.07f, 0.1f, 0.07f), Mat(GoldC, 0.8f, 0.2f));
+            if (tier >= 4) Flag(g, new Vector3(0.36f, 0f, 0.32f), 0.75f, new Color(0.55f, 0.15f, 0.65f));
+        }
+
         // ---------- Binalar ----------
         public static Transform BuildBuilding(Transform parent, BuildingType t, int level, int seed, Vector3 pos)
         {
+            int tier = Tier(level);
             float lv = 1.25f * (1f + Mathf.Min(0.25f, (level - 1) * 0.012f)); // hücreyi dolduracak boyut
             var g = Group(parent, t.ToString(), pos, 0f, lv);
             switch (t)
             {
-                case BuildingType.VillagerHouse: House(g, seed, RoofRed); break;
+                case BuildingType.VillagerHouse: House(g, seed, tier); break;
                 case BuildingType.Forest:
                     for (int i = 0; i < 4; i++)
                         Tree(g, new Vector3((Rand(seed, i) - 0.5f) * 0.55f, 0, (Rand(seed, i + 9) - 0.5f) * 0.55f), 0.75f + Rand(seed, i + 20) * 0.35f, seed * 7 + i);
@@ -295,22 +328,32 @@ namespace GameClient
                     Window(g, new Vector3(-0.2f, 0.24f, -0.172f), false); Window(g, new Vector3(0.0f, 0.24f, -0.172f), false);
                     break;
             }
+            Embellish(g, tier, seed);
             return g;
         }
 
-        private static void House(Transform g, int seed, Color roofC)
+        private static void House(Transform g, int seed, int tier)
         {
             float yaw = Rand(seed, 1) < 0.5f ? 0f : 90f;
             var h = Group(g, "house", Vector3.zero, yaw);
+            float up = tier >= 2 ? 0.2f : 0f; // 2. kat
+            var wall = tier >= 3 ? StoneLight : Plaster;
             Part(h, Shape.Box, new Vector3(0, 0.03f, 0), new Vector3(0.66f, 0.06f, 0.54f), StoneDark);
-            Part(h, Shape.Box, new Vector3(0, 0.22f, 0), new Vector3(0.6f, 0.34f, 0.48f), Plaster);
-            Part(h, Shape.Box, new Vector3(0, 0.22f, 0), new Vector3(0.62f, 0.04f, 0.5f), Wood); // kiriş
-            Part(h, Shape.Roof, new Vector3(0, 0.5f, 0), new Vector3(0.7f, 0.26f, 0.58f), Color.Lerp(roofC, WoodDark, Rand(seed, 2) * 0.3f), new Vector3(0, 90, 0));
-            Part(h, Shape.Box, new Vector3(0.18f, 0.58f, 0.1f), new Vector3(0.08f, 0.18f, 0.08f), StoneDark); // baca
+            Part(h, Shape.Box, new Vector3(0, 0.22f, 0), new Vector3(0.6f, 0.34f, 0.48f), tier >= 1 ? Stone : Plaster);
+            if (up > 0f)
+            {
+                Part(h, Shape.Box, new Vector3(0, 0.49f, 0), new Vector3(0.62f, 0.22f, 0.5f), wall);
+                Window(h, new Vector3(-0.1f, 0.5f, -0.252f), false); Window(h, new Vector3(0.14f, 0.5f, -0.252f), false);
+            }
+            Part(h, Shape.Box, new Vector3(0, 0.39f, 0), new Vector3(0.64f, 0.04f, 0.52f), Wood); // kiriş
+            var roofC = RoofByTier[tier];
+            Part(h, Shape.Roof, new Vector3(0, 0.5f + up, 0), new Vector3(0.72f, 0.26f, 0.6f), Color.Lerp(roofC, WoodDark, Rand(seed, 2) * 0.2f), new Vector3(0, 90, 0));
+            if (tier >= 3) Part(h, Shape.Box, new Vector3(0, 0.635f + up, 0), new Vector3(0.03f, 0.03f, 0.6f), Mat(GoldC, 0.8f, 0.2f)); // altın mahya
+            Part(h, Shape.Box, new Vector3(0.18f, 0.58f + up, 0.1f), new Vector3(0.08f, 0.18f, 0.08f), StoneDark); // baca
             Part(h, Shape.Box, new Vector3(-0.1f, 0.13f, -0.242f), new Vector3(0.12f, 0.2f, 0.01f), WoodDark);  // kapı
             Window(h, new Vector3(0.14f, 0.26f, -0.242f), false);
             Window(h, new Vector3(-0.302f, 0.26f, 0.05f), true);
-            var smoke = Part(h, Shape.Ball, new Vector3(0.18f, 0.72f, 0.1f), new Vector3(0.07f, 0.07f, 0.07f), Mat(new Color(0.85f, 0.85f, 0.85f)));
+            var smoke = Part(h, Shape.Ball, new Vector3(0.18f, 0.72f + up, 0.1f), new Vector3(0.07f, 0.07f, 0.07f), Mat(new Color(0.85f, 0.85f, 0.85f)));
             Animate(smoke, ArtMotion.Kind.Bob, 1.2f, 0.04f, seed);
         }
 
@@ -335,16 +378,28 @@ namespace GameClient
         // ---------- Kuleler ----------
         public static Transform BuildTower(Transform parent, TowerType t, int level, bool damaged, Vector3 pos)
         {
-            float lv = 1f + Mathf.Min(0.3f, (level - 1) * 0.015f);
+            int tier = Tier(level);
+            float lv = 1f + tier * 0.08f + Mathf.Min(0.1f, (level - 1) * 0.005f);
             var g = Group(parent, t.ToString(), pos, 0f, 1f);
-            var stone = damaged ? Color.Lerp(StoneDark, Dark, 0.3f) : (t == TowerType.Elf ? StoneLight : Stone);
+            var body = tier == 0 ? WoodLight : (t == TowerType.Elf ? StoneLight : (tier >= 3 ? StoneLight : Stone));
+            var stone = damaged ? Color.Lerp(StoneDark, Dark, 0.3f) : body;
             float h = 0.95f * lv;
             Part(g, Shape.Cyl, new Vector3(0, 0.06f, 0), new Vector3(0.6f, 0.12f, 0.6f), StoneDark);
             Part(g, Shape.Cyl, new Vector3(0, h * 0.5f, 0), new Vector3(t == TowerType.Elf ? 0.32f : 0.44f, h, t == TowerType.Elf ? 0.32f : 0.44f), stone);
             Part(g, Shape.Box, new Vector3(-0.0f, 0.18f, -0.215f), new Vector3(0.1f, 0.18f, 0.02f), WoodDark);
             Window(g, new Vector3(0, h * 0.62f, -0.222f), false);
             Part(g, Shape.Cyl, new Vector3(0, h + 0.03f, 0), new Vector3(0.56f, 0.07f, 0.56f), StoneDark);
-            if (t != TowerType.Elf)
+            if (tier == 0) // ahşap kule: bağlama kirişleri
+                for (int i = 0; i < 3; i++) Part(g, Shape.Cyl, new Vector3(0, 0.2f + i * h * 0.3f, 0), new Vector3(0.47f, 0.025f, 0.47f), WoodDark);
+            if (tier >= 3) // altın bantlar
+                for (int i = 1; i <= tier - 2; i++) Part(g, Shape.Cyl, new Vector3(0, h * (0.3f + 0.25f * i), 0), new Vector3(t == TowerType.Elf ? 0.35f : 0.47f, 0.035f, t == TowerType.Elf ? 0.35f : 0.47f), Mat(GoldC, 0.85f, 0.25f));
+            if (tier >= 4)
+            {
+                var crystal = Part(g, Shape.Pyramid, new Vector3(0.24f, h + 0.25f, -0.24f), new Vector3(0.08f, 0.16f, 0.08f), Mat(new Color(0.55f, 0.9f, 1f), 0.95f, 2f));
+                Animate(crystal, ArtMotion.Kind.Spin, 1.5f);
+                Flag(g, new Vector3(-0.24f, h + 0.1f, 0.24f), 0.4f, new Color(0.55f, 0.15f, 0.65f));
+            }
+            if (t != TowerType.Elf && tier >= 2)
                 for (int i = 0; i < 8; i++)
                 {
                     float a = i * Mathf.PI / 4f;
@@ -568,10 +623,29 @@ namespace GameClient
         /// <summary>Asker modelleri okunabilirlik için hücreye göre büyük çizilir (izometrik uzak kamera).</summary>
         public const float SoldierScale = 1.8f;
 
-        public static Transform BuildSoldier(Transform parent, SoldierType t)
+        private static readonly Color[] ArmorByTier =
         {
-            var root = Group(parent, t.ToString(), Vector3.zero, 0f, SoldierScale);
+            new Color(0, 0, 0, 0), new Color(0.50f, 0.33f, 0.18f), new Color(0.58f, 0.60f, 0.64f), new Color(0.82f, 0.85f, 0.90f), new Color(1f, 0.80f, 0.25f)
+        };
+
+        /// <summary>Seviyeyle gelişen asker görünümü (GDD: Kılıçlı → Eğitimli → Uzman → Zırhlı → Gladyatör): göğüs zırhı, sorguç, pelerin.</summary>
+        private static void Gear(Transform g, int tier, SoldierType t)
+        {
+            if (tier <= 0 || t == SoldierType.Catapult || t == SoldierType.DragonRider || t == SoldierType.Cavalry) return;
+            float s = t == SoldierType.Giant ? 2f : (t == SoldierType.Goblin ? 0.8f : (t == SoldierType.Fairy ? 0.7f : 1f));
+            var armor = Mat(ArmorByTier[tier], tier >= 3 ? 0.85f : 0.3f, tier >= 4 ? 0.15f : 0f);
+            Part(g, Shape.Box, new Vector3(0, 0.17f * s, -0.005f), new Vector3(0.15f, 0.1f, 0.13f) * s, armor);
+            if (tier >= 2) foreach (var x in new[] { -0.08f, 0.08f }) Part(g, Shape.Ball, new Vector3(x * s, 0.22f * s, 0), new Vector3(0.07f, 0.05f, 0.07f) * s, armor);
+            if (tier >= 3) Part(g, Shape.Cone, new Vector3(0, 0.42f * s, -0.01f), new Vector3(0.04f, 0.09f, 0.06f) * s, new Color(0.85f, 0.15f, 0.15f));
+            if (tier >= 4) Part(g, Shape.Box, new Vector3(0, 0.15f * s, -0.075f * s), new Vector3(0.14f, 0.22f, 0.01f) * s, Mat(new Color(0.65f, 0.1f, 0.12f), 0.2f), new Vector3(-8, 0, 0));
+        }
+
+        public static Transform BuildSoldier(Transform parent, SoldierType t, int level = 1)
+        {
+            int tier = SoldierTier(level);
+            var root = Group(parent, t.ToString(), Vector3.zero, 0f, SoldierScale * (1f + tier * 0.04f));
             var g = Group(root, "model", Vector3.zero);
+            Gear(g, tier, t);
             var tunic = TunicOf(t);
             switch (t)
             {

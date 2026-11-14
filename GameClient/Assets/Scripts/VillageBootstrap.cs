@@ -18,9 +18,8 @@ namespace GameClient
     /// </summary>
     public sealed partial class VillageBootstrap : MonoBehaviour
     {
-        private enum Tool { Pan, Select, Road, Building, Tower, Trap, Entrance, Erase }
-        private static readonly string[] ToolNames = { "Kaydır", "Seç", "Yol", "Bina", "Kule", "Tuzak", "Giriş", "Sil" };
-        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu }
+        private enum Tool { Pan, Select, Road, Building, Tower, Trap, Entrance, Erase, RoadUp }
+        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu, Shop }
 
         private GameState g;
         private DefenseSetup view;
@@ -50,6 +49,8 @@ namespace GameClient
         private BuildingType selBuilding = BuildingType.Forest;
         private TrapType selTrap = TrapType.Spikes;
         private GridPos selCell = new GridPos(-1, -1);
+        private Vector2 pressStart;
+        private bool dragging;
 
         private static string SavePath => Path.Combine(Application.persistentDataPath, "save.txt");
         private static long NowUnix => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -255,20 +256,30 @@ namespace GameClient
             if (down) dragBlocked = IsOverUi(pos);
             if (popups.Count > 0) return;
             if (sim != null) { HandleBattleInput(pos, down, held, pinching); return; }
-            if (!held && !down) { lastPainted = new GridPos(-1, -1); return; }
+            if (!held && !down)
+            {
+                // Seç: sürüklemeden bırakılan dokunuş = seçim
+                if (tool == Tool.Select && ptr.press.wasReleasedThisFrame && !dragging && !dragBlocked && tab == Tab.Village) { selCell = TryGetCell(pos, out var tapCell) ? tapCell : new GridPos(-1, -1); dirty = true; }
+                lastPainted = new GridPos(-1, -1);
+                return;
+            }
             if (dragBlocked || pinching) return;
             if (tab != Tab.Village) return;
 
-            if (tool == Tool.Pan)
+            if (tool == Tool.Pan || tool == Tool.Select)
             {
-                if (down) return;
-                Vector2 delta = ptr.delta.ReadValue();
-                if (RayToPlane(pos, out var cur) && RayToPlane(pos - delta, out var prev)) target += prev - cur;
+                if (down) { pressStart = pos; dragging = false; return; }
+                if (!dragging && (pos - pressStart).sqrMagnitude > 144f) dragging = true;
+                if (dragging || tool == Tool.Pan)
+                {
+                    Vector2 delta = ptr.delta.ReadValue();
+                    if (RayToPlane(pos, out var cur) && RayToPlane(pos - delta, out var prev)) target += prev - cur;
+                }
                 return;
             }
             if (!TryGetCell(pos, out var cell) || cell.Equals(lastPainted)) return;
             // Pahalı yerleştirmeler yalnızca dokunma anında (sürüklemede toplu yerleştirme olmasın)
-            if ((tool == Tool.Building || tool == Tool.Tower || tool == Tool.Select) && !down) return;
+            if ((tool == Tool.Building || tool == Tool.Tower || tool == Tool.RoadUp) && !down) return;
             lastPainted = cell;
             Apply(cell);
         }
@@ -315,6 +326,7 @@ namespace GameClient
                 case Tool.Trap: ok = g.TryToggleTrap(cell, selTrap, out err); break;
                 case Tool.Entrance: ok = g.TryToggleEntrance(cell, out err); break;
                 case Tool.Erase: ok = g.TryRemove(cell, out err); if (ok && selCell.Equals(cell)) selCell = new GridPos(-1, -1); break;
+                case Tool.RoadUp: ok = g.TryUpgradeRoad(cell, out err); if (ok) Toast("Yol geliştirildi"); break;
             }
             if (ok) { dirty = true; FlushLevelUps(); }
             else if (!string.IsNullOrEmpty(err)) { toast = err; toastUntil = Time.time + 2.5f; }

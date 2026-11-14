@@ -55,7 +55,14 @@
 
 ## İçerik ve görsel (14.11.2026, kullanıcı isteği)
 33. 10 asker türü olacak (kullanıcı: "oyunda 10 çeşit savaşçı olacak"). GDD'deki 7'ye ek: Dev (Sv13), Mancınık (Sv17), Ejderha Binicisi (Sv21). Adlar/roller Claude önerisi; kullanıcı değiştirebilir.
-34. Kule hakkı GDD Bölüm 9 KESİN KARAR'a göre uygulandı: Sv2'de 5, her 5 seviyede +1, en çok 10 (önceki "3+Sv" uygulaması GDD'yi ihlal ediyordu).
+34. ~~Kule hakkı seviyeyle 5→10~~ → #39 ile değişti (14.11.2026).
 35. Saldırıda kullanılabilecek asker sayısı = ordu kapasitesi (20 + 1,2 × toplam kışla seviyesi; Sv30 ≈ 80-90). Değer dengeleme içindir.
 36. Görsel yön: düşük poligonlu, sıcak renkli "köy havası" (kodla üretilen modeller; ileride gerçek modellerle değiştirilebilir).
+
+## Yapı sınırları ve Akademi (14.11.2026, kullanıcı kararı — GDD Bölüm 9'u günceller)
+37. Üretim binaları (Orman, Taş Ocağı, Altın Madeni, Demir Madeni) ve depolar (Kereste, Taş, Banka, Demir) 1'er adet. Kışla 3, Akademi 1.
+38. "Akademi" = eski Üniversite (araştırma binası). Akademi görevleri yapı hakkı verir, yalnızca Akademi kuruluyken alınır.
+39. Köylü evi başta 1, Akademi görevleriyle en çok 3. Kule başta 5 (seviyeyle artmaz), 3 Akademi göreviyle en çok 8.
+40. Yol malzeme geliştirme: Akademi'de "yol geliştirme" araştırması (RoadRules örnek: 1 gün; 5000 odun, 1000 taş), sonra yola dokunarak Tahta → Altın+Tahta (300 odun + 100 altın; altın Sv15'te açılır) → Demir (400 odun + 150 altın + 80 demir; demir Sv25). Maliyetler/süre GEÇİCİ; yol basamağının savaşa etkisi henüz yok (open-questions).
+41. Görünüm seviyeyle gelişir: yapılar 5 kademe (Sv1-4/5-9/10-14/15-19/20+), askerler seviye kademesiyle zırh/sorguç/pelerin kazanır.
 

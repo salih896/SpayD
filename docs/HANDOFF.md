@@ -1,5 +1,5 @@
 # DEVİR TESLİM – Oyun Durumu ve Devam Planı
-Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 118/118 geçti (Unity EditMode, batch)
+Son güncelleme: 13.11.2026 • Dal: `feature/combat-prototype` • Son commit: "Tam oyun döngüsü…" • Testler: 125/125 geçti (Unity EditMode, batch)
 
 > Claude Code'a ilk mesaj: "docs/HANDOFF.md, CLAUDE.md, docs/approved-mechanics.md ve docs/open-questions.md dosyalarını oku, sonra Bölüm 5'teki sıradan devam et."
 
@@ -30,7 +30,7 @@ Teknoloji: Unity 6.3 LTS (6000.3.28f1), URP, yeni Input System, C#. Android + iO
 - Yol malzeme basamağı (Tahta/Altın+Tahta/Demir) yükseltme ve araştırması istemciye bağlı değil (TechTrees'te yol kaydı gelmedi). Yol araştırma maliyeti örnek.
 - Harita genişletme (11→15) uygulanmadı (koşullu onay vardı).
 - Denge turu 1 yapıldı (simülasyonla; ayrıntı `docs/balance-and-engagement.md`, çıktı `docs/balance-report.txt`): XP eğrisi 100+40l+8l², yapay rakip gücü `GameRules.ExpectedStructureLevel`'a bağlı, ordu kapasitesi 10+3×kışla. Hâlâ yer tutucu: kaynak üretim/maliyet, görev ödülleri, araştırma süre/maliyet, seviye ölçeği 100+20l+2l².
-- Görsel (14.11.2026): kodla üretilen düşük poligonlu köy (`VillageArt.cs`: 11 bina, 4 kule, 10 asker modeli, taşlı yol, kapı, tuzak, çayır/orman/çit/çadır çevresi, gölgeli güneş, sis) + savaş efektleri (kule atışları, duman, can çubukları). Arayüz hâlâ OnGUI ama özel temalı (`UiTheme.cs`: ahşap/altın paneller, kaynak çipleri, XP çubuğu, parşömen pencereler). Ses/müzik yok; asker animasyonu yalnızca yürüme sallantısı.
+- Görsel (14.11.2026): kodla üretilen düşük poligonlu köy (`VillageArt.cs`: 11 bina, 4 kule, 10 asker modeli, taşlı yol, kapı, tuzak, çayır/orman/çit/çadır çevresi, gölgeli güneş, sis) + savaş efektleri (kule atışları, duman, can çubukları). Arayüz OnGUI, mobil strateji düzeni (14.11.2026): sol üst seviye, sağ üst kaynak çubukları, sol alt SALDIR, sağ alt MAĞAZA + Ordu/Akademi/Görev/Ayar yuvarlak düğmeleri, Düzen modu (yol/yol geliştirme/tuzak/giriş/sil), alt orta seçili yapı kartı, ortada başlıklı pencereler; özel temalı (`UiTheme.cs`: ahşap/altın paneller, kaynak çipleri, XP çubuğu, parşömen pencereler). Ses/müzik yok; asker animasyonu yalnızca yürüme sallantısı.
 - Açık sorular tam liste: `docs/open-questions.md` (banka/altın madeni açılış seviyesi çakışması, kalkan = koruma mı, vb.).
 
 ## 5. Sıradaki işler (öneri sırası)

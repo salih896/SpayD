@@ -96,7 +96,7 @@ namespace GameClient
             while (soldierViews.Count < sim.Soldiers.Count)
             {
                 var st = sim.Soldiers[soldierViews.Count];
-                var tr = VillageArt.BuildSoldier(root, st.Type);
+                var tr = VillageArt.BuildSoldier(root, st.Type, st.Level);
                 soldierViews.Add(tr);
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
