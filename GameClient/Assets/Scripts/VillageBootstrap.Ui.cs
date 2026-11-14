@@ -14,7 +14,7 @@ namespace GameClient
     public sealed partial class VillageBootstrap
     {
         private static readonly string[] TreeNames = { "Ekonomi", "Savunma", "Askerî", "Mimarlık", "Köy Gel.", "Bilim", "Element" };
-        private static readonly string[] ShopCats = { "Kaynak", "Köy", "Savunma" };
+        private static readonly string[] ShopCats = { "Kaynak", "Köy", "Savunma", "Tuzak" };
         private static readonly BuildingType[][] ShopBuildings =
         {
             new[] { BuildingType.Forest, BuildingType.LumberDepot, BuildingType.StoneQuarry, BuildingType.StoneDepot, BuildingType.GoldMine, BuildingType.Bank, BuildingType.IronMine, BuildingType.IronDepot },
@@ -26,6 +26,7 @@ namespace GameClient
         private TargetInfo[] targets;
         private int targetSeed = 1, targetsLevel = -1;
         private bool confirmNew, editMode;
+        private int detailSoldier = -1;
 
         private bool Btn(Rect r, string text)
         {
@@ -256,10 +257,23 @@ namespace GameClient
                 if (SelBtn(new Rect(16, y, 144, 40), n, tool == t)) { tool = t; if (t != Tool.Select) selCell = new GridPos(-1, -1); dirty = true; }
                 y += 46f;
             }
-            if (tool == Tool.Trap && Btn(new Rect(176, 116 + 3 * 46, 190, 40), "< " + TrapName(selTrap) + " >")) selTrap = (TrapType)(((int)selTrap % 3) + 1);
+            if (tool == Tool.Trap)
+            {
+                var td = TrapCatalog.Get(selTrap);
+                if (Btn(new Rect(176, 116 + 3 * 46, 300, 40), "< " + td.Name + "  " + GameRules.Scale(td.Cost, g.Config, g.Level, 100) + " >"))
+                {
+                    for (int k = 1; k <= TrapCatalog.Count; k++)
+                    {
+                        var nt = (TrapType)(((int)selTrap + k - 1) % TrapCatalog.Count + 1);
+                        if (TrapCatalog.Get(nt).UnlockLevel <= g.Level) { selTrap = nt; break; }
+                    }
+                }
+                var ti = new Rect(176, 116 + 4 * 46, 300, 34);
+                GUI.Label(ti, "<size=13>Tuzak " + g.Traps.Count + "/" + g.MaxTraps + "  —  " + td.Desc + "</size>", UiTheme.Pill); uiRects.Add(ti);
+            }
             if (tool == Tool.RoadUp)
             {
-                string info = g.RoadResearchDone ? "Yola dokun: Tahta → Altın+Tahta (" + RoadRules.UpgradeCost(RoadTier.Reinforced) + ") → Demir (" + RoadRules.UpgradeCost(RoadTier.Iron) + ")"
+                string info = g.RoadResearchDone ? "Yola dokun (işçi + süre): Tahta → Taş (Sv5) → Altın+Tahta (Sv15) → Demir (Sv25) → Kristal (Sv28). Yüksek basamak düşmanı yavaşlatır, tuzakları güçlendirir."
                     : "Önce Akademi'de yol geliştirme araştırması gerekli";
                 var r = new Rect(176, 116 + 2 * 46, Mathf.Min(420f, w - 400f), 52);
                 GUI.Label(r, "<size=12>" + info + "</size>", g.RoadResearchDone ? UiTheme.Pill : UiTheme.PillBad);
@@ -278,7 +292,7 @@ namespace GameClient
 
             float cw = 200f, ch = 232f;
             int perRow = Mathf.Max(1, (int)((r.width - 30f) / (cw + 10f)));
-            int count = shopCat < 2 ? ShopBuildings[shopCat].Length : BattleSim.TowerTypeCount;
+            int count = shopCat < 2 ? ShopBuildings[shopCat].Length : (shopCat == 2 ? BattleSim.TowerTypeCount : TrapCatalog.Count);
             var inner = new Rect(0, 0, r.width - 50f, Mathf.Ceil(count / (float)perRow) * (ch + 10f));
             scrollPos = GUI.BeginScrollView(new Rect(r.x + 14, r.y + 78, r.width - 28, r.height - 90), scrollPos, inner);
             for (int i = 0; i < count; i++)
@@ -292,6 +306,13 @@ namespace GameClient
                     cost = GameRules.Scale(GameRules.BuildCostOf(bt), g.Config, g.Level, 100);
                     sub = bt == BuildingType.VillagerHouse ? "+1 işçi" : (GameRules.ProducedBy(bt).HasValue ? "Üretim" : (d.IsDepot ? "Depo" : (bt == BuildingType.Barracks ? "Asker eğitir" : "Araştırma + görev")));
                     if (bt == BuildingType.VillagerHouse && limit < GameRules.MaxVillagerHouses) sub += " (görevle " + GameRules.MaxVillagerHouses + ")";
+                }
+                else if (shopCat == 3)
+                {
+                    var td = TrapCatalog.Get((TrapType)(i + 1));
+                    name = td.Name + " Tuzağı"; unlock = td.UnlockLevel; have = g.Traps.Count; limit = g.MaxTraps;
+                    cost = GameRules.Scale(td.Cost, g.Config, g.Level, 100);
+                    sub = td.Desc + "\nTuzak hakkı " + have + "/" + limit + (limit < GameRules.ResearchTrapSlots ? " (araştırmayla " + GameRules.ResearchTrapSlots + ")" : "");
                 }
                 else
                 {
@@ -312,6 +333,7 @@ namespace GameClient
                     if (GUI.Button(new Rect(cr.x + 20, cr.y + ch - 46, cw - 40, 36), "Kur", UiTheme.BtnGreen))
                     {
                         if (shopCat < 2) { selBuilding = ShopBuildings[shopCat][i]; tool = Tool.Building; }
+                        else if (shopCat == 3) { selTrap = (TrapType)(i + 1); tool = Tool.Trap; editMode = true; Toast("Tuzak: bir yola dokun (aynı tuzağa dokunmak kaldırır)"); }
                         else { selTower = (TowerType)i; tool = Tool.Tower; }
                         tab = Tab.Village; selCell = new GridPos(-1, -1); dirty = true;
                     }
@@ -378,7 +400,8 @@ namespace GameClient
             }
             else if (layout.Get(p) == CellKind.Road)
             {
-                string tierName = layout.GetRoadTier(p) == RoadTier.Iron ? "Demir" : (layout.GetRoadTier(p) == RoadTier.Reinforced ? "Altın+Tahta" : "Tahta");
+                var rt = layout.GetRoadTier(p);
+                string tierName = RoadRules.Name(rt) + "   <size=12>yavaşlatma %" + RoadRules.SlowPct(rt) + ", tuzak hasarı %" + RoadRules.TrapBonusPct(rt) + "</size>";
                 GUI.Label(new Rect(x, y, iw, 26), "Yol  <size=14>" + tierName + "</size>", UiTheme.Header); y += 30;
                 GUI.Label(new Rect(x, y, iw, 44), (layout.IsEntrance(p) ? "GİRİŞ   " : "") + (g.Traps.TryGetValue(p, out var tr) ? TrapName(tr) + " tuzak   " : "") + "\n<size=12>Geliştirmek için Düzen → Yol Geliştir</size>");
             }
@@ -413,7 +436,8 @@ namespace GameClient
                 int lvl = g.SoldierLevel(t);
                 bool locked = g.Level < d.UnlockLevel;
                 GUILayout.BeginHorizontal(GUILayout.Height(44));
-                GUILayout.Label((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  Hız " + d.SpeedMilli + "</size>", GUILayout.Width(320));
+                if (GUILayout.Button((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
+                    detailSoldier = detailSoldier == i ? -1 : i;
                 GUI.enabled = !locked;
                 int ts = Mathf.Max(5, (int)((long)d.TrainSeconds * (1000 - g.Research.Total(ResearchStat.TrainTime)) / 1000));
                 if (GUILayout.Button("Eğit\n" + d.Cost + " | " + Dur(ts), GUILayout.Width(210))) { if (g.TryTrain(t, out err)) AddLog(d.Name + " eğitimi sıraya alındı"); else Toast(err); }
@@ -423,6 +447,20 @@ namespace GameClient
                 if (GUILayout.Button(utxt, GUILayout.Width(260))) { if (g.TryStartUpgrade(JobKind.Soldier, new GridPos(0, 0), t, out err)) Toast("Yükseltme başladı"); else Toast(err); }
                 GUI.enabled = true;
                 GUILayout.EndHorizontal();
+                if (detailSoldier == i)
+                {
+                    var sb2 = new StringBuilder();
+                    int nx = lvl + 1;
+                    sb2.Append("<size=13>Şimdi Sv ").Append(lvl).Append(": Can ").Append(ContentCatalog.Scaled(d.Hp, lvl)).Append("  Hasar ").Append(ContentCatalog.Scaled(d.Attack, lvl))
+                       .Append("   →   Sv ").Append(nx).Append(": Can <color=#8fe07a>").Append(ContentCatalog.Scaled(d.Hp, nx)).Append("</color>  Hasar <color=#8fe07a>").Append(ContentCatalog.Scaled(d.Attack, nx)).Append("</color>");
+                    string nv = VillageArt.LevelVisualName(nx);
+                    if (nv.Length > 0) sb2.Append("   Görsel: <color=#ffd560>").Append(nv).Append("</color>");
+                    sb2.Append("\nYetenekler (savaşta otomatik):");
+                    foreach (var ab in SoldierAbilities.Of(t))
+                        sb2.Append("\n  ").Append(lvl >= ab.Level ? "<color=#8fe07a>✔ " : "<color=#b0a090>Sv " + ab.Level + " ").Append(ab.Name).Append("</color> — ").Append(ab.Desc);
+                    sb2.Append("</size>");
+                    GUILayout.Label(sb2.ToString(), UiTheme.Pill);
+                }
             }
             GUILayout.Space(8);
             GUILayout.Label("EĞİTİM SIRASI (" + g.Queue.Items.Count + ")", UiTheme.Header);
@@ -460,13 +498,18 @@ namespace GameClient
 
             string head = "Akademi Sv " + g.UniversityLevel + (g.Level < ResearchState.UniversityUnlockLevel ? " (Sv5'te açılır, sonra Akademi kur)" : "") + "   Yuva " + g.Research.Active.Count + "/" + g.Research.Slots;
             foreach (var a in g.Research.Active) head += "   | " + ResearchCatalog.Get(a.Id).Name + " " + Dur(a.RemainingSeconds);
-            GUI.Label(new Rect(r.x + 12, r.y + 68, r.width - 360, 24), head, UiTheme.Small);
+            GUI.Label(new Rect(r.x + 12, r.y + 68, r.width - 700, 24), head, UiTheme.Small);
             // yol geliştirme araştırması (approved #22)
             string rtxt = g.RoadResearchDone ? "Yol geliştirme: AÇIK" : (g.RoadResearchRemaining > 0 ? "Yol araştırması: " + Dur(g.RoadResearchRemaining) : "Yol geliştirme araştır  " + RoadRules.ResearchCost);
             var rrb = new Rect(r.xMax - 340, r.y + 66, 326, 30);
             uiRects.Add(rrb);
             if (GUI.Button(rrb, "<size=13>" + rtxt + "</size>", g.RoadResearchDone ? UiTheme.BtnGreen : GUI.skin.button) && !g.RoadResearchDone)
             { string re; if (g.TryStartRoadResearch(out re)) Toast("Yol geliştirme araştırması başladı (" + Dur(RoadRules.ResearchDurationSeconds) + ")"); else Toast(re); }
+            string ttxt = g.TrapResearchDone ? "Tuzak Ustalığı: 6 tuzak hakkı" : (g.TrapResearchRemaining > 0 ? "Tuzak Ustalığı: " + Dur(g.TrapResearchRemaining) : "Tuzak Ustalığı araştır (4→6)  " + GameRules.TrapResearchCost);
+            var trb = new Rect(r.xMax - 680, r.y + 66, 330, 30);
+            uiRects.Add(trb);
+            if (GUI.Button(trb, "<size=13>" + ttxt + "</size>", g.TrapResearchDone ? UiTheme.BtnGreen : GUI.skin.button) && !g.TrapResearchDone)
+            { string te; if (g.TryStartTrapResearch(out te)) Toast("Tuzak Ustalığı başladı (" + Dur(GameRules.TrapResearchSeconds) + ")"); else Toast(te); }
 
             GUILayout.BeginArea(new Rect(r.x + 8, r.y + 100, r.width - 16, r.height - 202));
             scrollPos = GUILayout.BeginScrollView(scrollPos);

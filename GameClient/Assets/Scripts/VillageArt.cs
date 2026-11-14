@@ -488,8 +488,9 @@ namespace GameClient
         /// <summary>open: kuzey(+z), doğu(+x), güney(-z), batı(-x) bağlantıları.</summary>
         public static void BuildRoad(Transform parent, Vector3 c, RoadTier tier, bool[] open, int seed)
         {
-            Color baseC = tier == RoadTier.Iron ? new Color(0.48f, 0.49f, 0.52f) : (tier == RoadTier.Reinforced ? WoodLight : Dirt);
-            var m = tier == RoadTier.Reinforced ? Mat(baseC, 0.15f) : DirtMat(baseC);
+            Color baseC = tier == RoadTier.Iron ? new Color(0.48f, 0.49f, 0.52f) : tier == RoadTier.Reinforced ? WoodLight
+                : tier == RoadTier.Stone ? new Color(0.66f, 0.65f, 0.62f) : tier == RoadTier.Crystal ? new Color(0.28f, 0.30f, 0.38f) : Dirt;
+            var m = tier == RoadTier.Reinforced ? Mat(baseC, 0.15f) : tier == RoadTier.Crystal ? Mat(baseC, 0.7f) : DirtMat(baseC);
             const float y = 0.02f, th = 0.05f;
             Part(parent, Shape.Box, c + new Vector3(0, y, 0), new Vector3(0.56f, th, 0.56f), m);
             int[] dx = { 0, 1, 0, -1 }, dz = { 1, 0, -1, 0 };
@@ -506,7 +507,20 @@ namespace GameClient
                         Part(parent, Shape.Box, c + dir * 0.36f + perp * 0.25f * sgn + new Vector3(0, 0.06f, 0), alongX ? new Vector3(0.28f, 0.04f, 0.03f) : new Vector3(0.03f, 0.04f, 0.28f), Iron);
                 }
             }
-            if (tier == RoadTier.Reinforced)
+            if (tier == RoadTier.Crystal)
+            {
+                var glow = Part(parent, Shape.Box, c + new Vector3(0, 0.05f, 0), new Vector3(0.16f, 0.015f, 0.16f), Mat(new Color(0.45f, 0.95f, 1f), 0.95f, 2.2f), new Vector3(0, 45, 0));
+                Animate(glow, ArtMotion.Kind.Bob, 2f, 0.004f, seed);
+                for (int i = 0; i < 4; i++)
+                    if (open[i]) Part(parent, Shape.Box, c + new Vector3(new[] { 0, 1, 0, -1 }[i], 0, new[] { 1, 0, -1, 0 }[i]) * 0.3f + new Vector3(0, 0.05f, 0),
+                        i % 2 == 1 ? new Vector3(0.3f, 0.01f, 0.03f) : new Vector3(0.03f, 0.01f, 0.3f), Mat(new Color(0.45f, 0.95f, 1f), 0.95f, 1.6f));
+            }
+            else if (tier == RoadTier.Stone)
+            {
+                for (int i = 0; i < 4; i++)
+                    Part(parent, Shape.Box, c + new Vector3((i % 2 - 0.5f) * 0.26f, 0.048f, (i / 2 - 0.5f) * 0.26f), new Vector3(0.24f, 0.02f, 0.24f), Color.Lerp(Stone, StoneLight, Rand(seed, i)));
+            }
+            else if (tier == RoadTier.Reinforced)
             {
                 for (int i = -2; i <= 2; i++) Part(parent, Shape.Box, c + new Vector3(i * 0.11f, 0.05f, 0), new Vector3(0.015f, 0.01f, 0.5f), WoodDark);
                 Part(parent, Shape.Box, c + new Vector3(0, 0.055f, 0), new Vector3(0.12f, 0.02f, 0.12f), Mat(GoldC, 0.7f));
@@ -544,10 +558,31 @@ namespace GameClient
                     for (int i = 0; i < 5; i++)
                         Part(parent, Shape.Cone, c + new Vector3(-0.16f + i * 0.08f, 0.1f, (i % 2) * 0.1f - 0.05f), new Vector3(0.05f, 0.1f, 0.05f), Iron);
                     break;
+                case TrapType.Poison:
+                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.056f, 0), new Vector3(0.34f, 0.01f, 0.3f), Mat(new Color(0.35f, 0.75f, 0.2f), 0.9f, 0.6f));
+                    for (int i = 0; i < 3; i++) { var b = Part(parent, Shape.Ball, c + new Vector3(-0.08f + i * 0.08f, 0.07f, (i - 1) * 0.05f), Vector3.one * 0.05f, Mat(new Color(0.5f, 0.95f, 0.3f), 0.9f, 1.2f)); Animate(b, ArtMotion.Kind.Bob, 4f + i, 0.02f, i); }
+                    break;
+                case TrapType.Frost:
+                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.34f, 0.01f, 0.34f), Mat(new Color(0.85f, 0.95f, 1f), 0.9f, 0.4f));
+                    for (int i = 0; i < 4; i++) Part(parent, Shape.Pyramid, c + new Vector3((i % 2 - 0.5f) * 0.16f, 0.1f, (i / 2 - 0.5f) * 0.16f), new Vector3(0.05f, 0.1f, 0.05f), Mat(new Color(0.6f, 0.9f, 1f), 0.95f, 1.2f));
+                    break;
+                case TrapType.Bomb:
+                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.1f, 0), new Vector3(0.16f, 0.12f, 0.16f), Mat(new Color(0.18f, 0.16f, 0.15f), 0.4f));
+                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.1f, 0), new Vector3(0.17f, 0.02f, 0.17f), Iron);
+                    { var spark = Part(parent, Shape.Ball, c + new Vector3(0.03f, 0.2f, 0), Vector3.one * 0.035f, Mat(new Color(1f, 0.7f, 0.2f), 0.5f, 3f)); Animate(spark, ArtMotion.Kind.Bob, 12f, 0.01f); }
+                    break;
+                case TrapType.Snare:
+                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.26f, 0.01f, 0.26f), Iron);
+                    for (int i = 0; i < 6; i++) { float a = i * Mathf.PI / 3f; Part(parent, Shape.Cone, c + new Vector3(Mathf.Cos(a) * 0.12f, 0.09f, Mathf.Sin(a) * 0.12f), new Vector3(0.03f, 0.07f, 0.03f), StoneLight); }
+                    break;
+                case TrapType.Shock:
+                    Part(parent, Shape.Box, c + new Vector3(0, 0.056f, 0), new Vector3(0.3f, 0.012f, 0.3f), Mat(new Color(0.5f, 0.52f, 0.58f), 0.8f));
+                    for (int i = 0; i < 2; i++) { var z = Part(parent, Shape.Box, c + new Vector3((i - 0.5f) * 0.12f, 0.08f, 0), new Vector3(0.02f, 0.02f, 0.2f), Mat(new Color(1f, 0.95f, 0.4f), 0.9f, 3f), new Vector3(0, 30 + i * 60, 0)); Animate(z, ArtMotion.Kind.Bob, 15f, 0.008f, i); }
+                    break;
                 case TrapType.Slippery:
                     Part(parent, Shape.Cyl, c + new Vector3(0, 0.06f, 0), new Vector3(0.36f, 0.01f, 0.3f), Mat(new Color(0.45f, 0.75f, 0.95f), 0.95f, 0.2f));
                     break;
-                default:
+                case TrapType.Fire:
                     Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.34f, 0.01f, 0.34f), Dark);
                     for (int i = 0; i < 3; i++)
                     {

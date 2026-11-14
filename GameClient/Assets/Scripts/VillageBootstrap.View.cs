@@ -167,7 +167,8 @@ namespace GameClient
 
         private static string TrapName(TrapType t)
         {
-            switch (t) { case TrapType.Spikes: return "Çivili"; case TrapType.Slippery: return "Kaygan"; default: return "Ateşli"; }
+            var d = TrapCatalog.Get(t);
+            return d != null ? d.Name : "Tuzak";
         }
     }
 }
