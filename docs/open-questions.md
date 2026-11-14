@@ -69,5 +69,5 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Eski kayıtlarda sınırı aşan yapılar (ör. 27 köylü evi) korunuyor; yeni kurulum engelleniyor. Fazlası kaldırılsın mı?
 - Duvar kule hakkından mı sayılsın, ayrı bir duvar hakkı mı olsun? (şu an kule hakkından)
 - Duvarlı savunmalar botun baskınlarını hep durdurdu (sim 33/33); baskıncı ordusu güçlendirilsin mi?
-- 100 günlük ilerlemede geç oyun savaşları bot için çok kolay (%97 zafer, Sv20+ Normal 3 yıldız) ve baskınların hepsi savunuluyor; zorluk artırılsın mı?
+- ÇÖZÜLDÜ (14.11.2026): geç oyun zorlaştırıldı (sim: %79 zafer, baskınların %46'sı savunulur). Sv15 civarı Normal hedef bot için zor (2/6); insan oyuncuyla test edilmeli.
 

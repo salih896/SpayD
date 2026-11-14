@@ -103,7 +103,7 @@ namespace GameCore.Game
         public static int Builders(int villagerHouses) => 1 + Math.Min(5, villagerHouses);
 
         /// <summary>Kışla toplam seviyesi başına ordu kapasitesi.</summary>
-        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 20 + barracksLevelSum * 6 / 5;
+        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 20 + barracksLevelSum * 7 / 10; // geç oyun zorluğu: Sv30 ≈ 83
 
         // ---- Üretim ve depo ----
         public static ResourceType? ProducedBy(BuildingType t)

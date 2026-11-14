@@ -98,7 +98,7 @@ namespace GameCore.Game
             // Seviyeler: tipik oyuncunun kule seviyesi (GameRules.ExpectedTowerLevel), Kolay -1 / Zor +1.
             int countPct = difficulty == 0 ? 50 : (difficulty == 2 ? 100 : 80);
             int towerTarget = Math.Max(1, GameRules.ExpectedTowerSlots(level) * countPct / 100 * TowerScalePct / 100);
-            int structLevel = Math.Max(1, Math.Min(GameRules.MaxStructureLevel(level), GameRules.ExpectedTowerLevel(level) + (difficulty == 0 ? -1 : difficulty == 2 ? 1 : 0)));
+            int structLevel = Math.Max(1, Math.Min(GameRules.MaxStructureLevel(level), GameRules.ExpectedTowerLevel(level) + (difficulty == 0 ? -1 : difficulty == 2 ? (level >= 20 ? 3 : 2) : (level >= 20 ? 1 : 0))));
             var towerTypes = new List<TowerType>();
             foreach (TowerType t in Enum.GetValues(typeof(TowerType))) if (ContentCatalog.Tower(t).UnlockLevel <= level) towerTypes.Add(t);
             if (towerTypes.Count == 0) towerTypes.Add(TowerType.Archer); // Sv1 hedeflerde de en az bir okçu kulesi olsun
@@ -150,7 +150,10 @@ namespace GameCore.Game
         }
 
         /// <summary>Tipik oyuncunun o seviyedeki savunma araştırma bonusu (‰). Sv10≈%3, Sv20≈%13, Sv30≈%30 (simülasyondan kaba tahmin).</summary>
-        public static int ExpectedDefenseResearchPermille(int level) => level * level / 3; // 100 günlük ilerlemede oyuncu çok araştırma yapar
+        public static int ExpectedDefenseResearchPermille(int level) => level * level / 2; // geç oyun zorluğu (Sv30 ≈ +%45)
+
+        /// <summary>Tipik oyuncunun saldırı araştırma bonusu (‰): baskıncı askerleri bunu alır.</summary>
+        public static int ExpectedAttackResearchPermille(int level) => level * level / 3;
 
         private static bool RoadNeighbour(VillageLayout l, GridPos p)
         {
