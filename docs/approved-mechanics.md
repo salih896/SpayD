@@ -83,3 +83,7 @@
 55. Denge (sim, 15.11.2026): hedef köy gücü yeniden kalibre edildi (rastgele savaşlar toplam %48 zafer; 16/28 seviye %45-55 bandında, Sv3-10 basamaklı). İlerleme hızını korumak için XP eğrisi 100 + 75l + 15l² (Sv30 ≈ 93 gün, 2 saatte bir giren oyuncu). Değerler GEÇİCİ.
 56. **Kule hasarı %30 düşürüldü** (kullanıcı kararı 15.11.2026: "kuleler çok güçlü"): Okçu 21, Büyücü 46, Elf 13, Top 98, Buz 14, Şimşek 39 (canlar aynı). %50 zafer hedefi bilerek bırakıldı (kullanıcı seçimi "Zafer oranı yükselsin"): rastgele savaşlarda toplam ≈ %54, bot oyuncu ≈ %73 kazanır. Sv30 ≈ 100 gün korunmak için XP eğrisi 100 + 80l + 17l² (sim 93 gün).
 57. **Test saldırısı:** Ayarlar → "Kendi köyüne saldır (test)". Kurduğun savunmaya, açık asker türlerinden ordu kapasitesi kadar (kışla yoksa 40 yer) test ordusuyla saldırırsın; gerçek ordu harcanmaz, yağma/XP/görev ilerlemesi yoktur.
+58. **İkinci denge turu (kullanıcı kararı 15.11.2026):** tuzak hasarı yarıya indi (Çivili 20, Ateşli 2/tick, Zehirli 1/tick, Patlayıcı 130, Kapan 30, Şimşek 45; Çivili artık Goblin'i tek basışta öldürmez). Kule hasarı %25 daha düştü (ilk değerlere göre ≈ %47): Okçu 16, Büyücü 35, Elf 10, Top 74, Buz 11, Şimşek 29.
+59. **Zafer koşulu %75 yıkım** (GDD Bölüm 17'deki %51 yerine). Yıldız: %75 → 1, %90 → 2, %100 → 3.
+60. **Kışla Sv2'de kurulabilir** (önce Sv3). Askerler hâlâ Sv3'te açılır.
+61. Sonuç (sim): rastgele savaşlar toplam ≈ %52 zafer; bot ≈ %68. Sv30 ≈ 93 gün için XP eğrisi 100 + 85l + 18l².

@@ -6,7 +6,7 @@ namespace GameCore.Combat
     /// <summary>Saf tamsayı savaş matematiği (float yok). Sunucu ve istemci aynı sonucu üretir.</summary>
     public static class CombatMath
     {
-        public const int VictoryThresholdPct = 51;   // GDD Bölüm 17
+        public const int VictoryThresholdPct = 75;   // kullanıcı kararı 15.11.2026 (GDD Bölüm 17'deki %51 yerine)
 
         public static long DistSq(int ax, int ay, int bx, int by)
         {
@@ -54,12 +54,12 @@ namespace GameCore.Combat
 
         public static bool IsVictory(int overallPct) => overallPct >= VictoryThresholdPct;
 
-        /// <summary>0 = yenilgi; 1 yıldız: ≥%51 zafer; 2 yıldız: ≥%75; 3 yıldız: %100 (GEÇİCİ eşikler).</summary>
+        /// <summary>0 = yenilgi; 1 yıldız: ≥%75 zafer; 2 yıldız: ≥%90; 3 yıldız: %100 (GEÇİCİ eşikler).</summary>
         public static int Stars(int overallPct)
         {
             if (overallPct < VictoryThresholdPct) return 0;
             if (overallPct >= 100) return 3;
-            return overallPct >= 75 ? 2 : 1;
+            return overallPct >= 90 ? 2 : 1;
         }
     }
 }

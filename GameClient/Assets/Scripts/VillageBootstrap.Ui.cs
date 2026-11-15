@@ -593,7 +593,7 @@ namespace GameClient
                 if (GUI.Button(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42), "SALDIR", UiTheme.BtnRed)) StartBattle(t);
             }
             if (Btn(new Rect(r.x + 10, r.y + 290, 180, 36), "Hedefleri yenile")) { targetSeed++; targets = null; }
-            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Kılıçlı en yakın yapıya saldırır. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer), Elf kulesi periye, Top kalabalığa güçlüdür; Buz yavaşlatır, Şimşek zincirleme vurur. Zafer için yapıların ortalama hasarı %51'i geçmeli.</color>");
+            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Kılıçlı en yakın yapıya saldırır. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer), Elf kulesi periye, Top kalabalığa güçlüdür; Buz yavaşlatır, Şimşek zincirleme vurur. Zafer için köyün %75'ini yık (%90: 2 yıldız, %100: 3 yıldız).</color>");
         }
 
         // ---------- Menü ----------
@@ -651,7 +651,7 @@ namespace GameClient
             int aliveSoldiers = 0;
             foreach (var s in sim.Soldiers) if (s.Alive) aliveSoldiers++;
             var rs = new Rect(6, h - 46, w - 12, 40);
-            string msg = Time.time < toastUntil ? toast : curTarget.Name + " (Sv " + curTarget.Level + ")  |  " + (sim.Tick / 10) + " sn / 180  |  Hasar %" + LiveDamagePct() + " (zafer %51)  |  Sahada " + aliveSoldiers + "   [kırmızı alana dokun/basılı tut]";
+            string msg = Time.time < toastUntil ? toast : curTarget.Name + " (Sv " + curTarget.Level + ")  |  " + (sim.Tick / 10) + " sn / 180  |  Hasar %" + LiveDamagePct() + " (zafer %75)  |  Sahada " + aliveSoldiers + "   [kırmızı alana dokun/basılı tut]";
             GUI.Label(rs, msg, UiTheme.Pill); uiRects.Add(rs);
             if (battleOver && lastResult != null) DrawResult(w, h);
         }

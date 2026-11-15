@@ -50,13 +50,13 @@ Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyl
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|
-| Okçu Kulesi | Sv2 | 1000 | 21 | 8 | 5,0 | Evet | Hızlı atış | 120 odun |
+| Okçu Kulesi | Sv2 | 1000 | 16 | 8 | 5,0 | Evet | Hızlı atış | 120 odun |
 | Duvar | Sv4 | 3200 | — | — | — | — | Saldırmaz; 2,5 hücredeki yer askerlerini üstüne çeker | 160 odun |
-| Büyücü Kulesi | Sv6 | 800 | 46 | 20 | 4,0 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
-| Elf Kulesi | Sv8 | 750 | 13 | 4 | 4,5 | Evet | Uçanlara +%100 | 180 odun, 120 taş |
-| Top Kulesi | Sv10 | 1100 | 98 | 30 | 4,0 | Hayır | Alan 1,2 | 300 odun, 150 taş |
-| Buz Kulesi | Sv12 | 900 | 14 | 10 | 4,0 | Evet | Vurduğunu 2,5 sn yavaşlatır | 250 odun, 200 taş |
-| Şimşek Kulesi | Sv16 | 850 | 39 | 18 | 4,5 | Evet | 2 askere daha zincirleme sıçrar (%70) | 300 odun, 200 taş, 120 altın |
+| Büyücü Kulesi | Sv6 | 800 | 35 | 20 | 4,0 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
+| Elf Kulesi | Sv8 | 750 | 10 | 4 | 4,5 | Evet | Uçanlara +%100 | 180 odun, 120 taş |
+| Top Kulesi | Sv10 | 1100 | 74 | 30 | 4,0 | Hayır | Alan 1,2 | 300 odun, 150 taş |
+| Buz Kulesi | Sv12 | 900 | 11 | 10 | 4,0 | Evet | Vurduğunu 2,5 sn yavaşlatır | 250 odun, 200 taş |
+| Şimşek Kulesi | Sv16 | 850 | 29 | 18 | 4,5 | Evet | 2 askere daha zincirleme sıçrar (%70) | 300 odun, 200 taş, 120 altın |
 
 **Geliştirme:** İşçi + kaynak + süre; hedef seviye oyuncu seviyesini aşamaz. Hasar alan kulede kalıcı aşınma oluşur (en çok %70), onarılması gerekir.
 
@@ -71,14 +71,14 @@ Hakkı: 4, Akademi "Tuzak Ustalığı" araştırmasıyla 6. Uçan askerleri etki
 
 | Tuzak | Açılış | Etki | Maliyet |
 |---|---|---|---|
-| Çivili | Sv3 | 40 hasar | 80 odun |
+| Çivili | Sv3 | 20 hasar | 80 odun |
 | Kaygan | Sv5 | 3 sn yavaşlatır | 100 odun, 40 taş |
 | Ateşli | Sv8 | 3 sn yakar (ateş direnci azaltır) | 150 odun, 60 taş |
 | Zehirli | Sv10 | 6 sn zehirler | 180 odun, 90 taş |
 | Buz | Sv12 | 1,5 sn dondurur, sonra yavaşlatır | 200 odun, 120 taş |
-| Patlayıcı | Sv15 | 260 alan hasarı, savaş başına 1 kez | 250 odun, 150 taş, 50 altın |
-| Kapan | Sv18 | 3 sn yakalar + 60 hasar | 260 odun, 160 taş, 60 altın |
-| Şimşek | Sv22 | 90 hasar + 2 askere sıçrar | 320 odun, 200 taş, 90 altın |
+| Patlayıcı | Sv15 | 130 alan hasarı, savaş başına 1 kez | 250 odun, 150 taş, 50 altın |
+| Kapan | Sv18 | 3 sn yakalar + 30 hasar | 260 odun, 160 taş, 60 altın |
+| Şimşek | Sv22 | 45 hasar + 2 askere sıçrar | 320 odun, 200 taş, 90 altın |
 
 ## 4. Yollar (5 basamak)
 Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol araştırması yapılır (1 gün; 5000 odun, 1000 taş). Sonra her yol tek tek işçi + süre ile geliştirilir.
@@ -97,7 +97,7 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 | Orman | Sv1 | 1 | 1500 odun/sa | 80 odun |
 | Kereste Deposu | Sv1 | 1 | +2500 odun depo (kurulunca Sv2 garanti) | 100 odun |
 | Köylü Evi | Sv1 | 1 (görevle 3) | +1 işçi | 60 odun |
-| Kışla | Sv3 | 1 (Sv13'te 2, Sv26'da 3) | Asker eğitir; ordu = 20 + 4 × kışla seviyeleri toplamı (yer) | 150 odun |
+| Kışla | Sv2 | 1 (Sv13'te 2, Sv26'da 3) | Asker eğitir; ordu = 20 + 4 × kışla seviyeleri toplamı (yer) | 150 odun |
 | Taş Ocağı | Sv5 | 1 | 900 taş/sa | 160 odun, 60 taş |
 | Taş Deposu | Sv5 | 1 | +1800 taş depo | 180 odun, 80 taş |
 | Akademi | Sv5 | 1 | Araştırma (474), görevler, yol ve tuzak araştırmaları | 300 odun, 150 taş |
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 80l + 17l² (Sv1→30 toplam ≈ 165 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
-- **Savaş:** Zafer için hasar %51; %75'te 2 yıldız, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).
+- **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).
