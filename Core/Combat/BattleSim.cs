@@ -34,6 +34,12 @@ namespace GameCore.Combat
         public int Cooldown, SlowUntil, BurnUntil, BurnPerTick;
         public int RootUntil, AttackCount, NextHealTick;
         public SoldierPerks Perks = new SoldierPerks();
+        /// <summary>Yolda kapladığı şerit (Dev/Mancınık 2, diğerleri 1; yol 3 şerit). Cell: tuttuğu yol karesi.</summary>
+        public int Slots = 1, Lane = -1, Blocked;
+        public bool HasCell, AvoidFull;
+        public GridPos Cell;
+        /// <summary>Görsel yana kayma (mili-hücre): şeride göre yolun ortasından sapma. Menzil/çarpışma hesabı X,Y ile yapılır.</summary>
+        public int OffX, OffY;
     }
 
     /// <summary>
@@ -130,6 +136,8 @@ namespace GameCore.Combat
                 X = x * 1000, Y = -row * 1000, Phase = def.Flying ? 1 : 0
             };
             s.Hp = s.MaxHp;
+            s.Slots = RoadSlots(type);
+            if (def.Flying) { s.OffX = (s.Id % 3 - 1) * 250; s.OffY = (s.Id / 3 % 3 - 1) * 250; } // uçanlar üst üste binmesin (görsel)
             if (!def.Flying)
             {
                 long best = long.MaxValue;
@@ -245,7 +253,7 @@ namespace GameCore.Combat
         {
             if (s.Perks.DmgTakenPermille > 0) dmg = Math.Max(1, dmg * (1000 - s.Perks.DmgTakenPermille) / 1000);
             s.Hp -= dmg;
-            if (s.Hp <= 0) { s.Hp = 0; s.Alive = false; }
+            if (s.Hp <= 0) { s.Hp = 0; s.Alive = false; ReleaseCell(s); }
         }
 
         private void StepSoldier(SimSoldier s)
@@ -326,11 +334,25 @@ namespace GameCore.Combat
 
             if (s.Phase == 0)
             {
-                if (MoveToward(s, s.Entrance.X * 1000, 0, speed)) { s.Phase = 1; s.LastCell = s.Entrance; ApplyTrap(s, s.Entrance); }
+                int ex = s.Entrance.X * 1000;
+                if (CombatMath.DistSq(s.X, s.Y, ex, 0) <= 1000L * 1000L)
+                {
+                    // giriş karesine şerit ayır; dolu ise dışarıda bekle
+                    if (!TryReserve(s, s.Entrance, new GridPos(s.Entrance.X, -1))) { s.Blocked++; return; }
+                }
+                else if (BlockedByAhead(s, ex, 0)) return; // önündeki askere çarpmasın (sıra)
+                if (MoveToward(s, ex, 0, speed)) { s.Phase = 1; s.LastCell = s.Entrance; ApplyTrap(s, s.Entrance); }
                 return;
             }
             if (s.Path == null || s.PathIndex >= s.Path.Count) return;
             var c = s.Path[s.PathIndex];
+            if (!TryReserve(s, c, s.LastCell))
+            {
+                // kare dolu: bekle; uzun süre takılırsa dolu kareleri aşmadan ulaşılabilen bir hedef ara
+                if (++s.Blocked > 25) { s.Blocked = 0; s.AvoidFull = true; s.TargetId = -1; }
+                return;
+            }
+            s.Blocked = 0;
             if (!s.Perks.ImmuneSlow) speed = Math.Max(1, speed * (100 - RoadRules.SlowPct(setup.Layout.GetRoadTier(c))) / 100); // yol malzemesi yavaşlatır
             if (MoveToward(s, c.X * 1000, c.Y * 1000, speed)) { s.LastCell = c; s.PathIndex++; ApplyTrap(s, c); }
         }
@@ -402,6 +424,78 @@ namespace GameCore.Combat
         }
 
         // ---------- Hedef ve yol ----------
+        // ---------- Yol şeritleri (çarpışma) ----------
+        /// <summary>Yol karesi 3 şerit genişliğindedir (kullanıcı kararı 15.11.2026).</summary>
+        public const int RoadLanes = 3;
+        private readonly Dictionary<GridPos, int> laneMask = new Dictionary<GridPos, int>();
+
+        /// <summary>Askerin yolda kapladığı şerit: Dev ve Mancınık 2, diğerleri 1.</summary>
+        public static int RoadSlots(SoldierType t) => t == SoldierType.Giant || t == SoldierType.Catapult ? 2 : 1;
+
+        private static readonly int[] LaneOrderFresh = { 1, 0, 2 };
+
+        private bool HasRoom(GridPos c, SimSoldier s)
+        {
+            if (s.HasCell && s.Cell.Equals(c)) return true;
+            laneMask.TryGetValue(c, out int m);
+            int need = (1 << s.Slots) - 1;
+            for (int l = 0; l + s.Slots <= RoadLanes; l++) if ((m & (need << l)) == 0) return true;
+            return false;
+        }
+
+        /// <summary>Kareye şerit ayırır (önce aynı şerit, sonra orta, sol, sağ). Doluysa false.</summary>
+        private bool TryReserve(SimSoldier s, GridPos c, GridPos from)
+        {
+            if (s.HasCell && s.Cell.Equals(c)) return true;
+            laneMask.TryGetValue(c, out int m);
+            int need = (1 << s.Slots) - 1, lane = -1;
+            if (s.Lane >= 0 && s.Lane + s.Slots <= RoadLanes && (m & (need << s.Lane)) == 0) lane = s.Lane;
+            else foreach (int l in LaneOrderFresh) if (l + s.Slots <= RoadLanes && (m & (need << l)) == 0) { lane = l; break; }
+            if (lane < 0) return false;
+            ReleaseCell(s);
+            laneMask[c] = m | (need << lane);
+            s.HasCell = true; s.Cell = c; s.Lane = lane;
+            // görsel kayma: şerit merkezleri -300 / 0 / +300; 2 şeritli asker ikisinin ortası
+            int off = ((lane - 1) * 300 + (lane + s.Slots - 2) * 300) / 2;
+            if (c.X != from.X) { s.OffX = 0; s.OffY = off; } else { s.OffX = off; s.OffY = 0; }
+            return true;
+        }
+
+        private void ReleaseCell(SimSoldier s)
+        {
+            if (!s.HasCell) return;
+            if (laneMask.TryGetValue(s.Cell, out int m))
+            {
+                m &= ~(((1 << s.Slots) - 1) << s.Lane);
+                if (m == 0) laneMask.Remove(s.Cell); else laneMask[s.Cell] = m;
+            }
+            s.HasCell = false;
+        }
+
+        /// <summary>Girişe yürürken önündeki (hedefe daha yakın) aynı girişli askere 0,35 hücreden fazla yaklaşmaz.</summary>
+        private bool BlockedByAhead(SimSoldier s, int tx, int ty)
+        {
+            long mine = CombatMath.DistSq(s.X, s.Y, tx, ty);
+            for (int i = 0; i < soldiers.Count; i++)
+            {
+                var o = soldiers[i];
+                if (o == s || !o.Alive || o.Flying || o.Phase != 0 || !o.Entrance.Equals(s.Entrance)) continue;
+                long theirs = CombatMath.DistSq(o.X, o.Y, tx, ty);
+                bool ahead = theirs < mine || (theirs == mine && o.Id < s.Id);
+                if (ahead && CombatMath.DistSq(s.X, s.Y, o.X, o.Y) < 350L * 350L) return true;
+            }
+            return false;
+        }
+
+        /// <summary>Takılan asker için: kendi karesi + kendisine yer olan yol kareleri.</summary>
+        private HashSet<GridPos> FreeRoadsFor(SimSoldier s)
+        {
+            var set = new HashSet<GridPos>();
+            foreach (var r in roads) if (HasRoom(r, s)) set.Add(r);
+            set.Add(s.LastCell);
+            return set;
+        }
+
         /// <summary>Yakın dövüşçü (menzil ≤ 2 hücre, uçmayan): yalnızca yapının sağ/sol/üst/alt yanındaki yoldan saldırır (kullanıcı kararı 15.11.2026).</summary>
         private static bool IsMelee(SimSoldier s) => !s.Flying && s.Type != SoldierType.Archer && s.Type != SoldierType.Mage && s.Type != SoldierType.Catapult; // Okçu/Büyücü/Mancınık uzaktan saldırır (menzil kısa olsa da en yakını vurur)
 
@@ -472,7 +566,8 @@ namespace GameCore.Combat
             // (yakın dövüş: yapının yan karesi; Okçu/Büyücü/Mancınık: menzile girdiği ilk kare). Kullanıcı geri bildirimi 15.11.2026.
             // Eşitlikte kuş uçuşu, sonra kimlik (deterministik).
             GridPos start = s.Phase == 0 ? s.Entrance : s.LastCell;
-            var dist = RoadDistances(start);
+            var usable = s.AvoidFull ? FreeRoadsFor(s) : roads;
+            var dist = RoadDistances(start, usable);
             var keyPath = new Dictionary<int, int>();
             var reach = new List<SimStructure>();
             foreach (var c in cands)
@@ -501,10 +596,10 @@ namespace GameCore.Combat
         private static readonly int[] BfsDx = { 0, 1, 0, -1 }, BfsDy = { 1, 0, -1, 0 };
 
         /// <summary>Başlangıç yol karesinden diğer yol karelerine adım sayısı (4 yönlü, sabit komşu sırası).</summary>
-        private Dictionary<GridPos, int> RoadDistances(GridPos start)
+        private Dictionary<GridPos, int> RoadDistances(GridPos start, HashSet<GridPos> usable)
         {
             var d = new Dictionary<GridPos, int>();
-            if (!roads.Contains(start)) return d;
+            if (!usable.Contains(start)) return d;
             var q = new Queue<GridPos>();
             d[start] = 0; q.Enqueue(start);
             while (q.Count > 0)
@@ -514,7 +609,7 @@ namespace GameCore.Combat
                 for (int i = 0; i < 4; i++)
                 {
                     var n = new GridPos(c.X + BfsDx[i], c.Y + BfsDy[i]);
-                    if (roads.Contains(n) && !d.ContainsKey(n)) { d[n] = nd; q.Enqueue(n); }
+                    if (usable.Contains(n) && !d.ContainsKey(n)) { d[n] = nd; q.Enqueue(n); }
                 }
             }
             return d;
@@ -524,7 +619,10 @@ namespace GameCore.Combat
         {
             if (s.Flying) return;
             GridPos start = s.Phase == 0 ? s.Entrance : s.LastCell;
-            s.Path = PathFinder.FindPath(size, roads, start, AccessCells(s, target));
+            var usable = s.AvoidFull ? FreeRoadsFor(s) : roads;
+            s.AvoidFull = false;
+            s.Path = PathFinder.FindPath(size, usable, start, AccessCells(s, target));
+            if (s.Path == null) s.Path = PathFinder.FindPath(size, roads, start, AccessCells(s, target)); // başka yol yoksa sırada bekle
             s.PathIndex = 1;
         }
 

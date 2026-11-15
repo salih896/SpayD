@@ -5,12 +5,12 @@ namespace GameCore.Progression
     {
         public const int MaxLevel = 30;
 
-        /// <summary>Seviye L'den L+1'e geçmek için gereken XP (taslak: 100 + 78(L-1) + 16(L-1)²; kullanıcı hedefi Sv30 ≈ 100 gün, simülasyonla ayarlandı,
-        /// bkz. docs/balance-report.txt). Sv1→2 = 100 (Sv1'de yalnızca kurma XP'si var). Sv1→30 toplam ≈ 158.000 XP (15.11.2026: köy düzeni dengesinden sonra yeniden ayarlandı).</summary>
+        /// <summary>Seviye L'den L+1'e geçmek için gereken XP (taslak: 100 + 65(L-1) + 13(L-1)²; kullanıcı hedefi Sv30 ≈ 100 gün, simülasyonla ayarlandı,
+        /// bkz. docs/balance-report.txt). Sv1→2 = 100 (Sv1'de yalnızca kurma XP'si var). Sv1→30 toplam ≈ 130.000 XP (15.11.2026: köy düzeni dengesinden sonra yeniden ayarlandı).</summary>
         public static int XpToNextLevel(int level)
         {
             int l = level < 1 ? 0 : level - 1;
-            return 100 + 78 * l + 16 * l * l;
+            return 100 + 65 * l + 13 * l * l;
         }
 
         /// <summary>Toplam XP'den seviye (1..MaxLevel) ve seviye içi kalan XP.</summary>

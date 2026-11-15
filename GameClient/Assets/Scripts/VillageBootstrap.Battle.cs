@@ -20,6 +20,7 @@ namespace GameClient
         private readonly List<Transform> barViews = new List<Transform>();
         private readonly List<Transform> soldierBars = new List<Transform>(), soldierBarFills = new List<Transform>();
         private readonly List<int> soldierBarColor = new List<int>();
+        private readonly List<Vector3> soldierOff = new List<Vector3>(); // şerit kayması (yumuşatılmış)
 
         private void StartBattle(TargetInfo t)
         {
@@ -132,7 +133,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -164,6 +165,7 @@ namespace GameClient
                 var sf = VillageArt.Group(sb, "fill", new Vector3(-0.17f, 0f, -0.02f));
                 VillageArt.Part(sf, VillageArt.Shape.Box, new Vector3(0.17f, 0f, 0f), new Vector3(0.34f, 0.045f, 0.015f), VillageArt.Mat(new Color(0.3f, 0.9f, 0.3f), 0.2f, 0.6f));
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
+                soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
             for (int i = 0; i < sim.Soldiers.Count; i++)
@@ -178,7 +180,8 @@ namespace GameClient
                 if (d.sqrMagnitude > 0.00002f) t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(d.normalized, Vector3.up), 0.35f);
                 bool moving = d.sqrMagnitude > 0.00002f;
                 float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 14f + i)) * 0.04f : 0f;
-                t.position = p + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
+                soldierOff[i] = Vector3.Lerp(soldierOff[i], new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f), Mathf.Min(1f, Time.deltaTime * 8f));
+                t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
                 float hf = s.MaxHp > 0 ? Mathf.Clamp01((float)s.Hp / s.MaxHp) : 0f;

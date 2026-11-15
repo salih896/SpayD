@@ -286,6 +286,27 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void Collision_AtMostThreeLanesPerRoadCell_GiantTakesTwo()
+        {
+            var d = TargetVillage();
+            var stock = new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 8 }, { SoldierType.Giant, 3 } };
+            var sim = new BattleSim(d, stock, null, 4);
+            for (int i = 0; i < 8; i++) sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            for (int i = 0; i < 3; i++) sim.Deploy(SoldierType.Giant, 5, 1, out _);
+            Assert.AreEqual(2, BattleSim.RoadSlots(SoldierType.Giant));
+            Assert.AreEqual(2, BattleSim.RoadSlots(SoldierType.Catapult));
+            Assert.AreEqual(1, BattleSim.RoadSlots(SoldierType.Swordsman));
+            for (int t = 0; t < 400 && !sim.Finished; t++)
+            {
+                sim.Step();
+                var used = new Dictionary<GridPos, int>();
+                foreach (var s in sim.Soldiers)
+                    if (s.Alive && s.HasCell) used[s.Cell] = (used.TryGetValue(s.Cell, out var n) ? n : 0) + s.Slots;
+                foreach (var kv in used) Assert.LessOrEqual(kv.Value, BattleSim.RoadLanes, "Bir yol karesine en çok 3 şerit (tick " + t + ")");
+            }
+        }
+
+        [Test]
         public void Targeting_NearestForMost_GoblinDepotFirst_CavalryTowerFirst()
         {
             foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Giant, SoldierType.Spearman, SoldierType.Fairy, SoldierType.Catapult, SoldierType.DragonRider, SoldierType.Mage })
