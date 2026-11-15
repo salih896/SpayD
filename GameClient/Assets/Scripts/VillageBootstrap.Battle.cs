@@ -221,8 +221,8 @@ namespace GameClient
                 // Uçanlar simülasyonun verdiği dağılımı kullanır. Üst üste binme, aşağıdaki yumuşak ayrışmayla önlenir.
                 Vector3 offTarget = s.Flying
                     ? new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f)
-                    : new Vector3(((s.Id * 73) % 100 / 100f - 0.5f) * 0.5f, 0f, ((s.Id * 41 + 17) % 100 / 100f - 0.5f) * 0.5f);
-                soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget + soldierSep[i], Mathf.Min(1f, Time.deltaTime * 8f));
+                    : new Vector3(((s.Id * 73) % 100 / 100f - 0.5f) * 0.3f, 0f, ((s.Id * 41 + 17) % 100 / 100f - 0.5f) * 0.3f);
+                soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget + soldierSep[i], Mathf.Min(1f, Time.deltaTime * 5f));
                 t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierDisp[i] = t.position;
                 soldierPrev[i] = p;
@@ -290,14 +290,14 @@ namespace GameClient
         }
 
         /// <summary>
-        /// Görsel ayrışma: birbirine 0,34 kareden fazla yaklaşan yer askerleri hafifçe itilir (yalnızca çizim; simülasyon değişmez).
+        /// Görsel ayrışma: birbirine 0,26 kareden fazla yaklaşan yer askerleri hafifçe itilir (yalnızca çizim; simülasyon değişmez).
         /// İtme birikir ve yavaşça söner; kalabalıkta askerler doğal biçimde dağılır.
         /// </summary>
         private void SeparateSoldiers()
         {
-            const float minD = 0.34f;
+            const float minD = 0.26f;
             int n = Mathf.Min(sim.Soldiers.Count, soldierDisp.Count);
-            for (int i = 0; i < n; i++) soldierSep[i] *= 0.985f; // sönme
+            for (int i = 0; i < n; i++) soldierSep[i] *= 0.95f; // sönme (birikip itişmesin)
             for (int i = 0; i < n; i++)
             {
                 var a = sim.Soldiers[i];
@@ -311,11 +311,11 @@ namespace GameClient
                     if (d2 >= minD * minD) continue;
                     float dd = Mathf.Sqrt(d2);
                     var dir = dd > 0.0001f ? dlt / dd : new Vector3(((i * 31 + j * 7) % 7) - 3f, 0f, ((i * 13 + j) % 5) - 2f).normalized;
-                    var push = dir * ((minD - dd) * 0.35f);
+                    var push = dir * ((minD - dd) * 0.15f);
                     soldierSep[i] += push; soldierSep[j] -= push;
                 }
             }
-            for (int i = 0; i < n; i++) if (soldierSep[i].sqrMagnitude > 0.36f) soldierSep[i] = soldierSep[i].normalized * 0.6f;
+            for (int i = 0; i < n; i++) if (soldierSep[i].sqrMagnitude > 0.04f) soldierSep[i] = soldierSep[i].normalized * 0.2f;
         }
 
         private void SpawnShot(SimStructure tower)

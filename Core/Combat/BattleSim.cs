@@ -133,8 +133,8 @@ namespace GameCore.Combat
                 IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli * (100 + perks.RangePct) / 100, SpeedMilli = def.SpeedMilli * (100 + perks.SpeedPct) / 100,
                 ArmorPct = Math.Min(80, def.ArmorPct + perks.ArmorAdd), FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli + perks.SplashAdd,
                 Flying = def.Flying, Mounted = def.Mounted,
-                // aynı noktaya basılı tutunca askerler üst üste doğmasın: kimliğe bağlı küçük dağılım (±0,35 kare, deterministik)
-                X = x * 1000 + ((soldiers.Count * 37) % 700 - 350), Y = -row * 1000 + ((soldiers.Count * 53 + 211) % 700 - 350), Phase = def.Flying ? 1 : 0
+                // aynı noktaya basılı tutunca askerler üst üste doğmasın: kimliğe bağlı küçük dağılım (±0,2 kare, deterministik)
+                X = x * 1000 + ((soldiers.Count * 37) % 400 - 200), Y = -row * 1000 + ((soldiers.Count * 53 + 211) % 400 - 200), Phase = def.Flying ? 1 : 0
             };
             s.Hp = s.MaxHp;
             s.Slots = RoadSlots(type);
