@@ -58,7 +58,7 @@ namespace GameCore.Game
         }
 
         /// <summary>Tipik oyuncunun kışla seviyeleri toplamı (yapay ordu büyüklüğü için).</summary>
-        public static int ExpectedBarracksLevelSum(int playerLevel) => playerLevel < 3 ? 0 : MaxBarracks(playerLevel) * ExpectedStructureLevel(playerLevel);
+        public static int ExpectedBarracksLevelSum(int playerLevel) => playerLevel < 2 ? 0 : MaxBarracks(playerLevel) * ExpectedStructureLevel(playerLevel);
 
         /// <summary>
         /// O oyuncu seviyesindeki tipik aktif oyuncunun kule/asker/bina ortalama seviyesi (denge simülasyonundan kalibre,

@@ -6,7 +6,7 @@ Can/hasar Sv1 değeri. Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
-| Kılıçlı | Sv3 | 120 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
+| Kılıçlı | Sv2 | 120 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 10 | 10 | 4,0 | 0,07 | Uzaktan, kırılgan | 45 odun | 3 dk |
 | Goblin | Sv4 | 35 | 6 | 6 | 1,5 | 0,13 | Çok hızlı, kaynak binalarını hedefler | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,065 | Zırh %30 | 60 odun, 15 taş | 5 dk |

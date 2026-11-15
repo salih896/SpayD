@@ -344,7 +344,7 @@ namespace GameCore.Tests
             {
                 var types = new List<SoldierType>();
                 for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) types.Add((SoldierType)i);
-                if (types.Count == 0) types.Add(SoldierType.Swordsman); // Sv1-2: kışla yok; karşılaştırma için Kılıçlı
+                if (types.Count == 0) types.Add(SoldierType.Swordsman); // Sv1: kışla yok; karşılaştırma için Kılıçlı
                 int army = ArmyHousing(lvl);
                 int baseLv = GameRules.ExpectedStructureLevel(lvl);
                 int ap = TargetGenerator.ExpectedAttackResearchPermille(lvl);
@@ -377,15 +377,15 @@ namespace GameCore.Tests
                   .Append(" | ").Append(army).Append(" yer/").Append(soldiers / trials).Append(" asker")
                   .Append(" | ").Append((lvSum / (double)(trials * types.Count)).ToString("0.0", ci))
                   .Append(" | %").Append(lostPct / trials)
-                  .AppendLine(lvl < 3 ? "   (kışla Sv3'te açılır; yalnızca karşılaştırma)" : "");
+                  .AppendLine(lvl < 2 ? "   (kışla Sv2'de açılır; yalnızca karşılaştırma)" : "");
             }
             sb.AppendLine();
             sb.AppendLine("TOPLAM: " + totalW + "/" + totalN + " zafer (%" + totalW * 100 / totalN + ")");
             return sb.ToString();
         }
 
-        /// <summary>Tipik ordu büyüklüğü (yer birimi): tipik kışla sayısı × tipik seviye. Sv1-2 karşılaştırma için 10.</summary>
-        public static int ArmyHousing(int lvl) => lvl < 3 ? 10 : GameRules.ArmyCapacity(GameRules.ExpectedBarracksLevelSum(lvl));
+        /// <summary>Tipik ordu büyüklüğü (yer birimi): tipik kışla sayısı × tipik seviye. Sv1 karşılaştırma için 10.</summary>
+        public static int ArmyHousing(int lvl) => lvl < 2 ? 10 : GameRules.ArmyCapacity(GameRules.ExpectedBarracksLevelSum(lvl));
 
         /// <summary>Rastgele ordu: yer dolana kadar sığan türlerden rastgele seçer (asker yer kaplar: GameRules.Housing).</summary>
         public static Dictionary<SoldierType, int> RandomArmy(System.Random rng, List<SoldierType> types, int housing, out int count)
