@@ -50,7 +50,7 @@ Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta ca
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|
-| Okçu Kulesi | Sv2 | 1000 | 20 | 6 | 2,5 | Evet | Hızlı atış | 120 odun |
+| Okçu Kulesi | Sv2 | 1000 | 20 | 5 | 2,5 | Evet | Hızlı atış | 120 odun |
 | Duvar | Sv4 | 3200 | — | — | — | — | Saldırmaz; 2,5 hücredeki yer askerlerini üstüne çeker | 160 odun |
 | Büyücü Kulesi | Sv6 | 800 | 20 | 14 | 2,5 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
 | Elf Kulesi | Sv8 | 750 | 20 | 3 | 3,0 | Evet | Uçanlara +%100 | 180 odun, 120 taş |

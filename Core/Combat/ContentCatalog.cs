@@ -39,7 +39,7 @@ namespace GameCore.Combat
         // Kule hakkı 5-10 (GDD Bölüm 9): az ama güçlü kuleler. Can/hasar denge turu 2'de ×2,5 (13.11.2026).
         private static readonly TowerDef[] Towers =
         {
-            new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 20, IntervalTicks = 6, RangeMilli = 2500, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
+            new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 20, IntervalTicks = 5, RangeMilli = 2500, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
             new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 20, IntervalTicks = 14, RangeMilli = 2500, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = 6, BuildCost = new ResourceCost(200, 80) },
             // Duvar (kullanıcı kararı 14.11.2026: Mızrak Kulesi → Duvar): saldırmaz, çok dayanıklı, yakındaki yer askerlerini üstüne çeker
             new TowerDef { Type = TowerType.Wall, Name = "Duvar", Hp = 3200, Attack = 0, IntervalTicks = 10, RangeMilli = 0, CanHitAir = false, TauntMilli = 2500, UnlockLevel = 4, BuildCost = new ResourceCost(160) },
