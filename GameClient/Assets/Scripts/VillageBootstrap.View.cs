@@ -89,6 +89,10 @@ namespace GameClient
                     var gc = Color.Lerp(VillageArt.Grass, VillageArt.GrassDark, VillageArt.Rand(seed, 1) * 0.45f);
                     if (building && ((x + y) & 1) == 0) gc = Color.Lerp(gc, Color.white, 0.07f);
                     VillageArt.Part(viewRoot, VillageArt.Shape.Box, c + new Vector3(0, -0.05f, 0), new Vector3(building ? 0.96f : 1.0f, 0.1f, building ? 0.96f : 1.0f), VillageArt.GrassMat(gc));
+                    if (layout.Get(p) == CellKind.Empty && VillageArt.Rand(seed, 3) < 0.55f)
+                        for (int k = 0; k < 3; k++)
+                            VillageArt.Part(viewRoot, VillageArt.Shape.Cone, c + new Vector3((VillageArt.Rand(seed, 10 + k) - 0.5f) * 0.7f, 0.04f, (VillageArt.Rand(seed, 20 + k) - 0.5f) * 0.7f),
+                                new Vector3(0.035f, 0.1f, 0.035f), Color.Lerp(VillageArt.GrassDark, VillageArt.LeafLight, VillageArt.Rand(seed, 30 + k)));
                     switch (layout.Get(p))
                     {
                         case CellKind.Road:

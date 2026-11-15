@@ -21,6 +21,9 @@ namespace GameClient
         private readonly List<Transform> soldierBars = new List<Transform>(), soldierBarFills = new List<Transform>();
         private readonly List<int> soldierBarColor = new List<int>();
         private readonly List<Vector3> soldierOff = new List<Vector3>(); // şerit kayması (yumuşatılmış)
+        private readonly List<Vector2> simPrevPos = new List<Vector2>();   // bir önceki savaş adımındaki konum (ara konum için)
+        private readonly List<CharacterRig> soldierRigs = new List<CharacterRig>();
+        private readonly List<int> soldierPrevAttacks = new List<int>();
 
         private void StartBattle(TargetInfo t)
         {
@@ -108,7 +111,7 @@ namespace GameClient
             {
                 tickAcc += Time.deltaTime * speed;
                 int n = 0;
-                while (tickAcc >= SimTickSeconds && n < 60 && !sim.Finished) { sim.Step(); tickAcc -= SimTickSeconds; n++; }
+                while (tickAcc >= SimTickSeconds && n < 60 && !sim.Finished) { SnapshotSimPositions(); sim.Step(); tickAcc -= SimTickSeconds; n++; }
                 if (n >= 60) tickAcc = 0f;
             }
             int alive = 0;
@@ -116,6 +119,16 @@ namespace GameClient
             if (alive != lastAlive) { lastAlive = alive; dirty = true; }
             if (sim.Finished && !battleOver) FinishBattle();
             UpdateBattleView();
+        }
+
+        /// <summary>Adım öncesi konumları sakla: ekranda iki adım arası doğrusal ara konum çizilir (askerler "nokta nokta" değil akıcı ilerler).</summary>
+        private void SnapshotSimPositions()
+        {
+            for (int i = 0; i < sim.Soldiers.Count; i++)
+            {
+                var p = new Vector2(sim.Soldiers[i].X, sim.Soldiers[i].Y);
+                if (i < simPrevPos.Count) simPrevPos[i] = p; else simPrevPos.Add(p);
+            }
         }
 
         private void FinishBattle()
@@ -140,7 +153,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -173,6 +186,8 @@ namespace GameClient
                 VillageArt.Part(sf, VillageArt.Shape.Box, new Vector3(0.17f, 0f, 0f), new Vector3(0.34f, 0.045f, 0.015f), VillageArt.Mat(new Color(0.3f, 0.9f, 0.3f), 0.2f, 0.6f));
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
+                soldierRigs.Add(tr.GetComponent<CharacterRig>());
+                soldierPrevAttacks.Add(st.AttackCount);
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
             for (int i = 0; i < sim.Soldiers.Count; i++)
@@ -182,11 +197,20 @@ namespace GameClient
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
                 if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
                 if (!s.Alive) continue;
-                var p = new Vector3(s.X / 1000f, 0f, s.Y / 1000f);
+                // ara konum: önceki adım → şimdiki adım, kalan süre oranında
+                float alpha = sim.Finished ? 1f : Mathf.Clamp01(tickAcc / SimTickSeconds);
+                var prevSim = i < simPrevPos.Count ? simPrevPos[i] : new Vector2(s.X, s.Y);
+                var p = new Vector3(Mathf.Lerp(prevSim.x, s.X, alpha) / 1000f, 0f, Mathf.Lerp(prevSim.y, s.Y, alpha) / 1000f);
                 var d = p - soldierPrev[i];
                 if (d.sqrMagnitude > 0.00002f) t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(d.normalized, Vector3.up), 0.35f);
-                bool moving = d.sqrMagnitude > 0.00002f;
-                float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 14f + i)) * 0.04f : 0f;
+                bool moving = d.sqrMagnitude > 0.0000005f;
+                float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 11f + i)) * 0.025f : 0f;
+                var rig = soldierRigs[i];
+                if (rig != null)
+                {
+                    rig.SetMoving(moving);
+                    if (s.AttackCount != soldierPrevAttacks[i]) { soldierPrevAttacks[i] = s.AttackCount; rig.TriggerAttack(); }
+                }
                 soldierOff[i] = Vector3.Lerp(soldierOff[i], new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f), Mathf.Min(1f, Time.deltaTime * 12f));
                 t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierPrev[i] = p;

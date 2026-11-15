@@ -264,11 +264,27 @@ namespace GameClient
         }
 
         // ---------- Binalar ----------
+        /// <summary>Bina önüne küçük bahçe: iki çalı ve çiçek kümesi (tohumlu, her binada farklı).</summary>
+        private static void Garden(Transform g, int seed)
+        {
+            var flowers = new[] { new Color(0.95f, 0.85f, 0.3f), new Color(0.95f, 0.45f, 0.6f), new Color(0.98f, 0.98f, 0.98f), new Color(0.65f, 0.5f, 0.95f) };
+            foreach (var x in new[] { -0.36f, 0.36f })
+            {
+                if (Rand(seed, x < 0 ? 41 : 42) < 0.35f) continue;
+                var p = new Vector3(x, 0, -0.34f);
+                Part(g, Shape.Ball, p + new Vector3(0, 0.05f, 0), new Vector3(0.14f, 0.1f, 0.12f), Color.Lerp(Leaf, LeafLight, Rand(seed, 43)));
+                var fc = flowers[(int)(Rand(seed, x < 0 ? 44 : 45) * 3.99f)];
+                for (int i = 0; i < 3; i++)
+                    Part(g, Shape.Ball, p + new Vector3((Rand(seed, 50 + i) - 0.5f) * 0.12f, 0.1f, (Rand(seed, 60 + i) - 0.5f) * 0.08f - 0.03f), new Vector3(0.035f, 0.03f, 0.035f), Mat(fc, 0.3f));
+            }
+        }
+
         public static Transform BuildBuilding(Transform parent, BuildingType t, int level, int seed, Vector3 pos)
         {
             int tier = Tier(level);
             float lv = 1.25f * (1f + Mathf.Min(0.25f, (level - 1) * 0.012f)); // hücreyi dolduracak boyut
             var g = Group(parent, t.ToString(), pos, 0f, lv);
+            if (t != BuildingType.Forest && t != BuildingType.StoneQuarry && t != BuildingType.GoldMine && t != BuildingType.IronMine) Garden(g, seed);
             switch (t)
             {
                 case BuildingType.VillagerHouse: House(g, seed, tier); break;
@@ -640,6 +656,21 @@ namespace GameClient
                     var p = new Vector3(x + jx, 0f, z + jz);
                     float r = Rand(seed, 3);
                     if (d >= 2f && r < 0.3f + Mathf.Min(0.45f, (d - 2f) * 0.1f)) Tree(deco, p, 0.9f + Rand(seed, 4) * 0.7f, seed); // köy çevresinde açıklık
+                    else if (r > 0.9f)
+                    {
+                        // çimen tutamı / devrik kütük / mantar
+                        float k2 = Rand(seed, 11);
+                        if (k2 < 0.6f)
+                            for (int i = 0; i < 4; i++)
+                                Part(deco, Shape.Cone, p + new Vector3((Rand(seed, 30 + i) - 0.5f) * 0.25f, 0.05f, (Rand(seed, 40 + i) - 0.5f) * 0.25f), new Vector3(0.04f, 0.12f, 0.04f), Color.Lerp(Leaf, LeafLight, Rand(seed, 50 + i)), new Vector3((Rand(seed, 60 + i) - 0.5f) * 30f, 0, (Rand(seed, 70 + i) - 0.5f) * 30f));
+                        else if (k2 < 0.8f)
+                            Part(deco, Shape.Cyl, p + new Vector3(0, 0.05f, 0), new Vector3(0.1f, 0.42f, 0.1f), Wood, new Vector3(90, Rand(seed, 12) * 180f, 0));
+                        else
+                        {
+                            Part(deco, Shape.Cyl, p + new Vector3(0, 0.03f, 0), new Vector3(0.025f, 0.06f, 0.025f), new Color(0.95f, 0.92f, 0.85f));
+                            Part(deco, Shape.Ball, p + new Vector3(0, 0.07f, 0), new Vector3(0.08f, 0.04f, 0.08f), new Color(0.85f, 0.18f, 0.12f));
+                        }
+                    }
                     else if (r < 0.78f)
                     {
                         float k = Rand(seed, 5);
@@ -653,6 +684,28 @@ namespace GameClient
                         }
                     }
                 }
+
+            // gölet (köyün sol arkası): su + taş kenar + saz
+            var pond = Group(parent, "pond", new Vector3(-5.2f, 0f, size + 2.5f));
+            Part(pond, Shape.Cyl, new Vector3(0, -0.04f, 0), new Vector3(3.6f, 0.04f, 2.4f), Mat(new Color(0.25f, 0.52f, 0.75f), 0.95f, 0.05f));
+            for (int i = 0; i < 16; i++)
+            {
+                float a = i / 16f * Mathf.PI * 2f;
+                Part(pond, Shape.Ball, new Vector3(Mathf.Cos(a) * 1.85f, 0.02f, Mathf.Sin(a) * 1.25f), new Vector3(0.28f, 0.14f, 0.22f), Color.Lerp(StoneDark, Stone, Rand(i, 77)), new Vector3(0, a * 57f, 0));
+                if (i % 3 == 0)
+                    for (int k = 0; k < 3; k++)
+                        Part(pond, Shape.Cyl, new Vector3(Mathf.Cos(a) * 1.6f + k * 0.06f, 0.14f, Mathf.Sin(a) * 1.05f), new Vector3(0.02f, 0.3f, 0.02f), new Color(0.35f, 0.55f, 0.22f));
+            }
+            // uzak dağlar (arka ve yanlar; sis yumuşatır)
+            var mtn = Group(parent, "mountains", Vector3.zero);
+            for (int i = 0; i < 11; i++)
+            {
+                float t2 = i / 10f;
+                var mp = Vector3.Lerp(new Vector3(-24f, 0, size + 26f), new Vector3(size + 26f, 0, size + 18f), t2) + new Vector3(Rand(i, 91) * 4f, 0, Rand(i, 92) * 5f);
+                float hgt = 7f + Rand(i, 93) * 6f, w = 9f + Rand(i, 94) * 5f;
+                Part(mtn, Shape.Cone, mp + new Vector3(0, hgt * 0.5f - 0.2f, 0), new Vector3(w, hgt, w * 0.8f), Color.Lerp(new Color(0.42f, 0.48f, 0.55f), new Color(0.52f, 0.58f, 0.62f), Rand(i, 95)));
+                Part(mtn, Shape.Cone, mp + new Vector3(0, hgt * 0.84f - 0.2f, 0), new Vector3(w * 0.34f, hgt * 0.32f, w * 0.28f), new Color(0.95f, 0.96f, 0.98f));
+            }
 
             // saldırı alanı: toprak meydan + iki çadır + sancaklar
             var zone = Group(parent, "attackZone", Vector3.zero);
@@ -691,10 +744,41 @@ namespace GameClient
             }
         }
 
+        private static readonly Color[] HairColors = { new Color(0.25f, 0.16f, 0.09f), new Color(0.12f, 0.09f, 0.07f), new Color(0.62f, 0.42f, 0.18f), new Color(0.48f, 0.22f, 0.10f) };
+
+        /// <summary>
+        /// İnsansı karakter (kullanıcı isteği 15.11.2026): kalçadan dönen bacaklar ("legL/legR"), omuzdan dönen kollar
+        /// ("armL/armR"), çizme, tunik + etek, boyun, gözler, saç. CharacterRig yürürken uzuvları sallar.
+        /// Boyutlar s ile ölçeklenir; ekipman (HumanGear) eski gövde ölçülerine oturur (baş merkezi 0,31s).
+        /// </summary>
         private static void Human(Transform g, Color tunic, Color skin, float s, bool helmet, bool hood)
         {
-            Part(g, Shape.Capsule, new Vector3(0, 0.15f * s, 0), new Vector3(0.14f, 0.22f, 0.12f) * s, tunic);
-            Part(g, Shape.Ball, new Vector3(0, 0.31f * s, 0), new Vector3(0.11f, 0.11f, 0.11f) * s, skin);
+            var pants = Color.Lerp(tunic, Dark, 0.55f);
+            var boot = new Color(0.28f, 0.18f, 0.10f);
+            foreach (var side in new[] { -1f, 1f })
+            {
+                var leg = Group(g, side < 0 ? "legL" : "legR", new Vector3(0.036f * side, 0.115f, 0) * s);
+                Part(leg, Shape.Cyl, new Vector3(0, -0.05f, 0) * s, new Vector3(0.046f, 0.1f, 0.046f) * s, pants);
+                Part(leg, Shape.Box, new Vector3(0, -0.1f, 0.012f) * s, new Vector3(0.052f, 0.03f, 0.075f) * s, boot);
+            }
+            Part(g, Shape.Cyl, new Vector3(0, 0.125f, 0) * s, new Vector3(0.14f, 0.05f, 0.11f) * s, Color.Lerp(tunic, Dark, 0.15f)); // etek
+            Part(g, Shape.Capsule, new Vector3(0, 0.19f, 0) * s, new Vector3(0.13f, 0.16f, 0.1f) * s, tunic);                      // gövde
+            Part(g, Shape.Cyl, new Vector3(0, 0.265f, 0) * s, new Vector3(0.04f, 0.025f, 0.04f) * s, skin);                       // boyun
+            foreach (var side in new[] { -1f, 1f })
+            {
+                var arm = Group(g, side < 0 ? "armL" : "armR", new Vector3(0.083f * side, 0.245f, 0) * s);
+                Part(arm, Shape.Cyl, new Vector3(0, -0.05f, 0) * s, new Vector3(0.036f, 0.1f, 0.036f) * s, tunic);
+                Part(arm, Shape.Ball, new Vector3(0, -0.105f, 0.005f) * s, new Vector3(0.038f, 0.038f, 0.038f) * s, skin);
+            }
+            Part(g, Shape.Ball, new Vector3(0, 0.31f, 0) * s, new Vector3(0.105f, 0.105f, 0.105f) * s, skin);                     // baş
+            foreach (var x in new[] { -0.022f, 0.022f })
+                Part(g, Shape.Ball, new Vector3(x, 0.318f, 0.048f) * s, new Vector3(0.014f, 0.016f, 0.01f) * s, Dark);             // gözler
+            Part(g, Shape.Ball, new Vector3(0, 0.302f, 0.052f) * s, new Vector3(0.016f, 0.016f, 0.014f) * s, Color.Lerp(skin, new Color(0.8f, 0.4f, 0.3f), 0.3f)); // burun
+            if (!helmet && !hood)
+            {
+                int h = Mathf.Abs((int)(tunic.r * 97 + tunic.g * 31 + tunic.b * 13)) % HairColors.Length;
+                Part(g, Shape.Ball, new Vector3(0, 0.334f, -0.008f) * s, new Vector3(0.112f, 0.07f, 0.112f) * s, HairColors[h]); // saç
+            }
             if (helmet) Part(g, Shape.Ball, new Vector3(0, 0.34f * s, 0), new Vector3(0.12f, 0.07f, 0.12f) * s, Mat(StoneLight, 0.7f));
             if (hood) Part(g, Shape.Cone, new Vector3(0, 0.38f * s, 0), new Vector3(0.13f, 0.12f, 0.13f) * s, Color.Lerp(tunic, Dark, 0.3f));
         }
@@ -899,6 +983,10 @@ namespace GameClient
             float foot = t == SoldierType.Giant || t == SoldierType.DragonRider ? 1.8f : (t == SoldierType.Cavalry || t == SoldierType.Catapult ? 1.4f : 1f);
             float headY = t == SoldierType.Giant ? 0.82f : (t == SoldierType.Cavalry ? 0.58f : (t == SoldierType.DragonRider ? 0.5f : (t == SoldierType.Catapult ? 0.4f : (t == SoldierType.Fairy ? 0.3f : (t == SoldierType.Goblin ? 0.34f : 0.42f)))));
             LevelEffects(g, L, foot, headY);
+            var rig = root.gameObject.AddComponent<CharacterRig>();
+            if (t == SoldierType.Giant) { rig.StrideSpeed = 6f; rig.StrideDeg = 26f; }
+            else if (t == SoldierType.Goblin) rig.StrideSpeed = 15f;
+            else if (t == SoldierType.Cavalry) { rig.StrideSpeed = 14f; rig.StrideDeg = 40f; }
             return root;
         }
 
@@ -908,7 +996,11 @@ namespace GameClient
             Part(g, Shape.Box, new Vector3(0, 0.22f, 0.15f), new Vector3(0.07f, 0.14f, 0.07f), c, new Vector3(-30, 0, 0));
             Part(g, Shape.Box, new Vector3(0, 0.27f, 0.2f), new Vector3(0.06f, 0.06f, 0.12f), c);
             foreach (var x in new[] { -0.04f, 0.04f }) foreach (var z in new[] { -0.11f, 0.11f })
-                    Part(g, Shape.Box, new Vector3(x, 0.05f, z), new Vector3(0.025f, 0.1f, 0.025f), Color.Lerp(c, Dark, 0.4f));
+                {
+                    var leg = Group(g, (x < 0) == (z < 0) ? "legL" : "legR", new Vector3(x, 0.1f, z)); // çapraz bacaklar birlikte
+                    Part(leg, Shape.Box, new Vector3(0, -0.05f, 0), new Vector3(0.025f, 0.1f, 0.025f), Color.Lerp(c, Dark, 0.4f));
+                    Part(leg, Shape.Box, new Vector3(0, -0.095f, 0.004f), new Vector3(0.03f, 0.015f, 0.032f), Dark); // toynak
+                }
             Part(g, Shape.Box, new Vector3(0, 0.14f, -0.17f), new Vector3(0.02f, 0.08f, 0.04f), Dark, new Vector3(-30, 0, 0));
         }
 
