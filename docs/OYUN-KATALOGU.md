@@ -2,7 +2,7 @@
 Tüm sayılar GEÇİCİ (dengeleme). Seviye ölçeği: can/hasar/üretim = taban × (100 + 20l + 2l²)% (l = seviye−1; Sv10 ≈ 4,4×, Sv30 ≈ 23,6×).
 
 ## 1. Askerler (10)
-Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı önce kuleler; diğer tüm askerler en yakın yapıya saldırır (Duvar yakındaki yer askerlerini üstüne çeker). Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil/hız hücre cinsinden.
+Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı önce kuleler; diğer tüm askerler yol boyunca en yakın yapıya saldırır (Duvar yakındaki yer askerlerini üstüne çeker). Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil/hız hücre cinsinden.
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 80l + 17l² (Sv1→30 toplam ≈ 165 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

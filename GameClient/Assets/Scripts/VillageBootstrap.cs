@@ -19,7 +19,7 @@ namespace GameClient
     public sealed partial class VillageBootstrap : MonoBehaviour
     {
         private enum Tool { Pan, Select }
-        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu }
+        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu, TestArmy }
 
         private GameState g;
         private DefenseSetup view;

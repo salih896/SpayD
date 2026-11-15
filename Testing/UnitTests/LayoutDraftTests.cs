@@ -229,6 +229,33 @@ namespace GameCore.Tests
             return sim.Structures[s.TargetId].Pos;
         }
 
+        /// <summary>Kullanıcının haritası (15.11.2026 kaydı): yol girişten sola kıvrılıp dolaşıyor; köylü evi ve kışla yolun başında, kuleler kuş uçuşu yakın ama yolun sonunda.</summary>
+        [Test]
+        public void Swordsman_FollowsRoadOrder_HouseThenBarracks_BeforeTowers()
+        {
+            var L = new VillageLayout(11, 11, 10);
+            L.ToggleEntrance(P(5, 0), out _);
+            foreach (var r in new[] { P(5, 1), P(4, 1), P(4, 2), P(7, 2), P(4, 3), P(7, 3), P(4, 4), P(5, 4), P(6, 4), P(7, 4) }) L.TryPlace(r, CellKind.Road, out _);
+            var d = new DefenseSetup(L);
+            foreach (var t in new[] { P(6, 3), P(6, 2), P(7, 1) }) { L.TryPlace(t, CellKind.Tower, out _, RoadTier.Wood, false); d.Towers[t] = new TowerSpec(TowerType.Archer, 1, 70); } // devre dışı: asker ölmesin
+            L.TryPlace(P(5, 2), CellKind.Building, out _); d.Buildings[P(5, 2)] = new BuildingSpec(BuildingType.VillagerHouse);
+            L.TryPlace(P(5, 3), CellKind.Building, out _); d.Buildings[P(5, 3)] = new BuildingSpec(BuildingType.Barracks);
+            L.TryPlace(P(8, 2), CellKind.Building, out _); d.Buildings[P(8, 2)] = new BuildingSpec(BuildingType.Forest);
+            L.TryPlace(P(8, 1), CellKind.Building, out _); d.Buildings[P(8, 1)] = new BuildingSpec(BuildingType.LumberDepot);
+            var sim = new BattleSim(d, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 10 } }, 5);
+            sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            var order = new List<GridPos>();
+            for (int i = 0; i < 3000 && !sim.Finished && order.Count < 3; i++)
+            {
+                sim.Step();
+                int id = sim.Soldiers[0].TargetId;
+                if (id >= 0 && (order.Count == 0 || !order[order.Count - 1].Equals(sim.Structures[id].Pos))) order.Add(sim.Structures[id].Pos);
+            }
+            Assert.GreaterOrEqual(order.Count, 2, "En az iki hedef");
+            Assert.AreEqual(P(5, 2), order[0], "Önce yolun başındaki köylü evi");
+            Assert.AreEqual(P(5, 3), order[1], "Sonra kışla");
+        }
+
         [Test]
         public void Targeting_NearestForMost_GoblinDepotFirst_CavalryTowerFirst()
         {

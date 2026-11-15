@@ -452,14 +452,64 @@ namespace GameCore.Combat
             });
 
             if (s.Flying) return cands[0];
+
+            // Yer askeri: "en yakın" = yol üzerindeki yürüme mesafesi (kuş uçuşu değil; kullanıcı geri bildirimi 15.11.2026).
+            // Eşitlikte kuş uçuşu, sonra kimlik (deterministik).
             GridPos start = s.Phase == 0 ? s.Entrance : s.LastCell;
+            var dist = RoadDistances(start);
+            var keyPath = new Dictionary<int, int>();
+            var reach = new List<SimStructure>();
             foreach (var c in cands)
             {
-                var goals = AccessCells(s, c);
-                if (goals.Count == 0) continue;
-                if (PathFinder.FindPath(size, roads, start, goals) != null) return c;
+                // Ulaşılabilir mi? (saldırı menzilindeki yol kareleri)
+                int reachD = int.MaxValue;
+                foreach (var g in AccessCells(s, c))
+                    if (dist.TryGetValue(g, out int d) && d < reachD) reachD = d;
+                if (reachD == int.MaxValue) continue;
+                // Sıra: yapının yola değdiği (yan yana) kareye yürüme mesafesi; yalnızca çaprazdan değiyorsa +1
+                int best = int.MaxValue;
+                for (int i = 0; i < 4; i++)
+                {
+                    var n = new GridPos(c.Pos.X + BfsDx[i], c.Pos.Y + BfsDy[i]);
+                    if (dist.TryGetValue(n, out int d) && d < best) best = d;
+                }
+                if (best == int.MaxValue) best = reachD + 1;
+                keyPath[c.Id] = best;
+                reach.Add(c);
             }
-            return null;
+            if (reach.Count == 0) return null;
+            reach.Sort((a, b) =>
+            {
+                int r = keyClass[a.Id].CompareTo(keyClass[b.Id]);
+                if (r != 0) return r;
+                r = keyPath[a.Id].CompareTo(keyPath[b.Id]);
+                if (r != 0) return r;
+                r = keyDist[a.Id].CompareTo(keyDist[b.Id]);
+                return r != 0 ? r : a.Id.CompareTo(b.Id);
+            });
+            return reach[0];
+        }
+
+        private static readonly int[] BfsDx = { 0, 1, 0, -1 }, BfsDy = { 1, 0, -1, 0 };
+
+        /// <summary>Başlangıç yol karesinden diğer yol karelerine adım sayısı (4 yönlü, sabit komşu sırası).</summary>
+        private Dictionary<GridPos, int> RoadDistances(GridPos start)
+        {
+            var d = new Dictionary<GridPos, int>();
+            if (!roads.Contains(start)) return d;
+            var q = new Queue<GridPos>();
+            d[start] = 0; q.Enqueue(start);
+            while (q.Count > 0)
+            {
+                var c = q.Dequeue();
+                int nd = d[c] + 1;
+                for (int i = 0; i < 4; i++)
+                {
+                    var n = new GridPos(c.X + BfsDx[i], c.Y + BfsDy[i]);
+                    if (roads.Contains(n) && !d.ContainsKey(n)) { d[n] = nd; q.Enqueue(n); }
+                }
+            }
+            return d;
         }
 
         private void PlanPath(SimSoldier s, SimStructure target)

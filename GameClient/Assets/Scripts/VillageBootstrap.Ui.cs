@@ -105,6 +105,7 @@ namespace GameClient
                 case Tab.Research: DrawResearch(w, h); break;
                 case Tab.Quests: DrawQuests(w, h); break;
                 case Tab.Attack: DrawAttack(w, h); break;
+                case Tab.TestArmy: DrawTestArmy(w, h); break;
                 default: DrawMenu(w, h); break;
             }
         }
@@ -596,6 +597,40 @@ namespace GameClient
             GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Kılıçlı en yakın yapıya saldırır. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer), Elf kulesi periye, Top kalabalığa güçlüdür; Buz yavaşlatır, Şimşek zincirleme vurur. Zafer için köyün %75'ini yık (%90: 2 yıldız, %100: 3 yıldız).</color>");
         }
 
+        // ---------- Test ordusu ----------
+        private void DrawTestArmy(float w, float h)
+        {
+            var r = ModalRect(w, h);
+            int cnt = TestArmyCount();
+            int housing = 0;
+            foreach (var kv in testArmy) housing += kv.Value * GameRules.Housing(kv.Key);
+            Modal(r, "TEST ORDUSU  —  " + cnt + " asker, " + housing + " yer");
+            GUI.Label(new Rect(r.x + 20, r.y + 30, r.width - 40, 22), "<size=13><color=#d8c9a8>Kendi köyüne saldırı testi: istediğin askeri seç (en çok " + TestArmyMaxSoldiers + " asker). Seviyeler senin asker seviyelerin; ordun harcanmaz, ödül yok.</color></size>");
+            float y = r.y + 58;
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
+            {
+                var t = (SoldierType)i; var d = ContentCatalog.Soldier(t);
+                int n = testArmy.TryGetValue(t, out var v) ? v : 0;
+                GUI.Label(new Rect(r.x + 20, y + 6, 330, 26), "<b>" + d.Name + "</b>  <size=13>Sv " + g.SoldierLevel(t) + "  " + GameRules.Housing(t) + " yer" + (g.Level < d.UnlockLevel ? "  <color=#ffb070>(senin için Sv " + d.UnlockLevel + "'de açılır; testte serbest)</color>" : "") + "</size>");
+                float bx = r.x + 360;
+                if (Btn(new Rect(bx, y, 48, 32), "-10")) n = Mathf.Max(0, n - 10);
+                if (Btn(new Rect(bx + 52, y, 40, 32), "-")) n = Mathf.Max(0, n - 1);
+                GUI.Label(new Rect(bx + 96, y + 4, 50, 26), n.ToString(), UiTheme.Center);
+                int room = TestArmyMaxSoldiers - cnt;
+                if (Btn(new Rect(bx + 150, y, 40, 32), "+") && room > 0) n += 1;
+                if (Btn(new Rect(bx + 194, y, 48, 32), "+10") && room > 0) n += Mathf.Min(10, room);
+                testArmy[t] = n;
+                cnt = TestArmyCount();
+                y += 38;
+            }
+            y += 6;
+            if (Btn(new Rect(r.x + 20, y, 200, 38), "Kapasite kadar doldur")) FillTestArmy();
+            if (Btn(new Rect(r.x + 228, y, 120, 38), "Temizle")) testArmy.Clear();
+            var go = new Rect(r.x + 360, y, 240, 38);
+            uiRects.Add(go);
+            if (PressBtn(go, "TEST SALDIRISI", UiTheme.BtnRed)) StartTestBattle();
+        }
+
         // ---------- Menü ----------
         private void DrawMenu(float w, float h)
         {
@@ -617,8 +652,8 @@ namespace GameClient
             if (Btn(new Rect(x + 156, y, 150, 34), "Kaynak +5000")) { foreach (ResourceType t in System.Enum.GetValues(typeof(ResourceType))) g.Wallet.TryAdd(t, 5000, g.Level, out _, out _); }
             if (Btn(new Rect(x + 312, y, 170, 34), "Sv 30 yap (test)")) { AddLevelUpPopups(g.AddXp(200000)); dirty = true; }
             y += 42;
-            if (Btn(new Rect(x, y, 300, 34), "Kendi köyüne saldır (test)")) StartTestBattle();
-            GUI.Label(new Rect(x + 310, y + 6, r.width - 340, 24), "<size=12><color=#d8c9a8>Kurduğun savunmayı dene: test ordusu (kapasite kadar), ödül yok, ordun harcanmaz</color></size>");
+            if (Btn(new Rect(x, y, 300, 34), "Kendi köyüne saldır (test)")) { if (TestArmyCount() == 0) FillTestArmy(); tab = Tab.TestArmy; scrollPos = Vector2.zero; }
+            GUI.Label(new Rect(x + 310, y + 6, r.width - 340, 24), "<size=12><color=#d8c9a8>Kurduğun savunmayı dene: askerleri sen seç, ödül yok, ordun harcanmaz</color></size>");
             y += 50;
             uiRects.Add(new Rect(x, y, 300, 38));
             if (GUI.Button(new Rect(x, y, 300, 38), confirmNew ? "EMİN MİSİN? Tekrar bas: tüm ilerleme silinir" : "Yeni oyun (sil)", UiTheme.BtnRed)) { if (confirmNew) { confirmNew = false; NewGameConfirmed(); } else confirmNew = true; }

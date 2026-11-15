@@ -39,14 +39,21 @@ namespace GameClient
         /// Test: kendi kurduğun köye saldır (Ayarlar). Gerçek ordu harcanmaz; açık asker türlerinden ordu kapasitesi kadar
         /// (kışla yoksa 40 yer) test ordusu, mevcut asker seviyeleri ve araştırmalarla. Yağma/XP/görev ilerlemesi yok.
         /// </summary>
-        private void StartTestBattle()
+        /// <summary>Test ordusu (Ayarlar → Kendi köyüne saldır): oyuncunun seçtiği türler/adetler.</summary>
+        private readonly Dictionary<SoldierType, int> testArmy = new Dictionary<SoldierType, int>();
+        public const int TestArmyMaxSoldiers = 300; // performans hedefi (≤300 asker)
+
+        private int TestArmyCount() { int n = 0; foreach (var kv in testArmy) n += kv.Value; return n; }
+
+        /// <summary>Kapasite kadar (kışla yoksa 40 yer) açık türlerden sırayla doldurur.</summary>
+        private void FillTestArmy()
         {
+            testArmy.Clear();
             var types = new List<SoldierType>();
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
                 if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= g.Level) types.Add((SoldierType)i);
             if (types.Count == 0) types.Add(SoldierType.Swordsman);
             int housing = g.ArmyCapacity > 0 ? g.ArmyCapacity : 40;
-            var stock = new Dictionary<SoldierType, int>();
             bool any = true;
             while (any)
             {
@@ -54,13 +61,20 @@ namespace GameClient
                 foreach (var t in types)
                 {
                     if (GameRules.Housing(t) > housing) continue;
-                    stock[t] = (stock.TryGetValue(t, out var n) ? n : 0) + 1;
+                    testArmy[t] = (testArmy.TryGetValue(t, out var n) ? n : 0) + 1;
                     housing -= GameRules.Housing(t);
                     any = true;
                 }
             }
+        }
+
+        private void StartTestBattle()
+        {
+            var stock = new Dictionary<SoldierType, int>();
+            foreach (var kv in testArmy) if (kv.Value > 0) stock[kv.Key] = kv.Value;
+            if (stock.Count == 0) { Toast("Önce test ordusuna asker ekle"); return; }
             var levels = new Dictionary<SoldierType, int>();
-            foreach (var t in types) levels[t] = g.SoldierLevel(t);
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = g.SoldierLevel((SoldierType)i);
             int seed = 7000 + battleSeed++;
             var target = new TargetInfo { Name = "Kendi köyün (test)", Level = g.Level, Defense = g.MakeDefense(), Pool = default, Seed = seed };
             sim = new BattleSim(target.Defense, stock, levels, seed) { AttackerMods = g.Research.Mods() };
