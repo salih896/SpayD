@@ -252,7 +252,8 @@ namespace GameClient
         private static string AtkSpeed(int intervalTicks)
         {
             int it = System.Math.Max(1, intervalTicks);
-            return "Saldırı " + (it / 10f).ToString("0.0") + " sn (" + (10f / it).ToString("0.#") + "/sn)";
+            float sec = RealSeconds(it); // ekrandaki gerçek süre (savaş %40 yavaş)
+            return "Saldırı " + sec.ToString("0.0") + " sn (" + (1f / sec).ToString("0.#") + "/sn)";
         }
 
         private static string TowerRole(TowerType t)
@@ -693,7 +694,7 @@ namespace GameClient
             int aliveSoldiers = 0;
             foreach (var s in sim.Soldiers) if (s.Alive) aliveSoldiers++;
             var rs = new Rect(6, h - 46, w - 12, 40);
-            string msg = Time.time < toastUntil ? toast : curTarget.Name + " (Sv " + curTarget.Level + ")  |  " + (sim.Tick / 10) + " sn / 180  |  Hasar %" + LiveDamagePct() + " (zafer %75)  |  Sahada " + aliveSoldiers + "   [kırmızı alana dokun/basılı tut]";
+            string msg = Time.time < toastUntil ? toast : curTarget.Name + " (Sv " + curTarget.Level + ")  |  " + (int)RealSeconds(sim.Tick) + " sn / " + (int)RealSeconds(BattleSim.TimeLimitTicks) + "  |  Hasar %" + LiveDamagePct() + " (zafer %75)  |  Sahada " + aliveSoldiers + "   [kırmızı alana dokun/basılı tut]";
             GUI.Label(rs, msg, UiTheme.Pill); uiRects.Add(rs);
             if (battleOver && lastResult != null) DrawResult(w, h);
         }

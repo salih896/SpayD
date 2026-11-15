@@ -95,13 +95,20 @@ namespace GameClient
 
         private bool testBattle;
 
+        /// <summary>
+        /// Bir simülasyon adımının gerçek süresi (kullanıcı kararı 15.11.2026: savaş %40 yavaş). Simülasyon 10 adım = "1 savaş saniyesi"
+        /// olarak aynen kalır (hasar dengesi ve sunucu sonucu değişmez); ekranda 10 adım 1,67 sn sürer. Savaş süresi 180 savaş sn = 5 dk.
+        /// </summary>
+        public const float SimTickSeconds = 1f / 6f;
+        public static float RealSeconds(int ticks) => ticks * SimTickSeconds;
+
         private void StepBattle()
         {
             if (!sim.Finished)
             {
                 tickAcc += Time.deltaTime * speed;
                 int n = 0;
-                while (tickAcc >= 0.1f && n < 60 && !sim.Finished) { sim.Step(); tickAcc -= 0.1f; n++; }
+                while (tickAcc >= SimTickSeconds && n < 60 && !sim.Finished) { sim.Step(); tickAcc -= SimTickSeconds; n++; }
                 if (n >= 60) tickAcc = 0f;
             }
             int alive = 0;
