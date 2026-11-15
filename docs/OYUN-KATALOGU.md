@@ -46,7 +46,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer; Mancınık'ta gövdeye levha ve bayrak eklenir.
 
 ## 2. Kuleler (7)
-Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır.
+Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt; çapraz sayılmaz).
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 80l + 17l² (Sv1→30 toplam ≈ 165 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

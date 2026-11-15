@@ -275,7 +275,7 @@ namespace GameCore.Combat
                 PlanPath(s, target);
             }
 
-            long r2 = (long)s.RangeMilli * s.RangeMilli;
+            long r2 = IsMelee(s) ? (long)MeleeReachMilli * MeleeReachMilli : (long)s.RangeMilli * s.RangeMilli;
             if (s.Phase == 1 && CombatMath.DistSq(s.X, s.Y, target.CenterX, target.CenterY) <= r2)
             {
                 if (s.Cooldown > 0) { s.Cooldown--; return; }
@@ -402,9 +402,24 @@ namespace GameCore.Combat
         }
 
         // ---------- Hedef ve yol ----------
+        /// <summary>Yakın dövüşçü (menzil ≤ 2 hücre, uçmayan): yalnızca yapının sağ/sol/üst/alt yanındaki yoldan saldırır (kullanıcı kararı 15.11.2026).</summary>
+        private static bool IsMelee(SimSoldier s) => !s.Flying && ContentCatalog.Soldier(s.Type).RangeMilli <= 2000;
+
+        /// <summary>Yakın dövüş vuruş mesafesi: yan kare (1 hücre) evet, çapraz (1,41) hayır.</summary>
+        private const int MeleeReachMilli = 1050;
+
         private HashSet<GridPos> AccessCells(SimSoldier s, SimStructure target)
         {
             var goals = new HashSet<GridPos>();
+            if (IsMelee(s))
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    var n = new GridPos(target.Pos.X + BfsDx[i], target.Pos.Y + BfsDy[i]);
+                    if (roads.Contains(n)) goals.Add(n);
+                }
+                return goals;
+            }
             long r2 = (long)s.RangeMilli * s.RangeMilli;
             foreach (var c in roads)
                 if (CombatMath.DistSq(c.X * 1000, c.Y * 1000, target.CenterX, target.CenterY) <= r2) goals.Add(c);
@@ -453,8 +468,10 @@ namespace GameCore.Combat
 
             if (s.Flying) return cands[0];
 
-            // Yer askeri: "en yakın" = yol üzerindeki yürüme mesafesi (kuş uçuşu değil; kullanıcı geri bildirimi 15.11.2026).
+            // Yakın dövüşçü: "en yakın" = yapının yan karesine (yol) yürüme mesafesi (kullanıcı geri bildirimi 15.11.2026).
+            // Uzaktan saldıran (Okçu, Büyücü, Mancınık): ulaşılabilir yapılar arasında kendisine kuş uçuşu en yakın olan.
             // Eşitlikte kuş uçuşu, sonra kimlik (deterministik).
+            bool melee = IsMelee(s);
             GridPos start = s.Phase == 0 ? s.Entrance : s.LastCell;
             var dist = RoadDistances(start);
             var keyPath = new Dictionary<int, int>();
@@ -466,15 +483,7 @@ namespace GameCore.Combat
                 foreach (var g in AccessCells(s, c))
                     if (dist.TryGetValue(g, out int d) && d < reachD) reachD = d;
                 if (reachD == int.MaxValue) continue;
-                // Sıra: yapının yola değdiği (yan yana) kareye yürüme mesafesi; yalnızca çaprazdan değiyorsa +1
-                int best = int.MaxValue;
-                for (int i = 0; i < 4; i++)
-                {
-                    var n = new GridPos(c.Pos.X + BfsDx[i], c.Pos.Y + BfsDy[i]);
-                    if (dist.TryGetValue(n, out int d) && d < best) best = d;
-                }
-                if (best == int.MaxValue) best = reachD + 1;
-                keyPath[c.Id] = best;
+                keyPath[c.Id] = melee ? reachD : 0;
                 reach.Add(c);
             }
             if (reach.Count == 0) return null;

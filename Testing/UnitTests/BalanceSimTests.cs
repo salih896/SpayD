@@ -155,15 +155,13 @@ namespace GameCore.Tests
                 if (G.CountBuildings(t) >= want) continue;
                 if (!G.Wallet.CanAfford(GameRules.Scale(GameRules.BuildCostOf(t), G.Config, G.Level, 100), G.Level, SpendArea.Building, out _)) continue;
                 bool placed = false;
-                // bina yola bağlı olmalı: önce yalnızca çaprazdan bağlı hücre (yol kenarı kulelere kalsın), sonra herhangi bağlı hücre
-                for (int pass = 0; pass < 2 && !placed; pass++)
-                    foreach (var p in Cells())
-                    {
-                        if (G.Layout.Get(p) != CellKind.Empty || !Road8(p)) continue;
-                        if (pass == 0 && Road4(p)) continue;
-                        if (G.TryPlaceBuilding(p, t, out _)) placed = true;
-                        break;
-                    }
+                // bina yola bağlı olmalı (sağ/sol/üst/alt)
+                foreach (var p in Cells())
+                {
+                    if (G.Layout.Get(p) != CellKind.Empty || !Road4(p)) continue;
+                    if (G.TryPlaceBuilding(p, t, out _)) placed = true;
+                    break;
+                }
             }
         }
 
@@ -180,7 +178,7 @@ namespace GameCore.Tests
                 bool placed = false;
                 foreach (var p in Cells())
                 {
-                    if (G.Layout.Get(p) != CellKind.Empty || !Road8(p)) continue;
+                    if (G.Layout.Get(p) != CellKind.Empty || !Road4(p)) continue;
                     if (G.TryPlaceTower(p, tt, out _)) { placed = true; towerCycle++; }
                     break;
                 }

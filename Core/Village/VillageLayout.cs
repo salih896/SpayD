@@ -199,15 +199,11 @@ namespace GameCore.Village
         /// <summary>Birebir kopya (aynı limitler).</summary>
         public VillageLayout Clone() => WithLimits(RoadLimit, EntranceLimit);
 
-        /// <summary>Hücrenin 8 komşusundan biri yol mu? (bina/kule "yola bağlı" kuralı)</summary>
+        /// <summary>Hücrenin sağ/sol/üst/alt komşusundan biri yol mu? (bina/kule "yola bağlı" kuralı; çapraz sayılmaz — kullanıcı kararı 15.11.2026)</summary>
         public bool HasAdjacentRoad(GridPos p)
         {
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dy = -1; dy <= 1; dy++)
-                {
-                    if (dx == 0 && dy == 0) continue;
-                    if (Get(new GridPos(p.X + dx, p.Y + dy)) == CellKind.Road) return true;
-                }
+            for (int i = 0; i < 4; i++)
+                if (Get(new GridPos(p.X + Dx[i], p.Y + Dy[i])) == CellKind.Road) return true;
             return false;
         }
     }

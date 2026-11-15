@@ -127,7 +127,7 @@ namespace GameCore.Game
             {
                 var p = kv.Value;
                 if (blds >= bldTarget) break;
-                if (layout.Get(p) != CellKind.Empty) continue;
+                if (layout.Get(p) != CellKind.Empty || !AdjacentRoad(layout, p)) continue;
                 var bt = bldTypes[bi++ % bldTypes.Count];
                 if (layout.TryPlace(p, CellKind.Building, out e)) { setup.Buildings[p] = new BuildingSpec(bt, structLevel); blds++; }
             }
@@ -167,12 +167,7 @@ namespace GameCore.Game
                    l.Get(new GridPos(p.X, p.Y + 1)) == CellKind.Road || l.Get(new GridPos(p.X, p.Y - 1)) == CellKind.Road;
         }
 
-        private static bool AdjacentRoad(VillageLayout l, GridPos p)
-        {
-            for (int dx = -1; dx <= 1; dx++)
-                for (int dy = -1; dy <= 1; dy++)
-                    if ((dx != 0 || dy != 0) && l.Get(new GridPos(p.X + dx, p.Y + dy)) == CellKind.Road) return true;
-            return false;
-        }
+        /// <summary>Yola bağlı mı (sağ/sol/üst/alt; oyuncu köyüyle aynı kural).</summary>
+        private static bool AdjacentRoad(VillageLayout l, GridPos p) => l.HasAdjacentRoad(p);
     }
 }

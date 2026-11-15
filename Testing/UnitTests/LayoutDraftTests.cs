@@ -257,6 +257,27 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void Diagonal_DoesNotConnect_MeleeCannotHitFromDiagonal_ArcherCan()
+        {
+            var L = new VillageLayout(11, 20, 10);
+            L.ToggleEntrance(P(5, 0), out _);
+            for (int y = 1; y <= 4; y++) L.TryPlace(P(5, y), CellKind.Road, out _);
+            Assert.IsFalse(L.HasAdjacentRoad(P(6, 5)), "Çapraz yola bağlı sayılmaz");
+            Assert.IsTrue(L.HasAdjacentRoad(P(6, 4)), "Yan kare bağlı");
+            L.TryPlace(P(6, 5), CellKind.Building, out _);
+            var d = new DefenseSetup(L);
+            d.Buildings[P(6, 5)] = new BuildingSpec(BuildingType.University);
+            foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer })
+            {
+                var sim = new BattleSim(d, new Dictionary<SoldierType, int> { { t, 1 } }, null, 2);
+                sim.Deploy(t, 5, 1, out _);
+                for (int i = 0; i < 200; i++) sim.Step();
+                if (t == SoldierType.Swordsman) Assert.AreEqual(sim.Structures[0].MaxHp, sim.Structures[0].Hp, "Kılıçlı çaprazdan vuramaz");
+                else Assert.Less(sim.Structures[0].Hp, sim.Structures[0].MaxHp, "Okçu uzaktan vurur");
+            }
+        }
+
+        [Test]
         public void Targeting_NearestForMost_GoblinDepotFirst_CavalryTowerFirst()
         {
             foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Giant, SoldierType.Spearman, SoldierType.Fairy, SoldierType.Catapult, SoldierType.DragonRider, SoldierType.Mage })
