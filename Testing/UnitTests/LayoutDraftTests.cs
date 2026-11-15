@@ -242,6 +242,14 @@ namespace GameCore.Tests
             L.TryPlace(P(5, 3), CellKind.Building, out _); d.Buildings[P(5, 3)] = new BuildingSpec(BuildingType.Barracks);
             L.TryPlace(P(8, 2), CellKind.Building, out _); d.Buildings[P(8, 2)] = new BuildingSpec(BuildingType.Forest);
             L.TryPlace(P(8, 1), CellKind.Building, out _); d.Buildings[P(8, 1)] = new BuildingSpec(BuildingType.LumberDepot);
+            // Okçu ve Büyücü de yol sırasına göre: önce yolun başındaki köylü evi (kuş uçuşu yakın kuleler değil)
+            foreach (var rt in new[] { SoldierType.Archer, SoldierType.Mage })
+            {
+                var rs = new BattleSim(d, new Dictionary<SoldierType, int> { { rt, 1 } }, null, 5);
+                rs.Deploy(rt, 7, 1, out _);
+                for (int i = 0; i < 5; i++) rs.Step();
+                Assert.AreEqual(P(5, 2), rs.Structures[rs.Soldiers[0].TargetId].Pos, rt + " yol boyunca en yakın yapıya saldırır");
+            }
             var sim = new BattleSim(d, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 10 } }, 5);
             sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
             var order = new List<GridPos>();

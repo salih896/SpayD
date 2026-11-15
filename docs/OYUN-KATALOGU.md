@@ -2,7 +2,7 @@
 Tüm sayılar GEÇİCİ (dengeleme). Seviye ölçeği: can/hasar/üretim = taban × (100 + 20l + 2l²)% (l = seviye−1; Sv10 ≈ 4,4×, Sv30 ≈ 23,6×).
 
 ## 1. Askerler (10)
-Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı önce kuleler; diğer tüm askerler yol boyunca en yakın yapıya saldırır (Duvar yakındaki yer askerlerini üstüne çeker). Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil/hız hücre cinsinden.
+Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı önce kuleler; diğer tüm yer askerleri (Okçu ve Büyücü dahil) yol boyunca en yakın yapıya, uçanlar kuş uçuşu en yakın yapıya saldırır (Duvar yakındaki yer askerlerini üstüne çeker). Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil/hız hücre cinsinden.
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|

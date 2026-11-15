@@ -18,6 +18,8 @@ namespace GameClient
         private Transform dynRoot;
         private readonly List<Transform> soldierViews = new List<Transform>();
         private readonly List<Transform> barViews = new List<Transform>();
+        private readonly List<Transform> soldierBars = new List<Transform>(), soldierBarFills = new List<Transform>();
+        private readonly List<int> soldierBarColor = new List<int>();
 
         private void StartBattle(TargetInfo t)
         {
@@ -130,7 +132,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -156,6 +158,12 @@ namespace GameClient
                 var st = sim.Soldiers[soldierViews.Count];
                 var tr = VillageArt.BuildSoldier(root, st.Type, st.Level);
                 soldierViews.Add(tr);
+                // asker can çubuğu (kameraya bakar, küçük)
+                var sb = VillageArt.Group(root, "sbar", Vector3.zero, 45f);
+                VillageArt.Part(sb, VillageArt.Shape.Box, Vector3.zero, new Vector3(0.36f, 0.06f, 0.03f), VillageArt.Mat(new Color(0.08f, 0.06f, 0.05f)));
+                var sf = VillageArt.Group(sb, "fill", new Vector3(-0.17f, 0f, -0.02f));
+                VillageArt.Part(sf, VillageArt.Shape.Box, new Vector3(0.17f, 0f, 0f), new Vector3(0.34f, 0.045f, 0.015f), VillageArt.Mat(new Color(0.3f, 0.9f, 0.3f), 0.2f, 0.6f));
+                soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
             for (int i = 0; i < sim.Soldiers.Count; i++)
@@ -163,6 +171,7 @@ namespace GameClient
                 var s = sim.Soldiers[i];
                 var t = soldierViews[i];
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
+                if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
                 if (!s.Alive) continue;
                 var p = new Vector3(s.X / 1000f, 0f, s.Y / 1000f);
                 var d = p - soldierPrev[i];
@@ -171,6 +180,16 @@ namespace GameClient
                 float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 14f + i)) * 0.04f : 0f;
                 t.position = p + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierPrev[i] = p;
+                // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
+                float hf = s.MaxHp > 0 ? Mathf.Clamp01((float)s.Hp / s.MaxHp) : 0f;
+                soldierBars[i].position = t.position + new Vector3(0f, s.Flying ? 0.55f : (s.Type == SoldierType.Giant || s.Type == SoldierType.Cavalry ? 0.75f : 0.5f), 0f);
+                soldierBarFills[i].localScale = new Vector3(Mathf.Max(0.03f, hf), 1f, 1f);
+                int ci = hf > 0.6f ? 0 : (hf > 0.3f ? 1 : 2);
+                if (ci != soldierBarColor[i])
+                {
+                    soldierBarColor[i] = ci;
+                    soldierBarFills[i].GetComponentInChildren<MeshRenderer>().sharedMaterial = VillageArt.Mat(ci == 0 ? new Color(0.3f, 0.9f, 0.3f) : (ci == 1 ? new Color(1f, 0.8f, 0.2f) : new Color(1f, 0.3f, 0.2f)), 0.2f, 0.6f);
+                }
             }
 
             // yapılar: can çubuğu, yıkım dumanı, kule atışı

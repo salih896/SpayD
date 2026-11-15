@@ -468,10 +468,9 @@ namespace GameCore.Combat
 
             if (s.Flying) return cands[0];
 
-            // Yakın dövüşçü: "en yakın" = yapının yan karesine (yol) yürüme mesafesi (kullanıcı geri bildirimi 15.11.2026).
-            // Uzaktan saldıran (Okçu, Büyücü, Mancınık): ulaşılabilir yapılar arasında kendisine kuş uçuşu en yakın olan.
+            // Tüm yer askerleri: "en yakın" = yol boyunca, yapıya saldırabileceği ilk yol karesine yürüme mesafesi
+            // (yakın dövüş: yapının yan karesi; Okçu/Büyücü/Mancınık: menzile girdiği ilk kare). Kullanıcı geri bildirimi 15.11.2026.
             // Eşitlikte kuş uçuşu, sonra kimlik (deterministik).
-            bool melee = IsMelee(s);
             GridPos start = s.Phase == 0 ? s.Entrance : s.LastCell;
             var dist = RoadDistances(start);
             var keyPath = new Dictionary<int, int>();
@@ -483,7 +482,7 @@ namespace GameCore.Combat
                 foreach (var g in AccessCells(s, c))
                     if (dist.TryGetValue(g, out int d) && d < reachD) reachD = d;
                 if (reachD == int.MaxValue) continue;
-                keyPath[c.Id] = melee ? reachD : 0;
+                keyPath[c.Id] = reachD;
                 reach.Add(c);
             }
             if (reach.Count == 0) return null;
