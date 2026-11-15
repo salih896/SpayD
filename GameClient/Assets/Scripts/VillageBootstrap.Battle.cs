@@ -24,6 +24,7 @@ namespace GameClient
         private readonly List<Vector2> simPrevPos = new List<Vector2>();   // bir önceki savaş adımındaki konum (ara konum için)
         private readonly List<CharacterRig> soldierRigs = new List<CharacterRig>();
         private readonly List<int> soldierPrevAttacks = new List<int>();
+        private readonly List<Vector3> soldierDir = new List<Vector3>();   // yumuşatılmış yürüme yönü (şerit kayması buna göre döner)
 
         private void StartBattle(TargetInfo t)
         {
@@ -153,7 +154,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -188,6 +189,7 @@ namespace GameClient
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
                 soldierRigs.Add(tr.GetComponent<CharacterRig>());
                 soldierPrevAttacks.Add(st.AttackCount);
+                soldierDir.Add(Vector3.forward);
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
             for (int i = 0; i < sim.Soldiers.Count; i++)
@@ -211,7 +213,19 @@ namespace GameClient
                     rig.SetMoving(moving);
                     if (s.AttackCount != soldierPrevAttacks[i]) { soldierPrevAttacks[i] = s.AttackCount; rig.TriggerAttack(); }
                 }
-                soldierOff[i] = Vector3.Lerp(soldierOff[i], new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f), Mathf.Min(1f, Time.deltaTime * 12f));
+                // Şerit kayması: yolda yürüme yönüne göre (sağ/sol tarafı hep aynı, köşede yön yumuşak döner → ışınlanma yok)
+                Vector3 offTarget;
+                if (!s.Flying && s.Lane >= 0)
+                {
+                    if (moving) soldierDir[i] = Vector3.Slerp(soldierDir[i], d.normalized, Mathf.Min(1f, Time.deltaTime * 6f));
+                    var dir = soldierDir[i]; dir.y = 0f;
+                    if (dir.sqrMagnitude < 0.0001f) dir = Vector3.forward; else dir.Normalize();
+                    var perp = new Vector3(-dir.z, 0f, dir.x);
+                    float lat = ((s.Lane - 1) * 0.3f + (s.Lane + s.Slots - 2) * 0.3f) * 0.5f;
+                    offTarget = perp * lat - dir * (s.Stagger * 0.3f);
+                }
+                else offTarget = new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f);
+                soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget, Mathf.Min(1f, Time.deltaTime * 10f));
                 t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
