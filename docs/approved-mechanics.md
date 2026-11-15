@@ -102,3 +102,4 @@
 74. **Kule hasarı 20, Kılıçlı canı 100** (kullanıcı kararı 15.11.2026; saldırı hızları #73'teki gibi kalır). Sonuç (sim): bot ≈ %55 zafer, Sv30 ≈ 99 gün (XP eğrisi 100 + 78l + 16l²).
 75. **Kılıçlı canı 80** (kullanıcı kararı 15.11.2026, #74'teki 100'ün yerine). Sonuç (sim): bot ≈ %54 zafer, Sv30 ≈ 100 gün.
 76. **Kılıçlı canı 70** (kullanıcı kararı 15.11.2026, #75'in yerine). Sonuç (sim): bot ≈ %51 zafer, Sv30 ≈ 107 gün.
+77. **Kule hedefi (kullanıcı kararı 15.11.2026):** kule menzilindeki vurulabilir askerlerden önce yakın dövüşçüleri (Kılıçlı, Goblin, Atlı, Mızraklı, Dev) vurur; yakın dövüşçü yoksa uzaktan saldıranları/uçanları. Aynı grupta canı yüzde olarak en az olanı seçer (ör. Okçu yarım canda olsa da yakın dövüşçü varken önce o vurulur). Atış görseli de aynı hedefe gider. Sonuç (sim): bot ≈ %55 zafer, Sv30 ≈ 100 gün.

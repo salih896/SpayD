@@ -46,7 +46,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer; Mancınık'ta gövdeye levha ve bayrak eklenir.
 
 ## 2. Kuleler (7)
-Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt; çapraz sayılmaz).
+Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta canı (yüzde) en az olan. Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt; çapraz sayılmaz).
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|

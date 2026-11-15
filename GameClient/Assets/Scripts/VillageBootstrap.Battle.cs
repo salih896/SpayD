@@ -246,15 +246,7 @@ namespace GameClient
 
         private void SpawnShot(SimStructure tower)
         {
-            var def = ContentCatalog.Tower(tower.TowerType);
-            long r2 = (long)def.RangeMilli * def.RangeMilli;
-            SimSoldier best = null; long bestD = long.MaxValue;
-            foreach (var s in sim.Soldiers)
-            {
-                if (!s.Alive || (s.Flying && !def.CanHitAir)) continue;
-                long dx = s.X - tower.CenterX, dy = s.Y - tower.CenterY, d = dx * dx + dy * dy;
-                if (d <= r2 && d < bestD) { best = s; bestD = d; }
-            }
+            var best = sim.TowerTargetOf(tower); // simülasyonla aynı hedef kuralı
             if (best == null) return;
             var t = VillageArt.Projectile(DynRoot(), tower.TowerType);
             var a = new Vector3(tower.Pos.X, 1.25f, tower.Pos.Y);

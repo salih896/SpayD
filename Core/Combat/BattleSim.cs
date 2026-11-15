@@ -187,6 +187,36 @@ namespace GameCore.Combat
             if (!anyActive) Finished = true;
         }
 
+        /// <summary>
+        /// Kule hedefi (kullanıcı kararı 15.11.2026): menzildeki vurulabilir askerlerden önce yakın dövüşçüler, yoksa uzaktan
+        /// saldıranlar/uçanlar; aynı grupta canı yüzde olarak en az olan. Eşitlikte en yakın, sonra kimlik (deterministik).
+        /// </summary>
+        private SimSoldier PickTowerTarget(SimStructure t, TowerDef def)
+        {
+            long r2 = (long)def.RangeMilli * def.RangeMilli;
+            SimSoldier best = null; int bestCls = int.MaxValue; long bestPct = long.MaxValue, bestD = long.MaxValue;
+            for (int j = 0; j < soldiers.Count; j++)
+            {
+                var s = soldiers[j];
+                if (!s.Alive) continue;
+                if (s.Flying && !def.CanHitAir) continue;
+                long d = CombatMath.DistSq(t.CenterX, t.CenterY, s.X, s.Y);
+                if (d > r2) continue;
+                int cls = IsMelee(s) ? 0 : 1;
+                long pct = (long)s.Hp * 1000 / Math.Max(1, s.MaxHp);
+                bool better = cls < bestCls || (cls == bestCls && (pct < bestPct || (pct == bestPct && (d < bestD || (d == bestD && best != null && s.Id < best.Id)))));
+                if (best == null || better) { best = s; bestCls = cls; bestPct = pct; bestD = d; }
+            }
+            return best;
+        }
+
+        /// <summary>Kulenin şu anki hedefi (istemcide atış görseli için; simülasyonla aynı kural).</summary>
+        public SimSoldier TowerTargetOf(SimStructure t)
+        {
+            if (t == null || t.Kind != StructKind.Tower) return null;
+            return PickTowerTarget(t, ContentCatalog.Tower(t.TowerType));
+        }
+
         private void StepTowers()
         {
             for (int i = 0; i < structures.Count; i++)
@@ -196,17 +226,7 @@ namespace GameCore.Combat
                 if (t.Cooldown > 0) { t.Cooldown--; continue; }
                 var def = ContentCatalog.Tower(t.TowerType);
                 if (def.Attack <= 0) continue; // Duvar ateş etmez
-                long r2 = (long)def.RangeMilli * def.RangeMilli;
-                SimSoldier best = null; long bestD = long.MaxValue;
-                for (int j = 0; j < soldiers.Count; j++)
-                {
-                    var s = soldiers[j];
-                    if (!s.Alive) continue;
-                    if (s.Flying && !def.CanHitAir) continue;
-                    long d = CombatMath.DistSq(t.CenterX, t.CenterY, s.X, s.Y);
-                    if (d > r2 || d >= bestD) continue;
-                    best = s; bestD = d;
-                }
+                var best = PickTowerTarget(t, def);
                 if (best == null) continue;
                 int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage);
                 Hit(best, dmg);

@@ -317,6 +317,31 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void Tower_PrefersMelee_ThenLowestHpPercent()
+        {
+            var L = new VillageLayout(11, 20, 10);
+            L.ToggleEntrance(P(5, 0), out _);
+            for (int y = 1; y <= 6; y++) L.TryPlace(P(5, y), CellKind.Road, out _);
+            L.TryPlace(P(6, 2), CellKind.Tower, out _);
+            L.TryPlace(P(4, 6), CellKind.Building, out _);
+            var d = new DefenseSetup(L);
+            d.Towers[P(6, 2)] = new TowerSpec(TowerType.Archer, 1, 0);
+            d.Buildings[P(4, 6)] = new BuildingSpec(BuildingType.University);
+            var stock = new Dictionary<SoldierType, int> { { SoldierType.Archer, 1 }, { SoldierType.Swordsman, 2 } };
+            var sim = new BattleSim(d, stock, null, 1);
+            sim.Deploy(SoldierType.Archer, 5, 1, out _);
+            sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            var archer = sim.Soldiers[0]; var sw1 = sim.Soldiers[1]; var sw2 = sim.Soldiers[2];
+            foreach (var s in sim.Soldiers) { s.X = 5000; s.Y = 2000; s.Phase = 1; } // hepsi kulenin menzilinde
+            archer.Hp = archer.MaxHp / 2;                         // okçu yarım canda: yine de önce yakın dövüşçü
+            sw2.Hp = sw2.MaxHp * 8 / 10;                          // yakın dövüşçülerden canı (yüzde) az olan
+            Assert.AreSame(sw2, sim.TowerTargetOf(sim.Structures[0]), "Önce yakın dövüşçü, aralarında canı % az olan");
+            sw1.Alive = false; sw2.Alive = false;
+            Assert.AreSame(archer, sim.TowerTargetOf(sim.Structures[0]), "Yakın dövüşçü kalmayınca uzaktan saldıran");
+        }
+
+        [Test]
         public void Targeting_NearestForMost_GoblinDepotFirst_CavalryTowerFirst()
         {
             foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Giant, SoldierType.Spearman, SoldierType.Fairy, SoldierType.Catapult, SoldierType.DragonRider, SoldierType.Mage })
