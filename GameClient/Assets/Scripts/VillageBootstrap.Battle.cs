@@ -35,6 +35,49 @@ namespace GameClient
             ResetCamera();
         }
 
+        /// <summary>
+        /// Test: kendi kurduğun köye saldır (Ayarlar). Gerçek ordu harcanmaz; açık asker türlerinden ordu kapasitesi kadar
+        /// (kışla yoksa 40 yer) test ordusu, mevcut asker seviyeleri ve araştırmalarla. Yağma/XP/görev ilerlemesi yok.
+        /// </summary>
+        private void StartTestBattle()
+        {
+            var types = new List<SoldierType>();
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
+                if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= g.Level) types.Add((SoldierType)i);
+            if (types.Count == 0) types.Add(SoldierType.Swordsman);
+            int housing = g.ArmyCapacity > 0 ? g.ArmyCapacity : 40;
+            var stock = new Dictionary<SoldierType, int>();
+            bool any = true;
+            while (any)
+            {
+                any = false;
+                foreach (var t in types)
+                {
+                    if (GameRules.Housing(t) > housing) continue;
+                    stock[t] = (stock.TryGetValue(t, out var n) ? n : 0) + 1;
+                    housing -= GameRules.Housing(t);
+                    any = true;
+                }
+            }
+            var levels = new Dictionary<SoldierType, int>();
+            foreach (var t in types) levels[t] = g.SoldierLevel(t);
+            int seed = 7000 + battleSeed++;
+            var target = new TargetInfo { Name = "Kendi köyün (test)", Level = g.Level, Defense = g.MakeDefense(), Pool = default, Seed = seed };
+            sim = new BattleSim(target.Defense, stock, levels, seed) { AttackerMods = g.Research.Mods() };
+            curTarget = target;
+            testBattle = true;
+            battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1; tickAcc = 0f;
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
+                if (sim.StockOf((SoldierType)i) > 0) { selSoldier = (SoldierType)i; break; }
+            DestroyDyn();
+            tab = Tab.Village;
+            dirty = true;
+            ResetCamera();
+            Toast("TEST: kendi köyüne saldırıyorsun — ordu harcanmaz, ödül yok");
+        }
+
+        private bool testBattle;
+
         private void StepBattle()
         {
             if (!sim.Finished)
@@ -55,6 +98,7 @@ namespace GameClient
         {
             battleOver = true;
             lastResult = sim.Result(curTarget.Pool, g.Config, curTarget.Level);
+            if (testBattle) { lastOutcome = null; return; } // test: ordu/yağma/XP işlenmez
             lastOutcome = g.FinishAttack(sim, lastResult, curTarget.Level);
             AddLevelUpPopups(lastOutcome.LevelUps);
             LastSave();
@@ -62,7 +106,7 @@ namespace GameClient
 
         private void CloseBattle()
         {
-            sim = null; battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1;
+            sim = null; battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1; testBattle = false;
             DestroyDyn();
             dirty = true;
             if (g != null) { view = g.MakeDefense(); ResetCamera(); }

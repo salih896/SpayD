@@ -616,6 +616,9 @@ namespace GameClient
             if (Btn(new Rect(x, y, 150, 34), "+500 XP")) { AddLevelUpPopups(g.AddXp(500)); dirty = true; }
             if (Btn(new Rect(x + 156, y, 150, 34), "Kaynak +5000")) { foreach (ResourceType t in System.Enum.GetValues(typeof(ResourceType))) g.Wallet.TryAdd(t, 5000, g.Level, out _, out _); }
             if (Btn(new Rect(x + 312, y, 170, 34), "Sv 30 yap (test)")) { AddLevelUpPopups(g.AddXp(200000)); dirty = true; }
+            y += 42;
+            if (Btn(new Rect(x, y, 300, 34), "Kendi köyüne saldır (test)")) StartTestBattle();
+            GUI.Label(new Rect(x + 310, y + 6, r.width - 340, 24), "<size=12><color=#d8c9a8>Kurduğun savunmayı dene: test ordusu (kapasite kadar), ödül yok, ordun harcanmaz</color></size>");
             y += 50;
             uiRects.Add(new Rect(x, y, 300, 38));
             if (GUI.Button(new Rect(x, y, 300, 38), confirmNew ? "EMİN MİSİN? Tekrar bas: tüm ilerleme silinir" : "Yeni oyun (sil)", UiTheme.BtnRed)) { if (confirmNew) { confirmNew = false; NewGameConfirmed(); } else confirmNew = true; }
@@ -660,11 +663,11 @@ namespace GameClient
             uiRects.Add(box);
             GUI.Box(box, "", UiTheme.Parchment);
             var head = new GUIStyle(UiTheme.Title) { fontSize = 30, normal = { textColor = r.Victory ? new Color(0.25f, 0.55f, 0.15f) : new Color(0.7f, 0.15f, 0.1f) } };
-            GUI.Label(new Rect(box.x, box.y + 12, box.width, 40), r.Victory ? "ZAFER!" : "YENİLGİ", head);
+            GUI.Label(new Rect(box.x, box.y + 12, box.width, 40), (testBattle ? "TEST: " : "") + (r.Victory ? "ZAFER!" : "YENİLGİ"), head);
             for (int i = 0; i < 3; i++)
                 UiTheme.Dot(new Rect(box.x + box.width * 0.5f - 66 + i * 46, box.y + 56, 40, 40), i < r.Stars ? new Color(1f, 0.82f, 0.2f) : new Color(0.55f, 0.48f, 0.40f));
             float y = box.y + 104f;
-            Line(box, ref y, "Genel hasar: %" + r.OverallDamagePct + "   XP: +" + (lastOutcome != null ? lastOutcome.XpGained : r.Xp));
+            Line(box, ref y, "Genel hasar: %" + r.OverallDamagePct + (testBattle ? "   (test: ödül yok)" : "   XP: +" + (lastOutcome != null ? lastOutcome.XpGained : r.Xp)));
             Line(box, ref y, "Yağma: " + (r.Loot.Wood + r.Loot.Stone + r.Loot.Gold + r.Loot.Iron > 0 ? r.Loot.ToString() : "yok"));
             Line(box, ref y, "Ölü " + BattleResult.Total(r.LostDead) + "  Yaralı " + BattleResult.Total(r.LostInjured) + "  Feda " + BattleResult.Total(r.LostSacrificed));
             Line(box, ref y, "Dönen asker: " + BattleResult.Total(r.Returned));

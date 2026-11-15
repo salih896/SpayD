@@ -50,13 +50,13 @@ Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyl
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|
-| Okçu Kulesi | Sv2 | 1000 | 30 | 8 | 5,0 | Evet | Hızlı atış | 120 odun |
+| Okçu Kulesi | Sv2 | 1000 | 21 | 8 | 5,0 | Evet | Hızlı atış | 120 odun |
 | Duvar | Sv4 | 3200 | — | — | — | — | Saldırmaz; 2,5 hücredeki yer askerlerini üstüne çeker | 160 odun |
-| Büyücü Kulesi | Sv6 | 800 | 65 | 20 | 4,0 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
-| Elf Kulesi | Sv8 | 750 | 18 | 4 | 4,5 | Evet | Uçanlara +%100 | 180 odun, 120 taş |
-| Top Kulesi | Sv10 | 1100 | 140 | 30 | 4,0 | Hayır | Alan 1,2 | 300 odun, 150 taş |
-| Buz Kulesi | Sv12 | 900 | 20 | 10 | 4,0 | Evet | Vurduğunu 2,5 sn yavaşlatır | 250 odun, 200 taş |
-| Şimşek Kulesi | Sv16 | 850 | 55 | 18 | 4,5 | Evet | 2 askere daha zincirleme sıçrar (%70) | 300 odun, 200 taş, 120 altın |
+| Büyücü Kulesi | Sv6 | 800 | 46 | 20 | 4,0 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
+| Elf Kulesi | Sv8 | 750 | 13 | 4 | 4,5 | Evet | Uçanlara +%100 | 180 odun, 120 taş |
+| Top Kulesi | Sv10 | 1100 | 98 | 30 | 4,0 | Hayır | Alan 1,2 | 300 odun, 150 taş |
+| Buz Kulesi | Sv12 | 900 | 14 | 10 | 4,0 | Evet | Vurduğunu 2,5 sn yavaşlatır | 250 odun, 200 taş |
+| Şimşek Kulesi | Sv16 | 850 | 39 | 18 | 4,5 | Evet | 2 askere daha zincirleme sıçrar (%70) | 300 odun, 200 taş, 120 altın |
 
 **Geliştirme:** İşçi + kaynak + süre; hedef seviye oyuncu seviyesini aşamaz. Hasar alan kulede kalıcı aşınma oluşur (en çok %70), onarılması gerekir.
 
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 75l + 15l² (Sv1→30 toplam ≈ 150 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 80l + 17l² (Sv1→30 toplam ≈ 165 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için hasar %51; %75'te 2 yıldız, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

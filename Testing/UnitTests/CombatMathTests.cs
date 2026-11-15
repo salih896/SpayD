@@ -65,8 +65,8 @@ namespace GameCore.Tests
         public void ElfTower_HasBonusVsAir()
         {
             var elf = ContentCatalog.Tower(TowerType.Elf);
-            Assert.AreEqual(36, CombatMath.TowerDamage(elf, 1, true, false, 0));
-            Assert.AreEqual(18, CombatMath.TowerDamage(elf, 1, false, false, 0));
+            Assert.AreEqual(26, CombatMath.TowerDamage(elf, 1, true, false, 0));
+            Assert.AreEqual(13, CombatMath.TowerDamage(elf, 1, false, false, 0));
         }
 
         [Test]
@@ -74,7 +74,7 @@ namespace GameCore.Tests
         {
             var mage = ContentCatalog.Tower(TowerType.Mage);
             int pierced = CombatMath.TowerDamage(mage, 1, false, false, 30);   // zırh 30 -> 21
-            Assert.AreEqual(51, pierced); // 65 * (1 - 0.21)
+            Assert.AreEqual(36, pierced); // 46 * (1 - 0.21) (kule hasarı %30 düşürüldü, 15.11.2026)
         }
 
         [Test]
@@ -99,7 +99,7 @@ namespace GameCore.Tests
         public void Xp_CurveAndLevels()
         {
             Assert.AreEqual(100, ProgressionRules.XpToNextLevel(1));
-            Assert.AreEqual(190, ProgressionRules.XpToNextLevel(2)); // 100 + 75l + 15l², l = 1
+            Assert.AreEqual(197, ProgressionRules.XpToNextLevel(2)); // 100 + 80l + 17l², l = 1
             Assert.AreEqual(1, ProgressionRules.LevelFromTotalXp(99, out int into));
             Assert.AreEqual(99, into);
             Assert.AreEqual(2, ProgressionRules.LevelFromTotalXp(100, out into));

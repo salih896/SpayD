@@ -75,3 +75,4 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - ÇÖZÜLDÜ (15.11.2026, kullanıcı: "Kalsın"): tüm yol haklarını kullanma zorunluluğu (#16-#21) Köy Düzeni'nde de geçerli kalır.
 - Sv3-10 rastgele savaşlarda zafer oranı %33-68 (tamsayı kule seviyesi yüzünden basamaklı). İnce ayar için kule seviyesi yerine kule can/hasar yüzdesiyle ölçekleme önerilebilir.
 - Bot Normal hedeflere karşı artık ≈ %57 kazanıyor (eski %16 sorunu yeni dengeyle çözüldü; ayrıca karar gerekmiyor).
+- Kule hasarı düşürülünce oyuncunun köyü günlük baskınlara karşı neredeyse hiç dayanamıyor (sim: 2 saatte bir giren bot 90 baskının 4'ünü savundu). Öneri: baskıncı ordusunu küçültmek. Karar gerekiyor.
