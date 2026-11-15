@@ -185,6 +185,26 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void PickUpAll_EmptiesVillage_KeepsLockedRoad_AndCanRebuild()
+        {
+            var g = Rich(10);
+            g.RoadResearchDone = true;
+            string err;
+            Assert.IsTrue(g.TryUpgradeRoad(P(5, 3), out err), err);
+            var d = new LayoutDraft(g);
+            int inv0 = d.Inventory.Count;
+            int before = inv0 + d.Cells.Count + d.Traps.Count;
+            int n = d.PickUpAll();
+            Assert.AreEqual(before - inv0 - 1, n, "Geliştirilen yol dışında her şey alındı");
+            Assert.AreEqual(1, d.Cells.Count, "Yalnızca geliştirilen yol yerinde kalır");
+            Assert.IsTrue(d.Cells.ContainsKey(P(5, 3)));
+            Assert.AreEqual(0, d.Entrances.Count, "Girişler kalkar");
+            Assert.AreEqual(before - 1, d.Inventory.Count);
+            Assert.IsFalse(g.TryApplyLayout(d, out err), "Boş köy onaylanmaz");
+            Assert.AreEqual(CellKind.Road, g.Layout.Get(P(5, 1)), "Köy değişmedi");
+        }
+
+        [Test]
         public void Swordsman_AttacksNearestStructure()
         {
             var layout = new VillageLayout(11, 20, 10);

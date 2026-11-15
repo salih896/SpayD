@@ -144,6 +144,25 @@ namespace GameCore.Game
             return it;
         }
 
+        /// <summary>Köydeki her şeyi envantere alır (tuzaklar, yollar, binalar, kuleler; girişler kalkar). Geliştirilmekte olan yollar yerinde kalır. Dönen: alınan öğe sayısı.</summary>
+        public int PickUpAll()
+        {
+            int n = 0;
+            foreach (var p in new List<GridPos>(Traps.Keys)) { Inventory.Add(Traps[p]); Traps.Remove(p); n++; }
+            var keys = new List<GridPos>(Cells.Keys);
+            keys.Sort((a, b) => a.Y != b.Y ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+            foreach (var p in keys)
+            {
+                var it = Cells[p];
+                if (it.Locked) continue;
+                Cells.Remove(p);
+                Entrances.Remove(p);
+                Inventory.Add(it);
+                n++;
+            }
+            return n;
+        }
+
         /// <summary>Envanterdeki öğeyi hücreye koyar. Tuzak yalnızca yola (giriş hariç), diğerleri boş hücreye.</summary>
         public bool Place(DraftItem it, GridPos p, out string error)
         {

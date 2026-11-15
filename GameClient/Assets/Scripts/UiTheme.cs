@@ -101,6 +101,36 @@ namespace GameClient
         // ---------- Kaynak simgeleri (kodla çizilir: kütük, taş, altın sikke, demir külçe) ----------
         private static Texture2D[] resIcons;
 
+        private static Texture2D arrowDown;
+
+        /// <summary>Kırmızı, beyaz kenarlı aşağı ok (eksik/yanlış göstergesi).</summary>
+        public static Texture2D ArrowDown
+        {
+            get
+            {
+                if (arrowDown != null) return arrowDown;
+                const int n = 48;
+                var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave };
+                for (int y = 0; y < n; y++)
+                    for (int x = 0; x < n; x++)
+                    {
+                        float u = (x + 0.5f) / n, v = (y + 0.5f) / n; // v=0 alt (okun ucu)
+                        float du = Mathf.Abs(u - 0.5f);
+                        bool head = v < 0.55f && du < v * 0.85f;          // üçgen baş, uç altta
+                        bool shaft = v >= 0.5f && v < 0.95f && du < 0.13f;  // gövde
+                        bool headIn = v > 0.07f && v < 0.5f && du < (v - 0.06f) * 0.78f;
+                        bool shaftIn = v >= 0.5f && v < 0.9f && du < 0.08f;
+                        Color c = new Color(0, 0, 0, 0);
+                        if (head || shaft) c = Color.white;
+                        if (headIn || shaftIn) c = new Color(0.95f, 0.22f, 0.12f);
+                        t.SetPixel(x, y, c);
+                    }
+                t.Apply();
+                arrowDown = t;
+                return t;
+            }
+        }
+
         /// <summary>0 Odun, 1 Taş, 2 Altın, 3 Demir.</summary>
         public static Texture2D ResIcon(int i)
         {

@@ -116,6 +116,17 @@ namespace GameClient
                     if (problemCells.Contains(p)) VillageArt.Part(viewRoot, VillageArt.Shape.Box, c + new Vector3(0, 0.012f, 0), new Vector3(0.98f, 0.02f, 0.98f), VillageArt.Mat(new Color(0.95f, 0.15f, 0.1f), 0.2f, 0.6f));
                     if (p.Equals(selCell) && sim == null) VillageArt.BuildSelection(viewRoot, c);
                 }
+            if (sim == null && draft != null)
+                foreach (var p in ArrowCells())
+                {
+                    var k = layout.Get(p);
+                    float hgt = k == CellKind.Tower ? 2.3f : (k == CellKind.Building ? 1.7f : 0.9f);
+                    var grp = VillageArt.Group(viewRoot, "arrow", new Vector3(p.X, hgt, p.Y));
+                    var red = VillageArt.Mat(new Color(1f, 0.25f, 0.12f), 0.3f, 1.2f);
+                    VillageArt.Part(grp, VillageArt.Shape.Cone, new Vector3(0f, 0f, 0f), new Vector3(0.34f, 0.3f, 0.34f), red, new Vector3(180f, 0f, 0f));
+                    VillageArt.Part(grp, VillageArt.Shape.Cyl, new Vector3(0f, 0.3f, 0f), new Vector3(0.13f, 0.22f, 0.13f), red);
+                    VillageArt.Animate(grp.gameObject, ArtMotion.Kind.Bob, 4f, 0.12f);
+                }
             BatchStatic(viewRoot.gameObject);
             dirty = false;
             if (sim == null) valid = g.VillageValid(out validationError);

@@ -39,6 +39,33 @@ namespace GameClient
 
         private const float InvPanelH = 168f;
 
+        /// <summary>Zıplayan aşağı ok (arayüz): tip noktası p; üstünde kısa açıklama.</summary>
+        private void UiArrow(Vector2 p, string label)
+        {
+            float bob = Mathf.Abs(Mathf.Sin(Time.time * 5f)) * 8f;
+            var r = new Rect(p.x - 16f, p.y - 34f - bob, 32f, 32f);
+            GUI.DrawTexture(r, UiTheme.ArrowDown);
+            if (!string.IsNullOrEmpty(label))
+            {
+                var st = new GUIStyle(UiTheme.PillBad) { fontSize = 12 };
+                float tw = st.CalcSize(new GUIContent(label)).x + 20f;
+                GUI.Label(new Rect(p.x - tw * 0.5f, r.y - 24f, tw, 22f), label, st);
+            }
+        }
+
+        /// <summary>Köyde oklarla gösterilecek hücreler: kurala uymayanlar + giriş yoksa alt kenar.</summary>
+        private List<GridPos> ArrowCells()
+        {
+            var list = new List<GridPos>(problemCells);
+            if (draft != null && draft.Entrances.Count == 0)
+            {
+                bool any = false;
+                foreach (var kv in draft.Cells) if (kv.Key.Y == 0 && kv.Value.Kind == DraftKind.Road) { list.Add(kv.Key); any = true; }
+                if (!any) list.Add(new GridPos(draft.Size / 2, 0));
+            }
+            return list;
+        }
+
         private void EnterLayout()
         {
             draft = new LayoutDraft(g);
@@ -244,6 +271,15 @@ namespace GameClient
                 if (SelBtn(new Rect(tx, h - InvPanelH + 6f, tw, 30f), label, invTab == i)) { invTab = i; invScroll = 0f; }
                 tx += tw + 4f;
             }
+            if (PressBtn(new Rect(tx + 8f, h - InvPanelH + 6f, 170f, 30f), "<size=13>Tümünü envantere al</size>", UiTheme.BtnRed))
+            {
+                int n = draft.PickUpAll();
+                invTab = 0; invScroll = 0f; entranceMode = false; dirty = true;
+                Toast(n > 0 ? n + " öğe envantere alındı" + (draft.Cells.Count > 0 ? " (geliştirilen yollar yerinde kaldı)" : "") : "Alınacak bir şey yok");
+            }
+            // eksik: envanterde yerleştirilmemiş öğe varsa Envanter sekmesini ok ile göster
+            if (draft.Inventory.Count > 0)
+                UiArrow(new Vector2(10f + 68f, h - InvPanelH - 2f), "Yerleştir");
             float btnW = 120f, bx = w - btnW - 10f;
             if (GUI.Button(new Rect(bx, h - InvPanelH + 8f, btnW, 46f), "ONAYLA", UiTheme.BtnGreen)) { ConfirmLayout(); return; }
             if (GUI.Button(new Rect(bx, h - InvPanelH + 60f, btnW, 40f), "İptal", UiTheme.BtnRed)) { ExitLayout(); Toast("Değişiklikler atıldı"); return; }

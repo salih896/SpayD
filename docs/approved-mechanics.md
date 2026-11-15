@@ -87,3 +87,4 @@
 59. **Zafer koşulu %75 yıkım** (GDD Bölüm 17'deki %51 yerine). Yıldız: %75 → 1, %90 → 2, %100 → 3.
 60. **Kışla Sv2'de kurulabilir** (önce Sv3). Kılıçlı da Sv2'de açılır (kullanıcı: "Evet, Kılıçlı Sv2"); Okçu Sv3.
 61. Sonuç (sim): rastgele savaşlar toplam ≈ %52 zafer; bot ≈ %68. Sv30 ≈ 93 gün için XP eğrisi 100 + 85l + 18l².
+62. **Köy Düzeni yardımcıları (kullanıcı isteği 15.11.2026):** "Tümünü envantere al" düğmesi köydeki her şeyi (tuzak, yol, bina, kule; girişler kalkar) envantere alır, geliştirilmekte olan yollar yerinde kalır. Yanlış/eksik olan şeyler okla gösterilir: kurala uymayan hücrelerin (kopuk yol, yola bağlı olmayan yapı) ve giriş yoksa alt kenarın üstünde zıplayan kırmızı ok; envanterde yerleştirilmemiş öğe varsa Envanter sekmesinin üstünde "Yerleştir" oku.
