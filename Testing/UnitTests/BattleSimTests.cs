@@ -139,7 +139,7 @@ namespace GameCore.Tests
             var sim = new BattleSim(setup, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, null, 1);
             sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
             for (int i = 0; i < 60; i++) sim.Step();
-            Assert.AreEqual(100 - 18, sim.Soldiers[0].Hp);                    // Kılıçlı 100 can; 20 hasar (TrapCatalog), zırh %10
+            Assert.AreEqual(80 - 18, sim.Soldiers[0].Hp);                     // Kılıçlı 80 can; 20 hasar (TrapCatalog), zırh %10
         }
 
         [Test]
