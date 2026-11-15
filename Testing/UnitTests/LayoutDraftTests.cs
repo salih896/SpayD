@@ -286,24 +286,34 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void Collision_AtMostThreeLanesPerRoadCell_GiantTakesTwo()
+        public void Lanes_SoldiersDoNotStack_AndNeverBlock()
         {
-            var d = TargetVillage();
-            var stock = new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 8 }, { SoldierType.Giant, 3 } };
-            var sim = new BattleSim(d, stock, null, 4);
-            for (int i = 0; i < 8; i++) sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
-            for (int i = 0; i < 3; i++) sim.Deploy(SoldierType.Giant, 5, 1, out _);
             Assert.AreEqual(2, BattleSim.RoadSlots(SoldierType.Giant));
             Assert.AreEqual(2, BattleSim.RoadSlots(SoldierType.Catapult));
             Assert.AreEqual(1, BattleSim.RoadSlots(SoldierType.Swordsman));
-            for (int t = 0; t < 400 && !sim.Finished; t++)
+            var d = TargetVillage();
+            var stock = new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 6 } };
+            var sim = new BattleSim(d, stock, null, 4);
+            for (int i = 0; i < 6; i++) sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            bool sawSpread = false;
+            for (int t = 0; t < 300 && !sim.Finished; t++)
             {
                 sim.Step();
-                var used = new Dictionary<GridPos, int>();
+                // aynı karedeki ilk 3 asker farklı şeritlerde (üst üste değil)
+                var seen = new HashSet<string>();
                 foreach (var s in sim.Soldiers)
-                    if (s.Alive && s.HasCell) used[s.Cell] = (used.TryGetValue(s.Cell, out var n) ? n : 0) + s.Slots;
-                foreach (var kv in used) Assert.LessOrEqual(kv.Value, BattleSim.RoadLanes, "Bir yol karesine en çok 3 şerit (tick " + t + ")");
+                    if (s.Alive && s.HasCell && s.Stagger == 0)
+                        Assert.IsTrue(seen.Add(s.Cell + ":" + s.Lane), "Aynı karede aynı şeritte iki asker (tick " + t + ")");
+                if (seen.Count >= 3) sawSpread = true;
             }
+            Assert.IsTrue(sawSpread, "Askerler şeritlere dağıldı");
+            // engelleme yok: 6 Kılıçlı aynı noktadan gönderilince tek başına gönderilen kadar hızlı ilerler
+            var solo = new BattleSim(d, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, null, 4);
+            solo.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            var crowd = new BattleSim(d, stock, null, 4);
+            for (int i = 0; i < 6; i++) crowd.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            for (int t = 0; t < 40; t++) { solo.Step(); crowd.Step(); }
+            foreach (var s in crowd.Soldiers) Assert.AreEqual(solo.Soldiers[0].Y, s.Y, "Kalabalık askerleri yavaşlatmaz");
         }
 
         [Test]

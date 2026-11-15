@@ -17,7 +17,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 | Mancınık | Sv17 | 140 | 70 | 35 | 2,0 | 0,045 | Kuşatma, alan 1,5 | 220 odun, 140 taş, 60 altın | 10 dk |
 | Ejderha Binicisi | Sv21 | 420 | 34 | 12 | 2,0 | 0,09 | Uçar, alan 1,0, ateş direnci %50 | 260 odun, 200 taş, 110 altın | 10 dk |
 
-**Orduda kapladığı yer:** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer). Yolda: bir kareye yan yana 3 asker sığar; Dev ve Mancınık 2 şerit kaplar.
+**Orduda kapladığı yer:** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer). Yolda: askerler 3 şeride dağılır, üst üste binmez (Dev ve Mancınık 2 şerit); birbirini engellemez.
 
 **Geliştirme:** Kışlaya dokununca açılan pencerede tür başına yapılır; işçi + kaynak (eğitim maliyeti × 8 × seviye çarpanı) + süre gerekir. Süre eğitim süresiyle orantılıdır (Goblin hızlı, Dev/Mancınık/Ejderha yavaş). Hedef seviye, kışla seviyesini ve oyuncu seviyesini aşamaz.
 
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 65l + 13l² (Sv1→30 toplam ≈ 130 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 78l + 16l² (Sv1→30 toplam ≈ 158 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).
