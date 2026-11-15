@@ -415,8 +415,8 @@ namespace GameCore.Combat
         // ---------- Hedef ve yol ----------
         // ---------- Yol şeritleri (üst üste binmeme) ----------
         // Kullanıcı kararı 15.11.2026: askerler üst üste gelmez ama birbirini ENGELLEMEZ (takılma olmasın).
-        // Her yol karesi 3 şerit; asker girdiği karede en boş şeridi alır (Dev/Mancınık 2 şerit). Şeritler doluysa
-        // bir adım geriye dizilir. Bu yalnızca duruştur (OffX/OffY); yürüyüş, menzil ve hedef X,Y ile hesaplanır.
+        // Her yol karesi 3 şerit; asker köye girerken en boş şeridi alır ve o şeritte kalır (Dev/Mancınık 2 şerit). Şeritler
+        // doluysa bir adım geriye dizilir. Bu yalnızca duruştur (OffX/OffY); yürüyüş, menzil ve hedef X,Y ile hesaplanır.
         public const int RoadLanes = 3;
         private readonly Dictionary<GridPos, int[]> laneUse = new Dictionary<GridPos, int[]>();
 
@@ -430,18 +430,22 @@ namespace GameCore.Combat
             if (s.HasCell && s.Cell.Equals(c)) return;
             ReleaseCell(s);
             if (!laneUse.TryGetValue(c, out var use)) { use = new int[RoadLanes]; laneUse[c] = use; }
-            // en az kullanılan şerit(ler); eşitlikte önce önceki şerit, sonra orta, sol, sağ
-            int best = -1, bestLoad = int.MaxValue;
-            if (s.Lane >= 0 && s.Lane + s.Slots <= RoadLanes) { best = s.Lane; bestLoad = Load(use, s.Lane, s.Slots); }
-            foreach (int l in LaneOrderFresh)
+            int best = s.Lane;
+            if (best < 0)
             {
-                if (l + s.Slots > RoadLanes) continue;
-                int load = Load(use, l, s.Slots);
-                if (load < bestLoad) { best = l; bestLoad = load; }
+                // şerit ve sıra YALNIZCA köye girerken bir kez seçilir, sonra sabit kalır (her karede değişince askerler yana/ileri-geri kayıyordu)
+                int bestLoad = int.MaxValue;
+                foreach (int l in LaneOrderFresh)
+                {
+                    if (l + s.Slots > RoadLanes) continue;
+                    int load = Load(use, l, s.Slots);
+                    if (load < bestLoad) { best = l; bestLoad = load; }
+                }
+                if (best < 0) best = 0;
+                s.Stagger = Math.Min(2, bestLoad);
             }
-            if (best < 0) best = 0;
             for (int i = 0; i < s.Slots; i++) use[best + i]++;
-            s.HasCell = true; s.Cell = c; s.Lane = best; s.Stagger = Math.Min(2, bestLoad);
+            s.HasCell = true; s.Cell = c; s.Lane = best;
             // duruş: şerit merkezleri -300/0/+300 (2 şeritli asker ikisinin ortası); dolu şeritte 0,3 hücre geride
             int lat = ((best - 1) * 300 + (best + s.Slots - 2) * 300) / 2;
             int back = -s.Stagger * 300;

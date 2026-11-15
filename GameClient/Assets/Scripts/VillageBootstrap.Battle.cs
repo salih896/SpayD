@@ -180,7 +180,7 @@ namespace GameClient
                 if (d.sqrMagnitude > 0.00002f) t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(d.normalized, Vector3.up), 0.35f);
                 bool moving = d.sqrMagnitude > 0.00002f;
                 float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 14f + i)) * 0.04f : 0f;
-                soldierOff[i] = Vector3.Lerp(soldierOff[i], new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f), Mathf.Min(1f, Time.deltaTime * 8f));
+                soldierOff[i] = Vector3.Lerp(soldierOff[i], new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f), Mathf.Min(1f, Time.deltaTime * 12f));
                 t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı

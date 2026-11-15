@@ -6,15 +6,15 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
-| Kılıçlı | Sv2 | 120 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
+| Kılıçlı | Sv2 | 80 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 10 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
 | Goblin | Sv4 | 35 | 6 | 6 | 1,5 | 0,13 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
-| Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,065 | Zırh %30 | 60 odun, 15 taş | 5 dk |
+| Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,04 | Zırh %30 | 60 odun, 15 taş | 5 dk |
 | Büyücü | Sv7 | 50 | 22 | 18 | 2,0 | 0,06 | Alan hasarı 1,5, ateş direnci %25 | 70 odun, 30 taş | 5 dk |
 | Atlı Kılıçlı | Sv9 | 260 | 22 | 10 | 1,5 | 0,15 | Zırh %20, atlı, önce kuleler, sonra diğer yapılar | 90 odun, 60 taş | 10 dk |
 | Peri | Sv11 | 55 | 9 | 8 | 2,0 | 0,10 | Uçar, yolu izlemez | 100 odun, 80 taş | 5 dk |
-| Dev | Sv13 | 600 | 30 | 15 | 1,5 | 0,055 | Zırh %25, en yakın yapı | 160 odun, 110 taş | 10 dk |
-| Mancınık | Sv17 | 140 | 70 | 35 | 2,0 | 0,045 | Kuşatma, alan 1,5 | 220 odun, 140 taş, 60 altın | 10 dk |
+| Dev | Sv13 | 600 | 30 | 15 | 1,5 | 0,03 | Zırh %25, en yakın yapı | 160 odun, 110 taş | 10 dk |
+| Mancınık | Sv17 | 140 | 70 | 35 | 2,0 | 0,03 | Kuşatma, alan 1,5 | 220 odun, 140 taş, 60 altın | 10 dk |
 | Ejderha Binicisi | Sv21 | 420 | 34 | 12 | 2,0 | 0,09 | Uçar, alan 1,0, ateş direnci %50 | 260 odun, 200 taş, 110 altın | 10 dk |
 
 **Orduda kapladığı yer:** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer). Yolda: askerler 3 şeride dağılır, üst üste binmez (Dev ve Mancınık 2 şerit); birbirini engellemez.

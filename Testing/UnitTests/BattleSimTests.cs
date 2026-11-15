@@ -139,7 +139,7 @@ namespace GameCore.Tests
             var sim = new BattleSim(setup, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, null, 1);
             sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
             for (int i = 0; i < 60; i++) sim.Step();
-            Assert.AreEqual(120 - 18, sim.Soldiers[0].Hp);                    // 20 hasar (TrapCatalog), zırh %10
+            Assert.AreEqual(80 - 18, sim.Soldiers[0].Hp);                     // Kılıçlı 80 can; 20 hasar (TrapCatalog), zırh %10
         }
 
         [Test]
@@ -220,7 +220,7 @@ namespace GameCore.Tests
             var levels = new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 3 } };
             var sim = new BattleSim(Basic(), new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, levels, 1);
             sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
-            Assert.AreEqual(ContentCatalog.Scaled(120, 3), sim.Soldiers[0].MaxHp);
+            Assert.AreEqual(ContentCatalog.Scaled(ContentCatalog.Soldier(SoldierType.Swordsman).Hp, 3), sim.Soldiers[0].MaxHp);
         }
     }
 }

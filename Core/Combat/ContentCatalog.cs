@@ -15,7 +15,7 @@ namespace GameCore.Combat
         private static readonly SoldierDef[] Soldiers =
         {
             // Dengeli ön hat
-            new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 120, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
+            new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 80, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
             // Uzaktan, kırılgan
             new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 10, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
             // Alan hasarı, ateşe dirençli
@@ -25,13 +25,13 @@ namespace GameCore.Combat
             // Hızlı ve dayanıklı, mızrak kulesine zayıf
             new SoldierDef { Type = SoldierType.Cavalry, Name = "Atlı Kılıçlı", Hp = 260, Attack = 22, IntervalTicks = 10, RangeMilli = 1500, SpeedMilli = 150, ArmorPct = 20, Mounted = true, TrainSeconds = 600, UnlockLevel = 9, Cost = new ResourceCost(90, 60) },
             // Yavaş, yüksek zırh
-            new SoldierDef { Type = SoldierType.Spearman, Name = "Mızraklı", Hp = 150, Attack = 12, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 65, ArmorPct = 30, TrainSeconds = 300, UnlockLevel = 5, Cost = new ResourceCost(60, 15) },
+            new SoldierDef { Type = SoldierType.Spearman, Name = "Mızraklı", Hp = 150, Attack = 12, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 40, ArmorPct = 30, TrainSeconds = 300, UnlockLevel = 5, Cost = new ResourceCost(60, 15) },
             // Uçar, yolu yok sayar; mızrak kulesi vuramaz
             new SoldierDef { Type = SoldierType.Fairy, Name = "Peri", Hp = 55, Attack = 9, IntervalTicks = 8, RangeMilli = 2000, SpeedMilli = 100, Flying = true, TrainSeconds = 300, UnlockLevel = 11, Cost = new ResourceCost(100, 80) },
             // Çok dayanıklı, yavaş; yalnızca kulelere yürür (kule ateşini üstüne çeker)
-            new SoldierDef { Type = SoldierType.Giant, Name = "Dev", Hp = 600, Attack = 30, IntervalTicks = 15, RangeMilli = 1500, SpeedMilli = 55, ArmorPct = 25, TrainSeconds = 600, UnlockLevel = 13, Cost = new ResourceCost(160, 110) },
+            new SoldierDef { Type = SoldierType.Giant, Name = "Dev", Hp = 600, Attack = 30, IntervalTicks = 15, RangeMilli = 1500, SpeedMilli = 30, ArmorPct = 25, TrainSeconds = 600, UnlockLevel = 13, Cost = new ResourceCost(160, 110) },
             // Kuşatma: çok uzak menzil, alan hasarı, kırılgan ve yavaş
-            new SoldierDef { Type = SoldierType.Catapult, Name = "Mancınık", Hp = 140, Attack = 70, IntervalTicks = 35, RangeMilli = 2000, SpeedMilli = 45, SplashMilli = 1500, TrainSeconds = 600, UnlockLevel = 17, Cost = new ResourceCost(220, 140, 60) },
+            new SoldierDef { Type = SoldierType.Catapult, Name = "Mancınık", Hp = 140, Attack = 70, IntervalTicks = 35, RangeMilli = 2000, SpeedMilli = 30, SplashMilli = 1500, TrainSeconds = 600, UnlockLevel = 17, Cost = new ResourceCost(220, 140, 60) },
             // Uçan ağır birlik: ateşe dirençli, alan hasarı; elf kulesine zayıf
             new SoldierDef { Type = SoldierType.DragonRider, Name = "Ejderha Binicisi", Hp = 420, Attack = 34, IntervalTicks = 12, RangeMilli = 2000, SpeedMilli = 90, FireResistPct = 50, SplashMilli = 1000, Flying = true, TrainSeconds = 600, UnlockLevel = 21, Cost = new ResourceCost(260, 200, 110) },
         };
