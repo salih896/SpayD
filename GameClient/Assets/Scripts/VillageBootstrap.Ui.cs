@@ -248,6 +248,13 @@ namespace GameClient
             uiRects.Add(rs);
         }
 
+        /// <summary>Saldırı hızı: iki vuruş arası saniye ve saniyedeki vuruş (10 tick = 1 sn).</summary>
+        private static string AtkSpeed(int intervalTicks)
+        {
+            int it = System.Math.Max(1, intervalTicks);
+            return "Saldırı " + (it / 10f).ToString("0.0") + " sn (" + (10f / it).ToString("0.#") + "/sn)";
+        }
+
         private static string TowerRole(TowerType t)
         {
             switch (t)
@@ -294,7 +301,7 @@ namespace GameClient
                 var m = g.Research.Mods();
                 int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level), m.TowerHp);
                 int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage);
-                string info = d.Attack <= 0 ? "Can " + hp + "   " + TowerRole(t.Type) : "Can " + hp + "   Hasar " + atk + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0") + "   " + TowerRole(t.Type);
+                string info = d.Attack <= 0 ? "Can " + hp + "   " + TowerRole(t.Type) : "Can " + hp + "   Hasar " + atk + "   " + AtkSpeed(d.IntervalTicks) + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0") + "   " + TowerRole(t.Type);
                 if (g.Wears.TryGetValue(p, out var wr) && wr.PermanentDamagePct > 0)
                 {
                     info += "   <color=#ffb070>Hasar %" + wr.PermanentDamagePct + (wr.IsDisabled ? " (DEVRE DIŞI)" : "") + "</color>";
@@ -365,7 +372,7 @@ namespace GameClient
                 int lvl = g.SoldierLevel(t);
                 bool locked = g.Level < d.UnlockLevel;
                 GUILayout.BeginHorizontal(GUILayout.Height(44));
-                if (GUILayout.Button((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "  <color=#9fd0ff>" + GameRules.Housing(t) + " yer</color>" + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
+                if (GUILayout.Button((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "  <color=#9fd0ff>" + GameRules.Housing(t) + " yer</color>" + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  " + AtkSpeed(d.IntervalTicks) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
                     detailSoldier = detailSoldier == i ? -1 : i;
                 GUI.enabled = !locked;
                 int ts = Mathf.Max(5, (int)((long)d.TrainSeconds * (1000 - g.Research.Total(ResearchStat.TrainTime)) / 1000));
@@ -611,7 +618,7 @@ namespace GameClient
             {
                 var t = (SoldierType)i; var d = ContentCatalog.Soldier(t);
                 int n = testArmy.TryGetValue(t, out var v) ? v : 0;
-                GUI.Label(new Rect(r.x + 20, y + 6, 330, 26), "<b>" + d.Name + "</b>  <size=13>Sv " + g.SoldierLevel(t) + "  " + GameRules.Housing(t) + " yer" + (g.Level < d.UnlockLevel ? "  <color=#ffb070>(senin için Sv " + d.UnlockLevel + "'de açılır; testte serbest)</color>" : "") + "</size>");
+                GUI.Label(new Rect(r.x + 20, y + 6, 330, 26), "<b>" + d.Name + "</b>  <size=13>Sv " + g.SoldierLevel(t) + "  " + GameRules.Housing(t) + " yer  " + AtkSpeed(d.IntervalTicks) + (g.Level < d.UnlockLevel ? "  <color=#ffb070>(senin için Sv " + d.UnlockLevel + "'de açılır; testte serbest)</color>" : "") + "</size>");
                 float bx = r.x + 360;
                 if (Btn(new Rect(bx, y, 48, 32), "-10")) n = Mathf.Max(0, n - 10);
                 if (Btn(new Rect(bx + 52, y, 40, 32), "-")) n = Mathf.Max(0, n - 1);
