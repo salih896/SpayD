@@ -133,10 +133,13 @@ namespace GameCore.Combat
                 IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli * (100 + perks.RangePct) / 100, SpeedMilli = def.SpeedMilli * (100 + perks.SpeedPct) / 100,
                 ArmorPct = Math.Min(80, def.ArmorPct + perks.ArmorAdd), FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli + perks.SplashAdd,
                 Flying = def.Flying, Mounted = def.Mounted,
-                X = x * 1000, Y = -row * 1000, Phase = def.Flying ? 1 : 0
+                // aynı noktaya basılı tutunca askerler üst üste doğmasın: kimliğe bağlı küçük dağılım (±0,35 kare, deterministik)
+                X = x * 1000 + ((soldiers.Count * 37) % 700 - 350), Y = -row * 1000 + ((soldiers.Count * 53 + 211) % 700 - 350), Phase = def.Flying ? 1 : 0
             };
             s.Hp = s.MaxHp;
             s.Slots = RoadSlots(type);
+            // her asker kendi temposunda yürür (±%6, kimliğe bağlı, deterministik): aynı anda gönderilenler blok gibi ilerlemez
+            s.SpeedMilli = Math.Max(1, s.SpeedMilli * (94 + (s.Id * 7) % 13) / 100);
             if (def.Flying) { s.OffX = (s.Id % 3 - 1) * 250; s.OffY = (s.Id / 3 % 3 - 1) * 250; } // uçanlar üst üste binmesin (görsel)
             if (!def.Flying)
             {

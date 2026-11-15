@@ -313,7 +313,10 @@ namespace GameCore.Tests
             var crowd = new BattleSim(d, stock, null, 4);
             for (int i = 0; i < 6; i++) crowd.Deploy(SoldierType.Swordsman, 5, 1, out _);
             for (int t = 0; t < 40; t++) { solo.Step(); crowd.Step(); }
-            foreach (var s in crowd.Soldiers) Assert.AreEqual(solo.Soldiers[0].Y, s.Y, "Kalabalık askerleri yavaşlatmaz");
+            Assert.AreEqual(solo.Soldiers[0].Y, crowd.Soldiers[0].Y, "Kalabalık öndeki askeri yavaşlatmaz");
+            foreach (var s in crowd.Soldiers) Assert.Greater(s.Y, -1000, "Her asker kendi temposunda ilerler (takılan yok)");
+            var ys = new HashSet<int>(); foreach (var s in crowd.Soldiers) ys.Add(s.Y);
+            Assert.Greater(ys.Count, 1, "Askerler blok gibi aynı noktada değil, farklı tempolarda");
         }
 
         [Test]

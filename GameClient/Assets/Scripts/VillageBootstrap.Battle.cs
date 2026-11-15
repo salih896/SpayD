@@ -24,7 +24,9 @@ namespace GameClient
         private readonly List<Vector2> simPrevPos = new List<Vector2>();   // bir önceki savaş adımındaki konum (ara konum için)
         private readonly List<CharacterRig> soldierRigs = new List<CharacterRig>();
         private readonly List<int> soldierPrevAttacks = new List<int>();
-        private readonly List<Vector3> soldierDir = new List<Vector3>();   // yumuşatılmış yürüme yönü (şerit kayması buna göre döner)
+        private readonly List<Vector3> soldierDir = new List<Vector3>();   // (eski) yürüme yönü
+        private readonly List<Vector3> soldierSep = new List<Vector3>();   // yakın askerlerden ayrışma (yumuşak, birikimli)
+        private readonly List<Vector3> soldierDisp = new List<Vector3>();  // bu karedeki çizim konumu (ayrışma hesabı için)
 
         private void StartBattle(TargetInfo t)
         {
@@ -154,7 +156,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -190,6 +192,8 @@ namespace GameClient
                 soldierRigs.Add(tr.GetComponent<CharacterRig>());
                 soldierPrevAttacks.Add(st.AttackCount);
                 soldierDir.Add(Vector3.forward);
+                soldierSep.Add(Vector3.zero);
+                soldierDisp.Add(Vector3.zero);
                 soldierPrev.Add(new Vector3(st.X / 1000f, 0f, st.Y / 1000f));
             }
             for (int i = 0; i < sim.Soldiers.Count; i++)
@@ -213,20 +217,14 @@ namespace GameClient
                     rig.SetMoving(moving);
                     if (s.AttackCount != soldierPrevAttacks[i]) { soldierPrevAttacks[i] = s.AttackCount; rig.TriggerAttack(); }
                 }
-                // Şerit kayması: yolda yürüme yönüne göre (sağ/sol tarafı hep aynı, köşede yön yumuşak döner → ışınlanma yok)
-                Vector3 offTarget;
-                if (!s.Flying && s.Lane >= 0)
-                {
-                    if (moving) soldierDir[i] = Vector3.Slerp(soldierDir[i], d.normalized, Mathf.Min(1f, Time.deltaTime * 6f));
-                    var dir = soldierDir[i]; dir.y = 0f;
-                    if (dir.sqrMagnitude < 0.0001f) dir = Vector3.forward; else dir.Normalize();
-                    var perp = new Vector3(-dir.z, 0f, dir.x);
-                    float lat = ((s.Lane - 1) * 0.3f + (s.Lane + s.Slots - 2) * 0.3f) * 0.5f;
-                    offTarget = perp * lat - dir * (s.Stagger * 0.3f);
-                }
-                else offTarget = new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f);
-                soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget, Mathf.Min(1f, Time.deltaTime * 10f));
+                // Kişisel duruş: her yer askeri yolun içinde kendine ait sabit bir sapmayla yürür (dünya ekseninde; köşede dönmez).
+                // Uçanlar simülasyonun verdiği dağılımı kullanır. Üst üste binme, aşağıdaki yumuşak ayrışmayla önlenir.
+                Vector3 offTarget = s.Flying
+                    ? new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f)
+                    : new Vector3(((s.Id * 73) % 100 / 100f - 0.5f) * 0.5f, 0f, ((s.Id * 41 + 17) % 100 / 100f - 0.5f) * 0.5f);
+                soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget + soldierSep[i], Mathf.Min(1f, Time.deltaTime * 8f));
                 t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
+                soldierDisp[i] = t.position;
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
                 float hf = s.MaxHp > 0 ? Mathf.Clamp01((float)s.Hp / s.MaxHp) : 0f;
@@ -239,6 +237,8 @@ namespace GameClient
                     soldierBarFills[i].GetComponentInChildren<MeshRenderer>().sharedMaterial = VillageArt.Mat(ci == 0 ? new Color(0.3f, 0.9f, 0.3f) : (ci == 1 ? new Color(1f, 0.8f, 0.2f) : new Color(1f, 0.3f, 0.2f)), 0.2f, 0.6f);
                 }
             }
+
+            SeparateSoldiers();
 
             // yapılar: can çubuğu, yıkım dumanı, kule atışı
             int n = sim.Structures.Count;
@@ -287,6 +287,35 @@ namespace GameClient
                 sh.T.position = pos;
                 if (dir.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
             }
+        }
+
+        /// <summary>
+        /// Görsel ayrışma: birbirine 0,34 kareden fazla yaklaşan yer askerleri hafifçe itilir (yalnızca çizim; simülasyon değişmez).
+        /// İtme birikir ve yavaşça söner; kalabalıkta askerler doğal biçimde dağılır.
+        /// </summary>
+        private void SeparateSoldiers()
+        {
+            const float minD = 0.34f;
+            int n = Mathf.Min(sim.Soldiers.Count, soldierDisp.Count);
+            for (int i = 0; i < n; i++) soldierSep[i] *= 0.985f; // sönme
+            for (int i = 0; i < n; i++)
+            {
+                var a = sim.Soldiers[i];
+                if (!a.Alive || a.Flying) continue;
+                for (int j = i + 1; j < n; j++)
+                {
+                    var b = sim.Soldiers[j];
+                    if (!b.Alive || b.Flying) continue;
+                    var dlt = soldierDisp[i] - soldierDisp[j]; dlt.y = 0f;
+                    float d2 = dlt.sqrMagnitude;
+                    if (d2 >= minD * minD) continue;
+                    float dd = Mathf.Sqrt(d2);
+                    var dir = dd > 0.0001f ? dlt / dd : new Vector3(((i * 31 + j * 7) % 7) - 3f, 0f, ((i * 13 + j) % 5) - 2f).normalized;
+                    var push = dir * ((minD - dd) * 0.35f);
+                    soldierSep[i] += push; soldierSep[j] -= push;
+                }
+            }
+            for (int i = 0; i < n; i++) if (soldierSep[i].sqrMagnitude > 0.36f) soldierSep[i] = soldierSep[i].normalized * 0.6f;
         }
 
         private void SpawnShot(SimStructure tower)

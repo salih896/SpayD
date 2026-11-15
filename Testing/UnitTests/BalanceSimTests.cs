@@ -154,12 +154,11 @@ namespace GameCore.Tests
                 if (G.Level < ContentCatalog.Building(t).UnlockLevel) continue;
                 if (G.CountBuildings(t) >= want) continue;
                 if (!G.Wallet.CanAfford(GameRules.Scale(GameRules.BuildCostOf(t), G.Config, G.Level, 100), G.Level, SpendArea.Building, out _)) continue;
-                bool placed = false;
-                // bina yola bağlı olmalı (sağ/sol/üst/alt)
+                // bina yola bağlı olmalı (sağ/sol/üst/alt): ilk uygun hücreyi dene
                 foreach (var p in Cells())
                 {
                     if (G.Layout.Get(p) != CellKind.Empty || !Road4(p)) continue;
-                    if (G.TryPlaceBuilding(p, t, out _)) placed = true;
+                    G.TryPlaceBuilding(p, t, out _);
                     break;
                 }
             }
