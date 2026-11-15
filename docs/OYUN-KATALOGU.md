@@ -7,10 +7,10 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
 | Kılıçlı | Sv2 | 70 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
-| Okçu | Sv3 | 60 | 10 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
-| Goblin | Sv4 | 35 | 6 | 6 | 1,5 | 0,13 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
+| Okçu | Sv3 | 60 | 17 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
+| Goblin | Sv4 | 35 | 13 | 6 | 1,5 | 0,16 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,04 | Zırh %30 | 60 odun, 15 taş | 5 dk |
-| Büyücü | Sv7 | 50 | 22 | 18 | 2,0 | 0,06 | Alan hasarı 1,5, ateş direnci %25 | 70 odun, 30 taş | 5 dk |
+| Büyücü | Sv7 | 50 | 43 | 18 | 2,0 | 0,06 | Alan hasarı 1,5, ateş direnci %25 | 70 odun, 30 taş | 5 dk |
 | Atlı Kılıçlı | Sv9 | 260 | 22 | 10 | 1,5 | 0,15 | Zırh %20, atlı, önce kuleler, sonra diğer yapılar | 90 odun, 60 taş | 10 dk |
 | Peri | Sv11 | 55 | 9 | 8 | 2,0 | 0,10 | Uçar, yolu izlemez | 100 odun, 80 taş | 5 dk |
 | Dev | Sv13 | 600 | 30 | 15 | 1,5 | 0,03 | Zırh %25, en yakın yapı | 160 odun, 110 taş | 10 dk |
@@ -124,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 78l + 16l² (Sv1→30 toplam ≈ 158 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

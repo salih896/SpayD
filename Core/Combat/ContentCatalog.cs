@@ -17,11 +17,11 @@ namespace GameCore.Combat
             // Dengeli ön hat
             new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 70, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
             // Uzaktan, kırılgan
-            new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 10, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
+            new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 17, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
             // Alan hasarı, ateşe dirençli
-            new SoldierDef { Type = SoldierType.Mage, Name = "Büyücü", Hp = 50, Attack = 22, IntervalTicks = 18, RangeMilli = 2000, SpeedMilli = 60, FireResistPct = 25, SplashMilli = 1500, TrainSeconds = 300, UnlockLevel = 7, Cost = new ResourceCost(70, 30) },
+            new SoldierDef { Type = SoldierType.Mage, Name = "Büyücü", Hp = 50, Attack = 43, IntervalTicks = 18, RangeMilli = 2000, SpeedMilli = 60, FireResistPct = 25, SplashMilli = 1500, TrainSeconds = 300, UnlockLevel = 7, Cost = new ResourceCost(70, 30) },
             // Çok hızlı, ucuz, kaynak avcısı
-            new SoldierDef { Type = SoldierType.Goblin, Name = "Goblin", Hp = 35, Attack = 6, IntervalTicks = 6, RangeMilli = 1500, SpeedMilli = 130, TrainSeconds = 120, UnlockLevel = 4, Cost = new ResourceCost(20) },
+            new SoldierDef { Type = SoldierType.Goblin, Name = "Goblin", Hp = 35, Attack = 13, IntervalTicks = 6, RangeMilli = 1500, SpeedMilli = 160, TrainSeconds = 120, UnlockLevel = 4, Cost = new ResourceCost(20) },
             // Hızlı ve dayanıklı, mızrak kulesine zayıf
             new SoldierDef { Type = SoldierType.Cavalry, Name = "Atlı Kılıçlı", Hp = 260, Attack = 22, IntervalTicks = 10, RangeMilli = 1500, SpeedMilli = 150, ArmorPct = 20, Mounted = true, TrainSeconds = 600, UnlockLevel = 9, Cost = new ResourceCost(90, 60) },
             // Yavaş, yüksek zırh

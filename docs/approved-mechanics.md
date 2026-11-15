@@ -104,3 +104,4 @@
 76. **Kılıçlı canı 70** (kullanıcı kararı 15.11.2026, #75'in yerine). Sonuç (sim): bot ≈ %51 zafer, Sv30 ≈ 107 gün.
 77. **Kule hedefi (kullanıcı kararı 15.11.2026):** kule menzilindeki vurulabilir askerlerden önce yakın dövüşçüleri (Kılıçlı, Goblin, Atlı, Mızraklı, Dev) vurur; yakın dövüşçü yoksa uzaktan saldıranları/uçanları. Aynı grupta canı yüzde olarak en az olanı seçer (ör. Okçu yarım canda olsa da yakın dövüşçü varken önce o vurulur). Atış görseli de aynı hedefe gider. Sonuç (sim): bot ≈ %55 zafer, Sv30 ≈ 100 gün.
 78. **Okçu Kulesi saldırı hızı 0,5 sn** (kullanıcı kararı 15.11.2026; 6 → 5 tick). Sonuç (sim): bot ≈ %52 zafer, Sv30 ≈ 107 gün.
+79. **Asker ayarı (kullanıcı kararı 15.11.2026):** Okçu hasarı 10 → 17, Büyücü 22 → 43, Goblin 6 → 13 ve hızı 130 → 160. Sonuç (sim): bot ≈ %70 zafer; Sv30 ≈ 102 gün için XP eğrisi 100 + 85l + 18l².
