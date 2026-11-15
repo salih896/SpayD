@@ -204,23 +204,38 @@ namespace GameCore.Tests
             Assert.AreEqual(CellKind.Road, g.Layout.Get(P(5, 1)), "Köy değişmedi");
         }
 
-        [Test]
-        public void Swordsman_AttacksNearestStructure()
+        private static DefenseSetup TargetVillage()
         {
             var layout = new VillageLayout(11, 20, 10);
             layout.ToggleEntrance(P(5, 0), out _);
             for (int y = 1; y <= 8; y++) layout.TryPlace(P(5, y), CellKind.Road, out _);
-            layout.TryPlace(P(4, 1), CellKind.Building, out _);   // yakın: Akademi (kaynak değil, kule değil)
-            layout.TryPlace(P(6, 8), CellKind.Building, out _);   // uzak: kaynak binası
+            layout.TryPlace(P(4, 1), CellKind.Building, out _);   // en yakın: Akademi (depo değil, kule değil)
+            layout.TryPlace(P(6, 5), CellKind.Tower, out _);      // orta: devre dışı okçu kulesi
+            layout.TryPlace(P(6, 8), CellKind.Building, out _);   // en uzak: kereste deposu
             var d = new DefenseSetup(layout);
             d.Buildings[P(4, 1)] = new BuildingSpec(BuildingType.University);
+            d.Towers[P(6, 5)] = new TowerSpec(TowerType.Archer, 1, 70);
             d.Buildings[P(6, 8)] = new BuildingSpec(BuildingType.LumberDepot);
-            var sim = new BattleSim(d, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, new Dictionary<SoldierType, int> { { SoldierType.Swordsman, 1 } }, 3);
-            sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            return d;
+        }
+
+        private static GridPos FirstTarget(SoldierType t)
+        {
+            var sim = new BattleSim(TargetVillage(), new Dictionary<SoldierType, int> { { t, 1 } }, new Dictionary<SoldierType, int> { { t, 1 } }, 3);
+            sim.Deploy(t, 5, 1, out _);
             for (int i = 0; i < 5; i++) sim.Step();
             var s = sim.Soldiers[0];
-            Assert.GreaterOrEqual(s.TargetId, 0);
-            Assert.AreEqual(P(4, 1), sim.Structures[s.TargetId].Pos, "Kılıçlı en yakın yapıya saldırır");
+            Assert.GreaterOrEqual(s.TargetId, 0, t.ToString());
+            return sim.Structures[s.TargetId].Pos;
+        }
+
+        [Test]
+        public void Targeting_NearestForMost_GoblinDepotFirst_CavalryTowerFirst()
+        {
+            foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Giant, SoldierType.Spearman, SoldierType.Fairy, SoldierType.Catapult, SoldierType.DragonRider, SoldierType.Mage })
+                Assert.AreEqual(P(4, 1), FirstTarget(t), t + " en yakın yapıya saldırır");
+            Assert.AreEqual(P(6, 8), FirstTarget(SoldierType.Goblin), "Goblin önce kaynak deposuna");
+            Assert.AreEqual(P(6, 5), FirstTarget(SoldierType.Cavalry), "Atlı önce kuleye");
         }
     }
 }

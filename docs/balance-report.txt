@@ -2,24 +2,25 @@ DENGE RAPORU (otomatik, BalanceSimTests). Bot: kurallara uyan açgözlü oyuncu;
 Hedef (kullanıcı kararı 14.11.2026): Sv30 ≈ 100 gün (2 saatte bir giren aktif oyuncu); Normal ~%60-80 zafer, Kolay ~%90+, Zor ~%25-50.
 
 === Giriş aralığı: 2 saat ===
-Seviyeye ulaşılan gün: Sv2=0.0  Sv3=0.1  Sv5=0.6  Sv8=1.3  Sv10=2.2  Sv15=7.6  Sv20=21.1  Sv25=41.5  Sv30=93.0  
-Saldırı 486, zafer 334 (%68), ort yıldız 1.8 | XP: görev 33235, kurma 580, yükseltme 83608, savaş 61184 | baskın 91, savunulan 0 | son seviye 30 (gün 94)
+Seviyeye ulaşılan gün: Sv2=0.0  Sv3=0.1  Sv5=0.6  Sv8=1.4  Sv10=2.3  Sv15=8.0  Sv20=21.3  Sv25=42.4  Sv30=96.6  
+Saldırı 482, zafer 336 (%69), ort yıldız 1.7 | XP: görev 33730, kurma 580, yükseltme 81760, savaş 60480 | baskın 93, savunulan 1 | son seviye 30 (gün 97)
   Sv3 gün 0 | ordu 24 | asker sv 1.0 | kule 3 sv 1.0 | araşt 0 | Kolay 6/6 3.0* | Normal 0/6 0.0* | Zor 6/6 3.0*
-  Sv5 gün 0 | ordu 32 | asker sv 1.8 | kule 3 sv 2.3 | araşt 0 | Kolay 0/6 0.0* | Normal 6/6 3.0* | Zor 6/6 2.8*
-  Sv8 gün 1 | ordu 32 | asker sv 2.4 | kule 4 sv 3.0 | araşt 4 | Kolay 6/6 3.0* | Normal 6/6 3.0* | Zor 0/6 0.0*
-  Sv10 gün 2 | ordu 36 | asker sv 3.0 | kule 5 sv 3.8 | araşt 10 | Kolay 6/6 3.0* | Normal 4/6 1.3* | Zor 0/6 0.0*
-  Sv15 gün 7 | ordu 84 | asker sv 5.6 | kule 7 sv 8.0 | araşt 44 | Kolay 6/6 3.0* | Normal 3/6 1.5* | Zor 0/6 0.0*
-  Sv20 gün 21 | ordu 140 | asker sv 8.9 | kule 7 sv 14.6 | araşt 121 | Kolay 6/6 3.0* | Normal 6/6 2.7* | Zor 0/6 0.0*
-  Sv25 gün 41 | ordu 204 | asker sv 12.8 | kule 8 sv 23.0 | araşt 236 | Kolay 6/6 3.0* | Normal 1/6 0.3* | Zor 0/6 0.0*
-  Sv30 gün 93 | ordu 368 | asker sv 17.2 | kule 8 sv 29.0 | araşt 411 | Kolay 6/6 3.0* | Normal 1/6 0.5* | Zor 0/6 0.0*
+  Sv5 gün 0 | ordu 32 | asker sv 1.8 | kule 3 sv 2.3 | araşt 0 | Kolay 1/6 0.2* | Normal 6/6 3.0* | Zor 5/6 2.2*
+  Sv8 gün 1 | ordu 32 | asker sv 2.8 | kule 4 sv 3.0 | araşt 5 | Kolay 6/6 3.0* | Normal 6/6 3.0* | Zor 1/6 0.2*
+  Sv10 gün 2 | ordu 36 | asker sv 3.3 | kule 5 sv 4.0 | araşt 11 | Kolay 6/6 3.0* | Normal 5/6 2.2* | Zor 0/6 0.0*
+  Sv15 gün 8 | ordu 84 | asker sv 5.8 | kule 7 sv 8.0 | araşt 45 | Kolay 6/6 3.0* | Normal 6/6 2.7* | Zor 0/6 0.0*
+  Sv20 gün 21 | ordu 140 | asker sv 8.9 | kule 7 sv 14.7 | araşt 122 | Kolay 6/6 3.0* | Normal 6/6 2.5* | Zor 0/6 0.0*
+  Sv25 gün 42 | ordu 212 | asker sv 12.8 | kule 8 sv 23.4 | araşt 242 | Kolay 6/6 3.0* | Normal 4/6 1.2* | Zor 0/6 0.0*
+  Sv30 gün 96 | ordu 368 | asker sv 17.2 | kule 8 sv 29.0 | araşt 411 | Kolay 6/6 3.0* | Normal 2/6 0.5* | Zor 0/6 0.0*
 
 === Giriş aralığı: 4 saat ===
-Seviyeye ulaşılan gün: Sv2=0.0  Sv3=0.2  Sv5=1.5  Sv8=3.0  Sv10=4.2  Sv15=15.2  Sv20=40.3  Sv25=76.0  Sv30=138.7  
-Saldırı 481, zafer 317 (%65), ort yıldız 1.8 | XP: görev 35090, kurma 580, yükseltme 81392, savaş 59354 | baskın 134, savunulan 2 | son seviye 30 (gün 139)
+Seviyeye ulaşılan gün: Sv2=0.0  Sv3=0.2  Sv5=1.5  Sv8=3.2  Sv10=4.5  Sv15=15.0  Sv20=41.2  Sv25=77.2  Sv30=143.0  
+Saldırı 478, zafer 334 (%69), ort yıldız 1.8 | XP: görev 35140, kurma 580, yükseltme 82656, savaş 59470 | baskın 142, savunulan 2 | son seviye 30 (gün 144)
   Sv3 gün 0 | ordu 24 | asker sv 1.0 | kule 3 sv 1.0 | araşt 0 | Kolay 6/6 3.0* | Normal 0/6 0.0* | Zor 6/6 3.0*
-  Sv5 gün 1 | ordu 32 | asker sv 1.8 | kule 3 sv 2.3 | araşt 0 | Kolay 0/6 0.0* | Normal 6/6 3.0* | Zor 6/6 2.8*
-  Sv8 gün 3 | ordu 32 | asker sv 2.4 | kule 4 sv 3.0 | araşt 4 | Kolay 6/6 3.0* | Normal 6/6 3.0* | Zor 0/6 0.0*
-  Sv10 gün 4 | ordu 36 | asker sv 3.0 | kule 5 sv 3.2 | araşt 8 | Kolay 6/6 3.0* | Normal 4/6 1.3* | Zor 0/6 0.0*
-  Sv15 gün 15 | ordu 84 | asker sv 5.6 | kule 7 sv 7.1 | araşt 45 | Kolay 6/6 3.0* | Normal 3/6 1.5* | Zor 0/6 0.0*
-  Sv20 gün 40 | ordu 132 | asker sv 8.3 | kule 7 sv 14.0 | araşt 118 | Kolay 6/6 3.0* | Normal 5/6 1.5* | Zor 0/6 0.0*
-  Sv25 gün 76 | ordu 192 | asker sv 11.7 | kule 8 sv 21.1 | araşt 212 | Kolay 6/6 3.0* | Normal 1/6 0.2* | Zor 0/6 0.0*
+  Sv5 gün 1 | ordu 32 | asker sv 1.8 | kule 3 sv 2.3 | araşt 0 | Kolay 1/6 0.2* | Normal 6/6 3.0* | Zor 5/6 2.2*
+  Sv8 gün 3 | ordu 32 | asker sv 2.8 | kule 5 sv 2.6 | araşt 6 | Kolay 6/6 3.0* | Normal 6/6 3.0* | Zor 1/6 0.2*
+  Sv10 gün 4 | ordu 36 | asker sv 3.3 | kule 5 sv 4.0 | araşt 12 | Kolay 6/6 3.0* | Normal 5/6 2.2* | Zor 0/6 0.0*
+  Sv15 gün 15 | ordu 76 | asker sv 5.6 | kule 7 sv 7.0 | araşt 42 | Kolay 6/6 3.0* | Normal 4/6 1.5* | Zor 0/6 0.0*
+  Sv20 gün 41 | ordu 136 | asker sv 8.3 | kule 7 sv 14.0 | araşt 122 | Kolay 6/6 3.0* | Normal 6/6 2.3* | Zor 0/6 0.0*
+  Sv25 gün 77 | ordu 192 | asker sv 11.7 | kule 8 sv 21.5 | araşt 221 | Kolay 6/6 3.0* | Normal 2/6 0.3* | Zor 0/6 0.0*
+  Sv30 gün 143 | ordu 368 | asker sv 17.1 | kule 8 sv 29.0 | araşt 401 | Kolay 6/6 3.0* | Normal 2/6 0.5* | Zor 0/6 0.0*

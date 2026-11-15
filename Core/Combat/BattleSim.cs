@@ -419,25 +419,15 @@ namespace GameCore.Combat
                 int taunt = ContentCatalog.Tower(st.TowerType).TauntMilli;
                 if (taunt > 0 && CombatMath.DistSq(s.X, s.Y, st.CenterX, st.CenterY) <= (long)taunt * taunt) return -1;
             }
+            // Uçanlar Duvar'ı yok sayar (approved #42): yalnızca başka yapı kalmazsa
+            if (s.Flying && st.Kind == StructKind.Tower && ContentCatalog.Tower(st.TowerType).Attack <= 0) return 9;
+            // Hedef öncelikleri (kullanıcı kararı 15.11.2026): Goblin önce kaynak depoları, Atlı önce kuleler, diğer herkes en yakın yapı
             switch (s.Type)
             {
-                case SoldierType.Goblin: return st.IsResource ? 0 : 1;
-                case SoldierType.Swordsman: return 0;                      // en yakın yapı (kullanıcı kararı 15.11.2026)
-                case SoldierType.Fairy: return st.IsResource ? 0 : (st.Kind == StructKind.Tower ? 1 : 2);
-                case SoldierType.Mage: return 0;
-                case SoldierType.Catapult: return 0;                       // en yakın her şey (uzaktan kuşatma)
-                case SoldierType.DragonRider: return st.Kind == StructKind.Tower ? 0 : 1;
-                default: return st.Kind == StructKind.Tower ? 0 : 1; // Okçu, Atlı, Mızraklı, Dev
+                case SoldierType.Goblin: return st.IsDepot ? 0 : 1;
+                case SoldierType.Cavalry: return st.Kind == StructKind.Tower ? 0 : 1;
+                default: return 0;
             }
-        }
-
-        private int ClusterCount(SimSoldier s, SimStructure st)
-        {
-            long sr2 = (long)Math.Max(1, s.SplashMilli) * Math.Max(1, s.SplashMilli);
-            int n = 0;
-            for (int i = 0; i < structures.Count; i++)
-                if (structures[i].Alive && CombatMath.DistSq(st.CenterX, st.CenterY, structures[i].CenterX, structures[i].CenterY) <= sr2) n++;
-            return n;
         }
 
         private SimStructure ChooseTarget(SimSoldier s)
@@ -447,19 +437,15 @@ namespace GameCore.Combat
             if (cands.Count == 0) return null;
 
             var keyClass = new Dictionary<int, int>();
-            var keyCluster = new Dictionary<int, int>();
             var keyDist = new Dictionary<int, long>();
             foreach (var c in cands)
             {
                 keyClass[c.Id] = PriorityClass(s, c);
-                keyCluster[c.Id] = s.Type == SoldierType.Mage ? -ClusterCount(s, c) : 0;
                 keyDist[c.Id] = CombatMath.DistSq(s.X, s.Y, c.CenterX, c.CenterY);
             }
             cands.Sort((a, b) =>
             {
                 int r = keyClass[a.Id].CompareTo(keyClass[b.Id]);
-                if (r != 0) return r;
-                r = keyCluster[a.Id].CompareTo(keyCluster[b.Id]);
                 if (r != 0) return r;
                 r = keyDist[a.Id].CompareTo(keyDist[b.Id]);
                 return r != 0 ? r : a.Id.CompareTo(b.Id);
