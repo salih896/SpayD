@@ -403,7 +403,7 @@ namespace GameCore.Combat
 
         // ---------- Hedef ve yol ----------
         /// <summary>Yakın dövüşçü (menzil ≤ 2 hücre, uçmayan): yalnızca yapının sağ/sol/üst/alt yanındaki yoldan saldırır (kullanıcı kararı 15.11.2026).</summary>
-        private static bool IsMelee(SimSoldier s) => !s.Flying && ContentCatalog.Soldier(s.Type).RangeMilli <= 2000;
+        private static bool IsMelee(SimSoldier s) => !s.Flying && s.Type != SoldierType.Archer && s.Type != SoldierType.Mage && s.Type != SoldierType.Catapult; // Okçu/Büyücü/Mancınık uzaktan saldırır (menzil kısa olsa da en yakını vurur)
 
         /// <summary>Yakın dövüş vuruş mesafesi: yan kare (1 hücre) evet, çapraz (1,41) hayır.</summary>
         private const int MeleeReachMilli = 1050;

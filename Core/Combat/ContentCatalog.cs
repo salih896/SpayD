@@ -17,9 +17,9 @@ namespace GameCore.Combat
             // Dengeli ön hat
             new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 120, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
             // Uzaktan, kırılgan
-            new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 10, IntervalTicks = 10, RangeMilli = 4000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
+            new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 10, IntervalTicks = 10, RangeMilli = 1000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
             // Alan hasarı, ateşe dirençli
-            new SoldierDef { Type = SoldierType.Mage, Name = "Büyücü", Hp = 50, Attack = 22, IntervalTicks = 18, RangeMilli = 3500, SpeedMilli = 60, FireResistPct = 25, SplashMilli = 1500, TrainSeconds = 300, UnlockLevel = 7, Cost = new ResourceCost(70, 30) },
+            new SoldierDef { Type = SoldierType.Mage, Name = "Büyücü", Hp = 50, Attack = 22, IntervalTicks = 18, RangeMilli = 1000, SpeedMilli = 60, FireResistPct = 25, SplashMilli = 1500, TrainSeconds = 300, UnlockLevel = 7, Cost = new ResourceCost(70, 30) },
             // Çok hızlı, ucuz, kaynak avcısı
             new SoldierDef { Type = SoldierType.Goblin, Name = "Goblin", Hp = 35, Attack = 6, IntervalTicks = 6, RangeMilli = 1500, SpeedMilli = 130, TrainSeconds = 120, UnlockLevel = 4, Cost = new ResourceCost(20) },
             // Hızlı ve dayanıklı, mızrak kulesine zayıf
@@ -27,29 +27,29 @@ namespace GameCore.Combat
             // Yavaş, yüksek zırh
             new SoldierDef { Type = SoldierType.Spearman, Name = "Mızraklı", Hp = 150, Attack = 12, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 65, ArmorPct = 30, TrainSeconds = 300, UnlockLevel = 5, Cost = new ResourceCost(60, 15) },
             // Uçar, yolu yok sayar; mızrak kulesi vuramaz
-            new SoldierDef { Type = SoldierType.Fairy, Name = "Peri", Hp = 55, Attack = 9, IntervalTicks = 8, RangeMilli = 3000, SpeedMilli = 100, Flying = true, TrainSeconds = 300, UnlockLevel = 11, Cost = new ResourceCost(100, 80) },
+            new SoldierDef { Type = SoldierType.Fairy, Name = "Peri", Hp = 55, Attack = 9, IntervalTicks = 8, RangeMilli = 1000, SpeedMilli = 100, Flying = true, TrainSeconds = 300, UnlockLevel = 11, Cost = new ResourceCost(100, 80) },
             // Çok dayanıklı, yavaş; yalnızca kulelere yürür (kule ateşini üstüne çeker)
             new SoldierDef { Type = SoldierType.Giant, Name = "Dev", Hp = 600, Attack = 30, IntervalTicks = 15, RangeMilli = 1500, SpeedMilli = 55, ArmorPct = 25, TrainSeconds = 600, UnlockLevel = 13, Cost = new ResourceCost(160, 110) },
             // Kuşatma: çok uzak menzil, alan hasarı, kırılgan ve yavaş
-            new SoldierDef { Type = SoldierType.Catapult, Name = "Mancınık", Hp = 140, Attack = 70, IntervalTicks = 35, RangeMilli = 6000, SpeedMilli = 45, SplashMilli = 1500, TrainSeconds = 600, UnlockLevel = 17, Cost = new ResourceCost(220, 140, 60) },
+            new SoldierDef { Type = SoldierType.Catapult, Name = "Mancınık", Hp = 140, Attack = 70, IntervalTicks = 35, RangeMilli = 2000, SpeedMilli = 45, SplashMilli = 1500, TrainSeconds = 600, UnlockLevel = 17, Cost = new ResourceCost(220, 140, 60) },
             // Uçan ağır birlik: ateşe dirençli, alan hasarı; elf kulesine zayıf
-            new SoldierDef { Type = SoldierType.DragonRider, Name = "Ejderha Binicisi", Hp = 420, Attack = 34, IntervalTicks = 12, RangeMilli = 2500, SpeedMilli = 90, FireResistPct = 50, SplashMilli = 1000, Flying = true, TrainSeconds = 600, UnlockLevel = 21, Cost = new ResourceCost(260, 200, 110) },
+            new SoldierDef { Type = SoldierType.DragonRider, Name = "Ejderha Binicisi", Hp = 420, Attack = 34, IntervalTicks = 12, RangeMilli = 1000, SpeedMilli = 90, FireResistPct = 50, SplashMilli = 1000, Flying = true, TrainSeconds = 600, UnlockLevel = 21, Cost = new ResourceCost(260, 200, 110) },
         };
 
         // Kule hakkı 5-10 (GDD Bölüm 9): az ama güçlü kuleler. Can/hasar denge turu 2'de ×2,5 (13.11.2026).
         private static readonly TowerDef[] Towers =
         {
-            new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 16, IntervalTicks = 8, RangeMilli = 5000, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
-            new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 35, IntervalTicks = 20, RangeMilli = 4000, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = 6, BuildCost = new ResourceCost(200, 80) },
+            new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 16, IntervalTicks = 8, RangeMilli = 2000, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
+            new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 35, IntervalTicks = 20, RangeMilli = 2000, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = 6, BuildCost = new ResourceCost(200, 80) },
             // Duvar (kullanıcı kararı 14.11.2026: Mızrak Kulesi → Duvar): saldırmaz, çok dayanıklı, yakındaki yer askerlerini üstüne çeker
             new TowerDef { Type = TowerType.Wall, Name = "Duvar", Hp = 3200, Attack = 0, IntervalTicks = 10, RangeMilli = 0, CanHitAir = false, TauntMilli = 2500, UnlockLevel = 4, BuildCost = new ResourceCost(160) },
-            new TowerDef { Type = TowerType.Elf, Name = "Elf Kulesi", Hp = 750, Attack = 10, IntervalTicks = 4, RangeMilli = 4500, CanHitAir = true, BonusVsAirPct = 100, UnlockLevel = 8, BuildCost = new ResourceCost(180, 120) },
+            new TowerDef { Type = TowerType.Elf, Name = "Elf Kulesi", Hp = 750, Attack = 10, IntervalTicks = 4, RangeMilli = 2000, CanHitAir = true, BonusVsAirPct = 100, UnlockLevel = 8, BuildCost = new ResourceCost(180, 120) },
             // Top: yavaş, yüksek alan hasarı, havayı vuramaz
-            new TowerDef { Type = TowerType.Cannon, Name = "Top Kulesi", Hp = 1100, Attack = 74, IntervalTicks = 30, RangeMilli = 4000, SplashMilli = 1200, CanHitAir = false, UnlockLevel = 10, BuildCost = new ResourceCost(300, 150) },
+            new TowerDef { Type = TowerType.Cannon, Name = "Top Kulesi", Hp = 1100, Attack = 74, IntervalTicks = 30, RangeMilli = 2000, SplashMilli = 1200, CanHitAir = false, UnlockLevel = 10, BuildCost = new ResourceCost(300, 150) },
             // Buz: düşük hasar, vurduğunu yavaşlatır
-            new TowerDef { Type = TowerType.Ice, Name = "Buz Kulesi", Hp = 900, Attack = 11, IntervalTicks = 10, RangeMilli = 4000, SlowTicks = 25, CanHitAir = true, UnlockLevel = 12, BuildCost = new ResourceCost(250, 200) },
+            new TowerDef { Type = TowerType.Ice, Name = "Buz Kulesi", Hp = 900, Attack = 11, IntervalTicks = 10, RangeMilli = 2000, SlowTicks = 25, CanHitAir = true, UnlockLevel = 12, BuildCost = new ResourceCost(250, 200) },
             // Şimşek: hedeften 2 askere daha sıçrar
-            new TowerDef { Type = TowerType.Lightning, Name = "Şimşek Kulesi", Hp = 850, Attack = 29, IntervalTicks = 18, RangeMilli = 4500, ChainCount = 2, CanHitAir = true, UnlockLevel = 16, BuildCost = new ResourceCost(300, 200, 120) },
+            new TowerDef { Type = TowerType.Lightning, Name = "Şimşek Kulesi", Hp = 850, Attack = 29, IntervalTicks = 18, RangeMilli = 2000, ChainCount = 2, CanHitAir = true, UnlockLevel = 16, BuildCost = new ResourceCost(300, 200, 120) },
         };
 
         private static readonly BuildingDef[] Buildings =

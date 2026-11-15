@@ -257,7 +257,7 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void Diagonal_DoesNotConnect_MeleeCannotHitFromDiagonal_ArcherCan()
+        public void Diagonal_DoesNotConnect_MeleeAndArcherCannotHitFromDiagonal_CatapultCan()
         {
             var L = new VillageLayout(11, 20, 10);
             L.ToggleEntrance(P(5, 0), out _);
@@ -267,13 +267,13 @@ namespace GameCore.Tests
             L.TryPlace(P(6, 5), CellKind.Building, out _);
             var d = new DefenseSetup(L);
             d.Buildings[P(6, 5)] = new BuildingSpec(BuildingType.University);
-            foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer })
+            foreach (var t in new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Catapult })
             {
                 var sim = new BattleSim(d, new Dictionary<SoldierType, int> { { t, 1 } }, null, 2);
                 sim.Deploy(t, 5, 1, out _);
-                for (int i = 0; i < 200; i++) sim.Step();
-                if (t == SoldierType.Swordsman) Assert.AreEqual(sim.Structures[0].MaxHp, sim.Structures[0].Hp, "Kılıçlı çaprazdan vuramaz");
-                else Assert.Less(sim.Structures[0].Hp, sim.Structures[0].MaxHp, "Okçu uzaktan vurur");
+                for (int i = 0; i < 300; i++) sim.Step();
+                if (t == SoldierType.Catapult) Assert.Less(sim.Structures[0].Hp, sim.Structures[0].MaxHp, "Mancınık (2 kare) çaprazdan vurur");
+                else Assert.AreEqual(sim.Structures[0].MaxHp, sim.Structures[0].Hp, t + " çaprazdan vuramaz (Kılıçlı yakın dövüş, Okçu 1 kare)");
             }
         }
 
