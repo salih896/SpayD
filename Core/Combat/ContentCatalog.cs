@@ -15,7 +15,7 @@ namespace GameCore.Combat
         private static readonly SoldierDef[] Soldiers =
         {
             // Dengeli ön hat
-            new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 80, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
+            new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 70, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 2, Cost = new ResourceCost(40) },
             // Uzaktan, kırılgan
             new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 10, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
             // Alan hasarı, ateşe dirençli

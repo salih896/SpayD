@@ -101,3 +101,4 @@
 73. **Kule hasarı 30, saldırı hızı arttı** (kullanıcı kararı 15.11.2026): tüm saldıran kuleler 30 hasar; vuruş aralığı (tick, 10 = 1 sn): Okçu 8→6, Büyücü 20→14, Elf 4→3, Top 30→22, Buz 10→7, Şimşek 18→13 (≈ %35 daha hızlı). Arayüzde saldırı hızı görünür (kışla, test ordusu, kule kartı: "Saldırı 0,6 sn (1,7/sn)"). Sonuç (sim): rastgele savaşlar ≈ %35 zafer, bot ≈ %23; Sv30 ≈ 98 gün için XP eğrisi 100 + 65l + 13l².
 74. **Kule hasarı 20, Kılıçlı canı 100** (kullanıcı kararı 15.11.2026; saldırı hızları #73'teki gibi kalır). Sonuç (sim): bot ≈ %55 zafer, Sv30 ≈ 99 gün (XP eğrisi 100 + 78l + 16l²).
 75. **Kılıçlı canı 80** (kullanıcı kararı 15.11.2026, #74'teki 100'ün yerine). Sonuç (sim): bot ≈ %54 zafer, Sv30 ≈ 100 gün.
+76. **Kılıçlı canı 70** (kullanıcı kararı 15.11.2026, #75'in yerine). Sonuç (sim): bot ≈ %51 zafer, Sv30 ≈ 107 gün.

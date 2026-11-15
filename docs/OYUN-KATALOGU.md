@@ -6,7 +6,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
-| Kılıçlı | Sv2 | 80 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
+| Kılıçlı | Sv2 | 70 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 10 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
 | Goblin | Sv4 | 35 | 6 | 6 | 1,5 | 0,13 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,04 | Zırh %30 | 60 odun, 15 taş | 5 dk |
