@@ -68,10 +68,7 @@ namespace GameCore.Tests
             for (int l = 2; l <= G.Level; l++) if (!DayReached.ContainsKey(l)) DayReached[l] = Day + hourOfDay / 24.0;
         }
 
-        private int ArmyCount
-        {
-            get { int n = 0; for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) n += G.Inventory.Get((SoldierType)i); return n; }
-        }
+        private int ArmyCount => G.ReadyHousing; // hazır askerlerin kapladığı yer
 
         private void Act(int hourOfDay)
         {
@@ -158,12 +155,12 @@ namespace GameCore.Tests
                 if (G.CountBuildings(t) >= want) continue;
                 if (!G.Wallet.CanAfford(GameRules.Scale(GameRules.BuildCostOf(t), G.Config, G.Level, 100), G.Level, SpendArea.Building, out _)) continue;
                 bool placed = false;
-                // bina: yola komşu olmayan hücreyi tercih et (kuleye yer kalsın)
+                // bina yola bağlı olmalı: önce yalnızca çaprazdan bağlı hücre (yol kenarı kulelere kalsın), sonra herhangi bağlı hücre
                 for (int pass = 0; pass < 2 && !placed; pass++)
                     foreach (var p in Cells())
                     {
-                        if (G.Layout.Get(p) != CellKind.Empty) continue;
-                        if (pass == 0 && Road8(p)) continue;
+                        if (G.Layout.Get(p) != CellKind.Empty || !Road8(p)) continue;
+                        if (pass == 0 && Road4(p)) continue;
                         if (G.TryPlaceBuilding(p, t, out _)) placed = true;
                         break;
                     }
@@ -239,9 +236,9 @@ namespace GameCore.Tests
             var types = new List<SoldierType>();
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= G.Level) types.Add((SoldierType)i);
             if (types.Count == 0) return;
-            int k = 0, guard = 400;
-            while (G.ArmySize < G.ArmyCapacity && guard-- > 0)
-                if (!G.TryTrain(types[k++ % types.Count], out _)) break;
+            int k = 0, guard = 400, fails = 0;
+            while (G.ArmySize < G.ArmyCapacity && guard-- > 0 && fails < types.Count)
+                fails = G.TryTrain(types[k++ % types.Count], out _) ? 0 : fails + 1; // sığmayan büyük asker atlanır
         }
 
         private void Attack()
@@ -289,8 +286,7 @@ namespace GameCore.Tests
                 int wins = 0, stars = 0;
                 for (int seed = 100; seed < 106; seed++)
                 {
-                    var stock = new Dictionary<SoldierType, int>();
-                    for (int i = 0; i < cap; i++) { var t = types[i % types.Count]; stock[t] = (stock.TryGetValue(t, out var n) ? n : 0) + 1; }
+                    var stock = BalanceSimTests.EvenArmy(types, cap);
                     var tgt = TargetGenerator.Generate(G.Level, diff, seed);
                     var sim = new BattleSim(tgt.Defense, stock, levels, seed) { AttackerMods = G.Research.Mods() };
                     Deploy(sim, tgt.Defense.Layout.Size);
@@ -349,18 +345,18 @@ namespace GameCore.Tests
                 var types = new List<SoldierType>();
                 for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) types.Add((SoldierType)i);
                 if (types.Count == 0) types.Add(SoldierType.Swordsman); // Sv1-2: kışla yok; karşılaştırma için Kılıçlı
-                int army = lvl < 3 ? 10 : 20 + lvl * 2;
+                int army = ArmyHousing(lvl);
                 int baseLv = GameRules.ExpectedStructureLevel(lvl);
                 int ap = TargetGenerator.ExpectedAttackResearchPermille(lvl);
-                int wins = 0, dmg = 0, stars = 0, towers = 0, traps = 0, lostPct = 0;
+                int wins = 0, dmg = 0, stars = 0, towers = 0, traps = 0, lostPct = 0, soldiers = 0;
                 int[] dW = new int[3], dN = new int[3];
                 int lvSum = 0;
                 for (int t = 0; t < trials; t++)
                 {
                     int diff = rng.Next(3);
                     var tgt = TargetGenerator.Generate(lvl, diff, rng.Next(1, 1000000));
-                    var stock = new Dictionary<SoldierType, int>();
-                    for (int i = 0; i < army; i++) { var st = types[rng.Next(types.Count)]; stock[st] = (stock.TryGetValue(st, out var n) ? n : 0) + 1; }
+                    var stock = RandomArmy(rng, types, army, out int count);
+                    soldiers += count;
                     var levels = new Dictionary<SoldierType, int>();
                     foreach (var st in types) { int sl = System.Math.Max(1, baseLv + rng.Next(-1, 2)); levels[st] = sl; lvSum += sl; }
                     var sim = BotBattle.Run(tgt.Defense, stock, levels, new CombatMods { SoldierDamage = ap, SoldierHp = ap }, rng.Next(1, 1000000));
@@ -368,7 +364,7 @@ namespace GameCore.Tests
                     dN[diff]++;
                     if (res.Victory) { wins++; dW[diff]++; }
                     dmg += res.OverallDamagePct; stars += res.Stars; towers += tgt.Defense.Towers.Count; traps += tgt.Defense.Traps.Count;
-                    lostPct += (BattleResult.Total(res.LostDead) + BattleResult.Total(res.LostInjured)) * 100 / army;
+                    lostPct += (BattleResult.Total(res.LostDead) + BattleResult.Total(res.LostInjured)) * 100 / System.Math.Max(1, count);
                 }
                 totalW += wins; totalN += trials;
                 var ci = CultureInfo.InvariantCulture;
@@ -378,7 +374,7 @@ namespace GameCore.Tests
                   .Append(" | ").Append(dW[0]).Append("/").Append(dN[0]).Append("  ").Append(dW[1]).Append("/").Append(dN[1]).Append("  ").Append(dW[2]).Append("/").Append(dN[2])
                   .Append(" | ").Append((towers / (double)trials).ToString("0.0", ci))
                   .Append(" | ").Append((traps / (double)trials).ToString("0.0", ci))
-                  .Append(" | ").Append(army)
+                  .Append(" | ").Append(army).Append(" yer/").Append(soldiers / trials).Append(" asker")
                   .Append(" | ").Append((lvSum / (double)(trials * types.Count)).ToString("0.0", ci))
                   .Append(" | %").Append(lostPct / trials)
                   .AppendLine(lvl < 3 ? "   (kışla Sv3'te açılır; yalnızca karşılaştırma)" : "");
@@ -386,6 +382,47 @@ namespace GameCore.Tests
             sb.AppendLine();
             sb.AppendLine("TOPLAM: " + totalW + "/" + totalN + " zafer (%" + totalW * 100 / totalN + ")");
             return sb.ToString();
+        }
+
+        /// <summary>Tipik ordu büyüklüğü (yer birimi): tipik kışla sayısı × tipik seviye. Sv1-2 karşılaştırma için 10.</summary>
+        public static int ArmyHousing(int lvl) => lvl < 3 ? 10 : GameRules.ArmyCapacity(GameRules.ExpectedBarracksLevelSum(lvl));
+
+        /// <summary>Rastgele ordu: yer dolana kadar sığan türlerden rastgele seçer (asker yer kaplar: GameRules.Housing).</summary>
+        public static Dictionary<SoldierType, int> RandomArmy(System.Random rng, List<SoldierType> types, int housing, out int count)
+        {
+            var stock = new Dictionary<SoldierType, int>();
+            count = 0;
+            var fit = new List<SoldierType>();
+            while (true)
+            {
+                fit.Clear();
+                foreach (var t in types) if (GameRules.Housing(t) <= housing) fit.Add(t);
+                if (fit.Count == 0) break;
+                var st = fit[rng.Next(fit.Count)];
+                stock[st] = (stock.TryGetValue(st, out var n) ? n : 0) + 1;
+                housing -= GameRules.Housing(st);
+                count++;
+            }
+            return stock;
+        }
+
+        /// <summary>Eşit dağılımlı ordu (sırayla her türden bir, sığmayan atlanır).</summary>
+        public static Dictionary<SoldierType, int> EvenArmy(List<SoldierType> types, int housing)
+        {
+            var stock = new Dictionary<SoldierType, int>();
+            bool any = true;
+            while (any)
+            {
+                any = false;
+                foreach (var t in types)
+                {
+                    if (GameRules.Housing(t) > housing) continue;
+                    stock[t] = (stock.TryGetValue(t, out var n) ? n : 0) + 1;
+                    housing -= GameRules.Housing(t);
+                    any = true;
+                }
+            }
+            return stock;
         }
 
         /// <summary>Bir seviyede rastgele savaş bloğu (matrisle aynı dağılım). Dönen: zafer sayısı.</summary>
@@ -396,7 +433,7 @@ namespace GameCore.Tests
             var types = new List<SoldierType>();
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= lvl) types.Add((SoldierType)i);
             if (types.Count == 0) types.Add(SoldierType.Swordsman);
-            int army = lvl < 3 ? 10 : 20 + lvl * 2;
+            int army = ArmyHousing(lvl);
             int baseLv = GameRules.ExpectedStructureLevel(lvl);
             int ap = TargetGenerator.ExpectedAttackResearchPermille(lvl);
             int wins = 0;
@@ -404,8 +441,7 @@ namespace GameCore.Tests
             {
                 int diff = rng.Next(3);
                 var tgt = TargetGenerator.Generate(lvl, diff, rng.Next(1, 1000000));
-                var stock = new Dictionary<SoldierType, int>();
-                for (int i = 0; i < army; i++) { var st = types[rng.Next(types.Count)]; stock[st] = (stock.TryGetValue(st, out var n) ? n : 0) + 1; }
+                var stock = RandomArmy(rng, types, army, out _);
                 var levels = new Dictionary<SoldierType, int>();
                 foreach (var st in types) levels[st] = System.Math.Max(1, baseLv + rng.Next(-1, 2));
                 var sim = BotBattle.Run(tgt.Defense, stock, levels, new CombatMods { SoldierDamage = ap, SoldierHp = ap }, rng.Next(1, 1000000));
@@ -418,27 +454,29 @@ namespace GameCore.Tests
         /// Her seviye için hedef gücü düzeltmesini (‰) ikili aramayla bulur: rastgele savaşlarda ≈ %50 zafer.
         /// Sv1-2 atlanır (kışla yok). Sonuç tablosu docs/power-calibration.txt'e yazılır; TargetGenerator.LevelPowerPermille'e işlenir.
         /// </summary>
+        private const int CalTrials = 400;
+
         [Test, Explicit("Uzun kalibrasyon; elle çalıştırılır")]
         public void CalibrateLevelPower()
         {
             var saved = (int[])TargetGenerator.LevelPowerPermille.Clone();
             var outp = new int[31];
-            var sb = new StringBuilder("Sv | düzeltme ‰ | zafer/60\n");
+            var sb = new StringBuilder("Sv | düzeltme ‰ | zafer/" + CalTrials + "\n");
             for (int lvl = 3; lvl <= 30; lvl++)
             {
-                int lo = -700, hi = 7000, best = 0, bestGap = 999;
-                for (int it = 0; it < 10; it++)
+                int lo = -950, hi = 9000, best = 0, bestGap = 999;
+                for (int it = 0; it < 12; it++)
                 {
                     int mid = (lo + hi) / 2;
                     TargetGenerator.LevelPowerPermille[lvl] = mid;
-                    int w = TrialBlock(lvl, 60, 777 + lvl * 31);
-                    int gap = System.Math.Abs(w - 30);
+                    int w = TrialBlock(lvl, CalTrials, 777 + lvl * 31);
+                    int gap = System.Math.Abs(w - CalTrials / 2);
                     if (gap < bestGap) { bestGap = gap; best = mid; }
-                    if (w > 30) lo = mid; else hi = mid;
+                    if (w > CalTrials / 2) lo = mid; else hi = mid;
                 }
                 outp[lvl] = (best + 25) / 50 * 50; // 50'lik adımlara yuvarla
                 TargetGenerator.LevelPowerPermille[lvl] = outp[lvl];
-                sb.Append(lvl).Append(" | ").Append(outp[lvl]).Append(" | ").Append(TrialBlock(lvl, 60, 777 + lvl * 31)).Append("\n");
+                sb.Append(lvl).Append(" | ").Append(outp[lvl]).Append(" | ").Append(TrialBlock(lvl, CalTrials, 777 + lvl * 31)).Append("\n");
             }
             sb.Append("\nC#: { 0, 0, 0");
             for (int lvl = 3; lvl <= 30; lvl++) sb.Append(", ").Append(outp[lvl]);

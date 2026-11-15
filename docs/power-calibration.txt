@@ -1,0 +1,4 @@
+KALİBRASYON 15.11.2026 (köy düzeni + asker yeri + kışla/kule sınırı sonrası), her adım 400 savaş, arama -950..9000, 12 adım.
+Sv3-6 basamaklı (tamsayı kule seviyesi): %50'ye tam inmiyor.
+
+C#: { 0, 0, 0, 4050, 8850, -300, -600, 150, -350, 0, -150, 0, -200, 600, 350, 400, 100, 1350, 1050, 400, 0, 250, 100, 250, 150, 550, 800, 1050, 1150, 1200, 1950 }

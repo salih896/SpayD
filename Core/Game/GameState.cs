@@ -160,9 +160,10 @@ namespace GameCore.Game
             return n;
         }
 
-        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.StartTowerSlots + ClaimedCount(AcademyReward.TowerSlot));
+        /// <summary>Kule hakkı: seviyeyle 3→6, Akademi araştırma görevleriyle +2 → en çok 8.</summary>
+        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.TowerSlotsFromLevel(Level) + ClaimedCount(AcademyReward.TowerSlot));
         public int MaxVillagerHouses => Math.Min(GameRules.MaxVillagerHouses, GameRules.StartVillagerHouses + ClaimedCount(AcademyReward.VillagerHouse));
-        public int MaxCountOf(BuildingType t) => t == BuildingType.VillagerHouse ? MaxVillagerHouses : GameRules.MaxBuildingCount(t);
+        public int MaxCountOf(BuildingType t) => t == BuildingType.VillagerHouse ? MaxVillagerHouses : GameRules.MaxBuildingCount(t, Level);
 
         public bool AcademyTaskComplete(AcademyTask t) => t.Progress(this) >= t.Target;
 
@@ -219,12 +220,34 @@ namespace GameCore.Game
             TrapResearchRemaining = GameRules.TrapResearchSeconds;
             return true;
         }
+        /// <summary>Ordu kapasitesi (yer birimi). Asker türüne göre 1-10 yer kaplar (GameRules.Housing).</summary>
         public int ArmyCapacity => GameRules.ArmyCapacity(BarracksLevelSum());
+        /// <summary>Kullanılan yer: hazır askerler + eğitim sırası.</summary>
         public int ArmySize
         {
             get
             {
-                int n = Queue.Items.Count;
+                int n = 0;
+                foreach (var it in Queue.Items) n += GameRules.Housing(it.Type);
+                return n + ReadyHousing;
+            }
+        }
+        /// <summary>Hazır askerlerin kapladığı yer.</summary>
+        public int ReadyHousing
+        {
+            get
+            {
+                int n = 0;
+                for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) n += Inventory.Get((SoldierType)i) * GameRules.Housing((SoldierType)i);
+                return n;
+            }
+        }
+        /// <summary>Hazır asker adedi.</summary>
+        public int ReadySoldiers
+        {
+            get
+            {
+                int n = 0;
                 for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) n += Inventory.Get((SoldierType)i);
                 return n;
             }
@@ -413,6 +436,8 @@ namespace GameCore.Game
                 error = def.Name + " sınırı " + MaxCountOf(t) + (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses ? " (Akademi görevleriyle artar)" : "");
                 return false;
             }
+            if (!Layout.InBounds(p) || Layout.Get(p) != CellKind.Empty) { error = "Hücre dolu"; return false; }
+            if (!Layout.HasAdjacentRoad(p)) { error = "Bina yola bağlı olmalı"; return false; }
             var cost = GameRules.Scale(GameRules.BuildCostOf(t), Config, lvl, 100);
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
             if (!Layout.TryPlace(p, CellKind.Building, out error)) return false;
@@ -430,7 +455,7 @@ namespace GameCore.Game
             var def = ContentCatalog.Tower(t);
             int lvl = Level;
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
-            if (Towers.Count >= MaxTowers) { error = "Kule sınırı " + MaxTowers + (MaxTowers < GameRules.MaxTowerSlots ? " (Akademi görevleriyle " + GameRules.MaxTowerSlots + "'e çıkar)" : ""); return false; }
+            if (Towers.Count >= MaxTowers) { error = "Kule sınırı " + MaxTowers + (MaxTowers < GameRules.MaxTowerSlots ? " (seviye ve Akademi araştırmalarıyla " + GameRules.MaxTowerSlots + "'e çıkar)" : ""); return false; }
             var cost = GameRules.Scale(def.BuildCost, Config, lvl, 100);
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
             if (!Layout.TryPlace(p, CellKind.Tower, out error)) return false;
@@ -473,6 +498,81 @@ namespace GameCore.Game
             var cost = GameRules.Scale(d.Cost, Config, lvl, 100);
             if (!Wallet.TrySpend(cost, lvl, SpendArea.Building, out error)) return false;
             Traps[p] = t;
+            error = null;
+            return true;
+        }
+
+        // ---------- Köy Düzeni ----------
+        /// <summary>
+        /// Köy Düzeni taslağını uygular (kullanıcı kararı 15.11.2026): kurallar denetlenir, yeni yapıların bedeli ödenir,
+        /// satılanların %50'si iade edilir; var olan yapılar seviye/aşınma/yükseltme işiyle birlikte yeni yerlerine taşınır.
+        /// Başarısızsa köy değişmez.
+        /// </summary>
+        public bool TryApplyLayout(LayoutDraft d, out string error)
+        {
+            if (!d.Validate(out error)) return false;
+            int lvl = Level;
+            foreach (BuildingType t in Enum.GetValues(typeof(BuildingType)))
+                if (d.CountBuildings(t) > MaxCountOf(t)) { error = ContentCatalog.Building(t).Name + " sınırı " + MaxCountOf(t); return false; }
+            if (d.TowerCount > MaxTowers) { error = "Kule sınırı " + MaxTowers; return false; }
+            if (d.TrapCount > MaxTraps) { error = "Tuzak hakkı " + MaxTraps; return false; }
+            foreach (var kv in d.Cells)
+            {
+                var it = kv.Value;
+                if (!it.IsNew) continue;
+                int unlock = it.Kind == DraftKind.Building ? ContentCatalog.Building(it.Building).UnlockLevel : ContentCatalog.Tower(it.Tower).UnlockLevel;
+                if (lvl < unlock) { error = LayoutDraft.NameOf(it) + " Sv " + unlock + "'de açılır"; return false; }
+            }
+            foreach (var kv in d.Traps)
+                if (kv.Value.IsNew && lvl < TrapCatalog.Get(kv.Value.Trap).UnlockLevel) { error = LayoutDraft.NameOf(kv.Value) + " henüz açılmadı"; return false; }
+            var cost = d.NewCost();
+            if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
+            foreach (var it in d.Sold)
+                if (it.Kind != DraftKind.Trap)
+                    foreach (var j in Jobs)
+                        if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && j.Pos.Equals(it.Origin)) { error = "Yükseltme sürerken satılamaz"; return false; }
+
+            var newLayout = d.BuildLayout();
+            var nb = new Dictionary<GridPos, BuildingSpec>();
+            var nt = new Dictionary<GridPos, TowerSpec>();
+            var nw = new Dictionary<GridPos, TowerWear>();
+            var ntr = new Dictionary<GridPos, TrapType>();
+            var move = new Dictionary<GridPos, GridPos>();
+            int newBuildings = 0, newTowers = 0;
+            bool newLumberDepot = false;
+            foreach (var kv in d.Cells)
+            {
+                var it = kv.Value;
+                if (it.Kind == DraftKind.Building)
+                {
+                    if (it.HasOrigin && Buildings.TryGetValue(it.Origin, out var b)) { nb[kv.Key] = b; move[it.Origin] = kv.Key; }
+                    else { nb[kv.Key] = new BuildingSpec(it.Building, 1); newBuildings++; if (it.Building == BuildingType.LumberDepot) newLumberDepot = true; }
+                }
+                else if (it.Kind == DraftKind.Tower)
+                {
+                    if (it.HasOrigin && Towers.TryGetValue(it.Origin, out var t))
+                    {
+                        nt[kv.Key] = t; move[it.Origin] = kv.Key;
+                        nw[kv.Key] = Wears.TryGetValue(it.Origin, out var w) ? w : new TowerWear();
+                    }
+                    else { nt[kv.Key] = new TowerSpec(it.Tower, 1, 0); nw[kv.Key] = new TowerWear(); newTowers++; }
+                }
+            }
+            foreach (var kv in d.Traps) ntr[kv.Key] = kv.Value.Trap;
+
+            Wallet.TrySpend(cost, lvl, SpendArea.Building, out error);
+            var refund = d.Refund();
+            foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
+                if (refund.Get(rt) > 0) Wallet.TryAdd(rt, refund.Get(rt), lvl, out _, out _);
+            foreach (var j in Jobs)
+                if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && move.TryGetValue(j.Pos, out var np)) j.Pos = np;
+            Layout = newLayout; Buildings = nb; Towers = nt; Wears = nw; Traps = ntr;
+
+            for (int i = 0; i < newBuildings; i++) PendingLevelUps.AddRange(AddXp(PlacementXpBuilding));
+            for (int i = 0; i < newTowers; i++) { Quests.Report(QuestEvent.TowersBuilt, 1, lvl); PendingLevelUps.AddRange(AddXp(PlacementXpTower)); }
+            // approved #4: kereste deposu kurulunca seviye 2 GARANTİ
+            if (newLumberDepot && Level < 2) PendingLevelUps.AddRange(AddXp((int)(ProgressionRules.XpToNextLevel(1) - XpIntoLevel)));
+            RecomputeCapacity();
             error = null;
             return true;
         }
@@ -575,7 +675,7 @@ namespace GameCore.Game
         public bool TryTrain(SoldierType t, out string error)
         {
             if (BarracksLevelSum() <= 0) { error = "Önce Kışla kur"; return false; }
-            if (ArmySize >= ArmyCapacity) { error = "Ordu kapasitesi dolu (" + ArmySize + "/" + ArmyCapacity + ")"; return false; }
+            if (ArmySize + GameRules.Housing(t) > ArmyCapacity) { error = "Ordu kapasitesi dolu (" + ArmySize + "/" + ArmyCapacity + "; " + ContentCatalog.Soldier(t).Name + " " + GameRules.Housing(t) + " yer kaplar)"; return false; }
             if (!Queue.TryEnqueue(t, Wallet, Level, out error)) return false;
             var it = Queue.Items[Queue.Items.Count - 1];
             it.RemainingSeconds = Math.Max(5, (int)((long)it.RemainingSeconds * (1000 - Research.Total(ResearchStat.TrainTime)) / 1000));
@@ -597,7 +697,7 @@ namespace GameCore.Game
         public BattleSim StartAttack(DefenseSetup target, int seed, out string error)
         {
             error = null;
-            if (ArmySize - Queue.Items.Count <= 0) { error = "Saldırmak için asker eğit"; return null; }
+            if (ReadySoldiers <= 0) { error = "Saldırmak için asker eğit"; return null; }
             var stock = Inventory.ToStock();
             foreach (var k in new List<SoldierType>(stock.Keys)) Inventory.TryRemove(k, stock[k]);
             return new BattleSim(target, stock, new Dictionary<SoldierType, int>(SoldierLevels), seed) { AttackerMods = Research.Mods() };

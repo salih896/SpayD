@@ -14,8 +14,9 @@ namespace GameCore.Game
         public const int StarterWood = 600;
         public const int SellRefundPct = 50;
 
-        /// <summary>Kule hakkı (kullanıcı kararı 14.11.2026, GDD Bölüm 9'u günceller): sabit 5, Akademi görevleriyle +3 → en çok 8. Seviyeyle artmaz.</summary>
-        public const int StartTowerSlots = 5, MaxTowerSlots = 8;
+        /// <summary>Kule hakkı (kullanıcı kararı 15.11.2026): toplam 3 ile başlar; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8.</summary>
+        public const int StartTowerSlots = 3, MaxTowerSlots = 8;
+        public static int TowerSlotsFromLevel(int playerLevel) => StartTowerSlots + (playerLevel >= 6 ? 1 : 0) + (playerLevel >= 12 ? 1 : 0) + (playerLevel >= 20 ? 1 : 0);
         /// <summary>Tuzak hakkı (kullanıcı isteği): başta 4, Akademi "Tuzak Ustalığı" araştırmasıyla 6.</summary>
         public const int StartTrapSlots = 4, ResearchTrapSlots = 6;
         /// <summary>Tuzak Ustalığı araştırması (GEÇİCİ): 12 saat; 3000 odun, 1500 taş.</summary>
@@ -24,20 +25,40 @@ namespace GameCore.Game
         /// <summary>Köylü evi: başta 1, Akademi görevleriyle en çok 3.</summary>
         public const int StartVillagerHouses = 1, MaxVillagerHouses = 3;
 
-        /// <summary>Yapı başına üst sınır (kullanıcı kararı): üretim binaları ve depolar 1'er; Kışla 3; Akademi 1; Köylü evi en çok 3 (görevle açılır).</summary>
-        public static int MaxBuildingCount(BuildingType t)
+        /// <summary>Kışla sınırı (kullanıcı kararı 15.11.2026): 1; Sv13'te 2, Sv26'da 3.</summary>
+        public static int MaxBarracks(int playerLevel) => playerLevel >= 26 ? 3 : (playerLevel >= 13 ? 2 : 1);
+
+        /// <summary>Yapı başına üst sınır: üretim binaları ve depolar 1'er; Kışla seviyeye göre 1-3; Akademi 1; Köylü evi en çok 3 (görevle açılır).</summary>
+        public static int MaxBuildingCount(BuildingType t, int playerLevel = MaxLevel)
         {
             switch (t)
             {
-                case BuildingType.Barracks: return 3;
+                case BuildingType.Barracks: return MaxBarracks(playerLevel);
                 case BuildingType.VillagerHouse: return MaxVillagerHouses;
                 default: return 1;
             }
         }
 
-        /// <summary>Tipik oyuncunun o seviyedeki kule hakkı (görevleri zamanla alır). Yapay hedef köylerin kule sayısı buna bağlı.</summary>
+        /// <summary>Tipik oyuncunun o seviyedeki kule hakkı (araştırma görevlerini zamanla alır). Yapay hedef köylerin kule sayısı buna bağlı.</summary>
         public static int ExpectedTowerSlots(int playerLevel) =>
-            Math.Min(MaxTowerSlots, StartTowerSlots + (playerLevel >= 8 ? 1 : 0) + (playerLevel >= 14 ? 1 : 0) + (playerLevel >= 20 ? 1 : 0));
+            Math.Min(MaxTowerSlots, TowerSlotsFromLevel(playerLevel) + (playerLevel >= 10 ? 1 : 0) + (playerLevel >= 18 ? 1 : 0));
+
+        /// <summary>Askerin orduda kapladığı yer (kullanıcı kararı 15.11.2026, "yumuşak tablo").</summary>
+        public static int Housing(SoldierType t)
+        {
+            switch (t)
+            {
+                case SoldierType.Spearman: case SoldierType.Fairy: return 2;
+                case SoldierType.Mage: case SoldierType.Cavalry: return 3;
+                case SoldierType.Giant: return 5;
+                case SoldierType.Catapult: return 6;
+                case SoldierType.DragonRider: return 10;
+                default: return 1; // Kılıçlı, Okçu, Goblin
+            }
+        }
+
+        /// <summary>Tipik oyuncunun kışla seviyeleri toplamı (yapay ordu büyüklüğü için).</summary>
+        public static int ExpectedBarracksLevelSum(int playerLevel) => playerLevel < 3 ? 0 : MaxBarracks(playerLevel) * ExpectedStructureLevel(playerLevel);
 
         /// <summary>
         /// O oyuncu seviyesindeki tipik aktif oyuncunun kule/asker/bina ortalama seviyesi (denge simülasyonundan kalibre,
@@ -102,8 +123,8 @@ namespace GameCore.Game
 
         public static int Builders(int villagerHouses) => 1 + Math.Min(5, villagerHouses);
 
-        /// <summary>Kışla toplam seviyesi başına ordu kapasitesi.</summary>
-        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 20 + barracksLevelSum * 7 / 10; // geç oyun zorluğu: Sv30 ≈ 83
+        /// <summary>Ordu kapasitesi (yer birimi; asker türüne göre 1-10 yer kaplar). Kışla seviyeleri toplamına bağlı.</summary>
+        public static int ArmyCapacity(int barracksLevelSum) => barracksLevelSum <= 0 ? 0 : 20 + barracksLevelSum * 4; // Sv13 ≈ 40, Sv20 ≈ 92, Sv30 ≈ 224
 
         // ---- Üretim ve depo ----
         public static ResourceType? ProducedBy(BuildingType t)

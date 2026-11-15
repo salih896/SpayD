@@ -79,14 +79,15 @@ namespace GameCore.Village
             return true;
         }
 
-        public bool TryPlace(GridPos p, CellKind kind, out string error, RoadTier tier = RoadTier.Wood)
+        /// <summary>Hücreye yol/bina/kule koyar. checkAdjacency: kule yola komşu olmalı (Köy Düzeni taslağı kapatır; bina kuralı GameState'te, ikisi de onayda Validate ile denetlenir).</summary>
+        public bool TryPlace(GridPos p, CellKind kind, out string error, RoadTier tier = RoadTier.Wood, bool checkAdjacency = true)
         {
             error = null;
             if (!InBounds(p)) { error = "Grid dışı"; return false; }
             if (kind == CellKind.Empty) { error = "Geçersiz tür"; return false; }
             if (Get(p) != CellKind.Empty) { error = "Hücre dolu"; return false; }
             if (kind == CellKind.Road && RoadCount >= RoadLimit) { error = "Yol hakkı doldu (" + RoadLimit + "/" + RoadLimit + ")"; return false; }
-            if (kind == CellKind.Tower && !HasAdjacentRoad(p)) { error = "Kule yola komşu olmalı"; return false; }
+            if (checkAdjacency && kind == CellKind.Tower && !HasAdjacentRoad(p)) { error = "Kule yola bağlı olmalı"; return false; }
             cells[p] = kind;
             if (kind == CellKind.Road) roadTiers[p] = tier;
             return true;
@@ -163,10 +164,12 @@ namespace GameCore.Village
             if (roads.Count > RoadLimit) { error = "Fazla yol var (" + roads.Count + "/" + RoadLimit + "): " + (roads.Count - RoadLimit) + " yol kaldır"; return false; }
 
             int unreached = roads.Count - FloodFromEntrances(roads);
-            if (unreached > 0) { error = "Tüm yollar girişe bağlı olmalı (" + unreached + " parça kopuk)"; return false; }
+            if (unreached > 0) { error = "Yollar birbirine bağlı değil: " + unreached + " yol parçası girişe ulaşmıyor"; return false; }
 
-            foreach (var t in cells.Where(c => c.Value == CellKind.Tower).Select(c => c.Key))
-                if (!HasAdjacentRoad(t)) { error = "Kule " + t + " yola komşu değil"; return false; }
+            foreach (var t in cells.Where(c => c.Value == CellKind.Tower).OrderBy(c => c.Key.Y).ThenBy(c => c.Key.X).Select(c => c.Key))
+                if (!HasAdjacentRoad(t)) { error = "Kule " + t + " yola bağlı değil"; return false; }
+            foreach (var b in buildings.OrderBy(c => c.Y).ThenBy(c => c.X))
+                if (!HasAdjacentRoad(b)) { error = "Bina " + b + " yola bağlı değil"; return false; }
 
             foreach (var e in entrances.OrderBy(e => e.X))
                 if (PathFinder.FindPath(Size, roads, e, buildings) == null)
@@ -193,7 +196,11 @@ namespace GameCore.Village
             return seen.Count;
         }
 
-        private bool HasAdjacentRoad(GridPos p)
+        /// <summary>Birebir kopya (aynı limitler).</summary>
+        public VillageLayout Clone() => WithLimits(RoadLimit, EntranceLimit);
+
+        /// <summary>Hücrenin 8 komşusundan biri yol mu? (bina/kule "yola bağlı" kuralı)</summary>
+        public bool HasAdjacentRoad(GridPos p)
         {
             for (int dx = -1; dx <= 1; dx++)
                 for (int dy = -1; dy <= 1; dy++)

@@ -98,6 +98,71 @@ namespace GameClient
             GUI.DrawTexture(fr, White, ScaleMode.StretchToFill, true, 0f, c, 0f, 5f);
         }
 
+        // ---------- Kaynak simgeleri (kodla çizilir: kütük, taş, altın sikke, demir külçe) ----------
+        private static Texture2D[] resIcons;
+
+        /// <summary>0 Odun, 1 Taş, 2 Altın, 3 Demir.</summary>
+        public static Texture2D ResIcon(int i)
+        {
+            if (resIcons == null) resIcons = new[] { MakeIcon(0), MakeIcon(1), MakeIcon(2), MakeIcon(3) };
+            return resIcons[Mathf.Clamp(i, 0, 3)];
+        }
+
+        private static Texture2D MakeIcon(int kind)
+        {
+            const int n = 48;
+            var t = new Texture2D(n, n, TextureFormat.RGBA32, false) { filterMode = FilterMode.Bilinear, wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.DontSave };
+            var clear = new Color(0, 0, 0, 0);
+            for (int y = 0; y < n; y++)
+                for (int x = 0; x < n; x++)
+                {
+                    float u = (x + 0.5f) / n, v = (y + 0.5f) / n; // v=0 alt
+                    Color c = clear;
+                    switch (kind)
+                    {
+                        case 0: // iki kütük üst üste + kesik uçlar
+                            for (int k = 0; k < 2; k++)
+                            {
+                                float cy = k == 0 ? 0.34f : 0.64f, cx0 = k == 0 ? 0.12f : 0.22f, cx1 = k == 0 ? 0.80f : 0.88f;
+                                if (u > cx0 && u < cx1 && Mathf.Abs(v - cy) < 0.14f)
+                                    c = Color.Lerp(new Color(0.45f, 0.27f, 0.12f), new Color(0.66f, 0.42f, 0.2f), 0.5f + 0.5f * Mathf.Sin(v * 60f));
+                                float dx = (u - cx1) / 0.1f, dy = (v - cy) / 0.14f;
+                                float d = dx * dx + dy * dy;
+                                if (d < 1f) c = d < 0.35f ? new Color(0.93f, 0.78f, 0.52f) : (d < 0.6f ? new Color(0.78f, 0.6f, 0.36f) : new Color(0.55f, 0.35f, 0.16f));
+                            }
+                            break;
+                        case 1: // yuvarlak taş, üstte parlama
+                            {
+                                float dx = (u - 0.5f) / 0.40f, dy = (v - 0.45f) / 0.32f;
+                                float d = dx * dx + dy * dy + 0.08f * Mathf.Sin(u * 18f) * Mathf.Cos(v * 14f);
+                                if (d < 1f) c = Color.Lerp(new Color(0.42f, 0.43f, 0.46f), new Color(0.78f, 0.79f, 0.80f), Mathf.Clamp01(v * 1.3f - 0.1f));
+                                float hx = (u - 0.4f) / 0.14f, hy = (v - 0.62f) / 0.07f;
+                                if (hx * hx + hy * hy < 1f) c = new Color(0.92f, 0.93f, 0.94f);
+                            }
+                            break;
+                        case 2: // altın sikke
+                            {
+                                float dx = u - 0.5f, dy = v - 0.5f, r = Mathf.Sqrt(dx * dx + dy * dy);
+                                if (r < 0.42f) c = new Color(0.86f, 0.6f, 0.08f);
+                                if (r < 0.36f) c = Color.Lerp(new Color(0.98f, 0.74f, 0.15f), new Color(1f, 0.92f, 0.45f), v);
+                                if (r < 0.22f && r > 0.16f) c = new Color(0.86f, 0.62f, 0.1f);
+                                if (Mathf.Abs(dx + 0.12f) < 0.05f && dy > 0.05f && dy < 0.25f) c = new Color(1f, 0.98f, 0.8f);
+                            }
+                            break;
+                        default: // demir külçe (yamuk)
+                            {
+                                float half = Mathf.Lerp(0.40f, 0.28f, Mathf.InverseLerp(0.25f, 0.68f, v));
+                                if (v > 0.25f && v < 0.68f && Mathf.Abs(u - 0.5f) < half)
+                                    c = v > 0.58f ? new Color(0.80f, 0.85f, 0.92f) : Color.Lerp(new Color(0.36f, 0.42f, 0.52f), new Color(0.58f, 0.64f, 0.74f), (v - 0.25f) / 0.33f);
+                            }
+                            break;
+                    }
+                    t.SetPixel(x, y, c);
+                }
+            t.Apply();
+            return t;
+        }
+
         // ---------- Doku üretimi ----------
         private static Texture2D Solid(Color c)
         {

@@ -71,12 +71,14 @@ namespace GameClient
 
         private void Rebuild()
         {
-            view = sim != null ? curTarget.Defense : g.MakeDefense();
+            view = sim != null ? curTarget.Defense : (draft != null ? draft.ToDefense() : g.MakeDefense());
+            problemCells = sim == null && draft != null ? draft.ProblemCells() : new HashSet<GridPos>();
+            if (sim == null && draft != null) draftOk = draft.Validate(out draftError);
             EnsureEnvironment();
             if (viewRoot != null) Destroy(viewRoot.gameObject);
             viewRoot = new GameObject("View").transform;
             int n = layout.Size;
-            bool building = sim == null && tab == Tab.Village && tool != Tool.Select && tool != Tool.Pan;
+            bool building = sim == null && draft != null; // Köy Düzeni: hafif ızgara
             for (int x = 0; x < n; x++)
                 for (int y = 0; y < n; y++)
                 {
@@ -110,11 +112,14 @@ namespace GameClient
                             break;
                     }
                     if (layout.IsEntrance(p)) VillageArt.BuildGate(viewRoot, c);
+                    // Köy Düzeni: kurala uymayan hücre (kopuk yol / yola bağlı olmayan yapı) kırmızı
+                    if (problemCells.Contains(p)) VillageArt.Part(viewRoot, VillageArt.Shape.Box, c + new Vector3(0, 0.012f, 0), new Vector3(0.98f, 0.02f, 0.98f), VillageArt.Mat(new Color(0.95f, 0.15f, 0.1f), 0.2f, 0.6f));
                     if (p.Equals(selCell) && sim == null) VillageArt.BuildSelection(viewRoot, c);
                 }
             BatchStatic(viewRoot.gameObject);
             dirty = false;
             if (sim == null) valid = g.VillageValid(out validationError);
+            villagersDirty = true;
         }
 
         private bool IsDestroyed(GridPos p)

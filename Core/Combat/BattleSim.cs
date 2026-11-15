@@ -422,7 +422,7 @@ namespace GameCore.Combat
             switch (s.Type)
             {
                 case SoldierType.Goblin: return st.IsResource ? 0 : 1;
-                case SoldierType.Swordsman: return (st.Kind == StructKind.Tower || st.IsResource) ? 0 : 1;
+                case SoldierType.Swordsman: return 0;                      // en yakın yapı (kullanıcı kararı 15.11.2026)
                 case SoldierType.Fairy: return st.IsResource ? 0 : (st.Kind == StructKind.Tower ? 1 : 2);
                 case SoldierType.Mage: return 0;
                 case SoldierType.Catapult: return 0;                       // en yakın her şey (uzaktan kuşatma)

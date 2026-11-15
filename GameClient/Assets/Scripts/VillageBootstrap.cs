@@ -18,8 +18,8 @@ namespace GameClient
     /// </summary>
     public sealed partial class VillageBootstrap : MonoBehaviour
     {
-        private enum Tool { Pan, Select, Road, Building, Tower, Trap, Entrance, Erase, RoadUp }
-        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu, Shop }
+        private enum Tool { Pan, Select }
+        private enum Tab { Village, Barracks, Research, Quests, Attack, Menu }
 
         private GameState g;
         private DefenseSetup view;
@@ -45,9 +45,6 @@ namespace GameClient
         private float secAcc, saveAcc;
         private readonly List<string> log = new List<string>();
         private readonly List<string> popups = new List<string>();
-        private TowerType selTower = TowerType.Archer;
-        private BuildingType selBuilding = BuildingType.Forest;
-        private TrapType selTrap = TrapType.Spikes;
         private GridPos selCell = new GridPos(-1, -1);
         private Vector2 pressStart;
         private bool dragging;
@@ -115,7 +112,7 @@ namespace GameClient
             {
                 g = GameState.NewGame();
                 g.Advance(0, DayIndex);
-                popups.Add("Köyüne hoş geldin!\nÖnce Köy sekmesinde bina kur (Orman, Kereste Deposu, Köylü Evi). Her yapı XP verir; Sv2'de kule, Sv3'te kışla ve asker açılır.");
+                popups.Add("Köyüne hoş geldin!\nKÖY DÜZENİ düğmesine bas: yapıları envanterden sürükleyip yola bağlı yerlere bırak, sonra ONAYLA. İlk iş Kereste Deposu kur. Sv2'de kule, Sv3'te kışla ve asker açılır.");
             }
             LastSave();
         }
@@ -148,6 +145,7 @@ namespace GameClient
             else TickGame();
             if (dirty) Rebuild();
             UpdateCamera();
+            UpdateVillagers();
         }
 
         private void TickGame()
@@ -248,18 +246,37 @@ namespace GameClient
         private void HandleInput()
         {
             HandleZoom(out bool pinching);
+            // Esc / Android geri tuşu: bildirimi veya pencereyi kapat
+            var kb = Keyboard.current;
+            if (kb != null && kb.escapeKey.wasPressedThisFrame && sim == null)
+            {
+                if (popups.Count > 0) popups.RemoveAt(0);
+                else if (tab != Tab.Village) { tab = Tab.Village; selCell = new GridPos(-1, -1); dirty = true; }
+                else if (selCell.X >= 0) { selCell = new GridPos(-1, -1); dirty = true; }
+            }
             var ptr = Pointer.current;
             if (ptr == null) return;
             Vector2 pos = ptr.position.ReadValue();
             bool down = ptr.press.wasPressedThisFrame;
             bool held = ptr.press.isPressed;
-            if (down) dragBlocked = IsOverUi(pos);
+            bool released = ptr.press.wasReleasedThisFrame;
+            if (down) { dragBlocked = IsOverUi(pos); dragging = false; pressStart = pos; }
             if (popups.Count > 0) return;
             if (sim != null) { HandleBattleInput(pos, down, held, pinching); return; }
-            if (!held && !down)
+            if (LayoutMode && tab == Tab.Village) { HandleLayoutInput(pos, down, held, pinching); return; }
+            if (!held)
             {
-                // Seç: sürüklemeden bırakılan dokunuş = seçim
-                if (tool == Tool.Select && ptr.press.wasReleasedThisFrame && !dragging && !dragBlocked && tab == Tab.Village) { selCell = TryGetCell(pos, out var tapCell) ? tapCell : new GridPos(-1, -1); dirty = true; }
+                // Seç: sürüklemeden bırakılan dokunuş = seçim (basma ve bırakma aynı karede olsa da); kışla ve Akademi kendi penceresini açar
+                if (tool == Tool.Select && released && !dragging && !dragBlocked && tab == Tab.Village)
+                {
+                    selCell = TryGetCell(pos, out var tapCell) ? tapCell : new GridPos(-1, -1);
+                    if (g.Buildings.TryGetValue(selCell, out var tb))
+                    {
+                        if (tb.Type == BuildingType.Barracks) { tab = Tab.Barracks; scrollPos = Vector2.zero; }
+                        else if (tb.Type == BuildingType.University) { tab = Tab.Research; scrollPos = Vector2.zero; }
+                    }
+                    dirty = true;
+                }
                 lastPainted = new GridPos(-1, -1);
                 return;
             }
@@ -277,11 +294,6 @@ namespace GameClient
                 }
                 return;
             }
-            if (!TryGetCell(pos, out var cell) || cell.Equals(lastPainted)) return;
-            // Pahalı yerleştirmeler yalnızca dokunma anında (sürüklemede toplu yerleştirme olmasın)
-            if ((tool == Tool.Building || tool == Tool.Tower || tool == Tool.RoadUp) && !down) return;
-            lastPainted = cell;
-            Apply(cell);
         }
 
         private void HandleZoom(out bool pinching)
@@ -311,25 +323,6 @@ namespace GameClient
             var gp = new Vector2(screen.x / uiScale, (Screen.height - screen.y) / uiScale);
             foreach (var r in uiRects) if (r.Contains(gp)) return true;
             return false;
-        }
-
-        private void Apply(GridPos cell)
-        {
-            string err = null;
-            bool ok = false;
-            switch (tool)
-            {
-                case Tool.Select: selCell = cell; dirty = true; return;
-                case Tool.Road: ok = g.TryPlaceRoad(cell, out err); break;
-                case Tool.Building: ok = g.TryPlaceBuilding(cell, selBuilding, out err); break;
-                case Tool.Tower: ok = g.TryPlaceTower(cell, selTower, out err); break;
-                case Tool.Trap: ok = g.TryToggleTrap(cell, selTrap, out err); break;
-                case Tool.Entrance: ok = g.TryToggleEntrance(cell, out err); break;
-                case Tool.Erase: ok = g.TryRemove(cell, out err); if (ok && selCell.Equals(cell)) selCell = new GridPos(-1, -1); break;
-                case Tool.RoadUp: ok = g.TryUpgradeRoad(cell, out err); if (ok) Toast("Yol geliştirildi"); break;
-            }
-            if (ok) { dirty = true; FlushLevelUps(); }
-            else if (!string.IsNullOrEmpty(err)) { toast = err; toastUntil = Time.time + 2.5f; }
         }
 
         // ---------- Biçim yardımcıları ----------

@@ -71,3 +71,7 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Duvarlı savunmalar botun baskınlarını hep durdurdu (sim 33/33); baskıncı ordusu güçlendirilsin mi?
 - ÇÖZÜLDÜ (14.11.2026): geç oyun zorlaştırıldı (sim: %79 zafer, baskınların %46'sı savunulur). Sv15 civarı Normal hedef bot için zor (2/6); insan oyuncuyla test edilmeli.
 
+## AÇIK (15.11.2026 – Köy Düzeni sonrası)
+- Yüksek seviyede tüm yol haklarını kullanma zorunluluğu (#16-#21) Köy Düzeni'nde yorucu olabilir (Sv30'da 39 yol). Öneri: "yol hakkı = en çok" yapıp eksik yola izin vermek. Karar kullanıcıda; şimdilik onaylı kural korunuyor.
+- Sv3-10 rastgele savaşlarda zafer oranı %33-68 (tamsayı kule seviyesi yüzünden basamaklı). İnce ayar için kule seviyesi yerine kule can/hasar yüzdesiyle ölçekleme önerilebilir.
+- Bot Normal hedeflere karşı artık ≈ %57 kazanıyor (eski %16 sorunu yeni dengeyle çözüldü; ayrıca karar gerekmiyor).

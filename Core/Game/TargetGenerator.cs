@@ -33,7 +33,7 @@ namespace GameCore.Game
         /// Seviye başına hedef gücü düzeltmesi (‰; kule hasarı/canı ve bina canı). Rastgele savaş matrisinde her seviyede
         /// ≈ %50 zafer için otomatik kalibre edilir (BalanceSimTests.CalibrateLevelPower → docs/power-calibration.txt). İndeks = seviye.
         /// </summary>
-        public static int[] LevelPowerPermille = { 0, 0, 0, 3150, 150, -600, -100, 0, -150, 600, 350, 750, 750, 1800, 400, 150, 450, 5750, 5400, 550, 0, 4100, 3650, 50, 1950, 5000, 1250, 700, 3200, 5050, 1800 }; // kalibre 15.11.2026 (+1 düzeltme turu)
+        public static int[] LevelPowerPermille = { 0, 0, 0, 4050, 8850, -300, -600, 150, -350, 0, -150, 0, -200, 600, 350, 400, 100, 1350, 1050, 400, 0, 250, 100, 250, 150, 550, 800, 1050, 1150, 1200, 1950 }; // kalibre 15.11.2026 (köy düzeni + asker yeri sonrası)
 
         /// <summary>Kule sayısı çarpanı (%): denge ayarı. Varsayılan 100.</summary>
         public static int TowerScalePct = 100;

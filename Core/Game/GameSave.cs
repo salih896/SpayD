@@ -137,7 +137,7 @@ namespace GameCore.Game
                 string e;
                 foreach (var r in roadRows) layout.TryPlace(new GridPos(r[0], r[1]), CellKind.Road, out e, (RoadTier)r[2]);
                 foreach (var r in entRows) layout.ToggleEntrance(new GridPos(r[0], r[1]), out e);
-                foreach (var r in towerRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Tower, out e)) g.Towers[pos] = new TowerSpec((TowerType)r[2], r[3], 0); }
+                foreach (var r in towerRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Tower, out e, RoadTier.Wood, false)) g.Towers[pos] = new TowerSpec((TowerType)r[2], r[3], 0); }
                 foreach (var r in buildRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Building, out e)) g.Buildings[pos] = new BuildingSpec((BuildingType)r[2], r[3]); }
                 g.Layout = layout;
                 foreach (var kv in new List<GridPos>(g.Towers.Keys)) if (!g.Wears.ContainsKey(kv)) g.Wears[kv] = new TowerWear();

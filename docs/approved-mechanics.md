@@ -60,9 +60,9 @@
 36. Görsel yön: düşük poligonlu, sıcak renkli "köy havası" (kodla üretilen modeller; ileride gerçek modellerle değiştirilebilir).
 
 ## Yapı sınırları ve Akademi (14.11.2026, kullanıcı kararı — GDD Bölüm 9'u günceller)
-37. Üretim binaları (Orman, Taş Ocağı, Altın Madeni, Demir Madeni) ve depolar (Kereste, Taş, Banka, Demir) 1'er adet. Kışla 3, Akademi 1.
+37. Üretim binaları (Orman, Taş Ocağı, Altın Madeni, Demir Madeni) ve depolar (Kereste, Taş, Banka, Demir) 1'er adet. ~~Kışla 3~~ → #49, Akademi 1.
 38. "Akademi" = eski Üniversite (araştırma binası). Akademi görevleri yapı hakkı verir, yalnızca Akademi kuruluyken alınır.
-39. Köylü evi başta 1, Akademi görevleriyle en çok 3. Kule başta 5 (seviyeyle artmaz), 3 Akademi göreviyle en çok 8.
+39. Köylü evi başta 1, Akademi görevleriyle en çok 3. ~~Kule başta 5 (seviyeyle artmaz), 3 Akademi göreviyle en çok 8~~ → #48.
 40. Yol malzeme geliştirme: Akademi'de "yol geliştirme" araştırması (RoadRules örnek: 1 gün; 5000 odun, 1000 taş), sonra yola dokunarak Tahta → Altın+Tahta (300 odun + 100 altın; altın Sv15'te açılır) → Demir (400 odun + 150 altın + 80 demir; demir Sv25). Maliyetler/süre GEÇİCİ; yol basamağının savaşa etkisi henüz yok (open-questions).
 41. Görünüm seviyeyle gelişir: yapılar 5 kademe (Sv1-4/5-9/10-14/15-19/20+). Askerlerde HER geliştirme bir görsel ekler (Sv2..Sv30, birikimli: kemer → zırh → pelerin → aura → kıvılcım → hale → taç → ışık kanatları; liste `VillageArt.LevelVisualName`), rütbe adları Acemi → Eğitimli → Uzman → Zırhlı → Usta → Kahraman → Efsane (kullanıcı isteği 14.11.2026).
 42. Kule türleri 7 (kullanıcı isteği 14.11.2026): Okçu, Büyücü, **Duvar** (eski Mızrak Kulesi; saldırmaz, can ≈ 3 kule, 2,5 hücredeki yer askerlerini üstüne çeker, uçanlar yok sayar), Elf, **Top** (Sv10, alan hasarı, hava yok), **Buz** (Sv12, yavaşlatır), **Şimşek** (Sv16, 2 ek hedefe zincir). Hepsi kule hakkından sayılır; görünüm 5 kademede gelişir. Değerler GEÇİCİ.
@@ -71,3 +71,13 @@
 45. Tuzaklar: 8 tür (Çivili Sv3, Kaygan Sv5, Ateşli Sv8, Zehirli Sv10, Buz Sv12, Patlayıcı Sv15 tek sefer, Kapan Sv18, Şimşek Sv22), ücretli, uçanları etkilemez. Tuzak hakkı 4; Akademi "Tuzak Ustalığı" (12 sa; 3000 odun, 1500 taş) ile 6. Değerler GEÇİCİ.
 46. İlerleme hızı (kullanıcı kararı 14.11.2026): Sv30'a ≈ 100 gün (2 saatte bir giren aktif oyuncu; sim 101 gün, 4 saatte bir giren ≈ 146 gün). XP eğrisi 100 + 90l + 19l² (toplam ≈ 186 bin); hedef köy eğrileri buna göre yeniden ayarlandı. Geç oyun zorluğu (kullanıcı isteği): ordu kapasitesi 20 + 0,7×kışla seviyesi, hedeflere savunma araştırması Sv²/2 ‰, Normal Sv20+ +1 / Zor +2 (Sv20+ +3) kule seviyesi, baskıncılara saldırı araştırması Sv²/3 ‰. Sonuç (sim): 103 gün, saldırıların %79'u zafer, baskınların %46'sı savunulur.
 
+## Köy Düzeni ve ordu (15.11.2026, kullanıcı kararı)
+47. **Köy Düzeni modu:** ana ekranda "KÖY DÜZENİ" düğmesi. Yollar dahil her şey (yol hakları, binalar, kuleler, tuzaklar) envanterde görünür, sürükle-bırak ile yerleştirilir. Köy Düzeni'ne girmeden hiçbir yapı/yol/tuzak kurulamaz (mağaza ayrı ekran değil, Düzen'in Bina/Kule/Tuzak sekmeleri). "Onayla" ile değişiklikler köye tek seferde aktarılır, "İptal" hepsini atar. Yeni yapının bedeli onayda ödenir; satılan yapı onayda %50 iade (tuzak iadesiz, yol satılamaz). Yapılar seviyesi, aşınması ve süren yükseltmesiyle birlikte taşınır; geliştirilmekte olan yol taşınamaz.
+48. **Kule hakkı (toplam):** 3 ile başlar; Sv6, Sv12, Sv20'de +1 (seviyeyle en çok 6); Akademi araştırma görevleriyle +2 ("6 araştırma tamamla", "15 araştırma tamamla") → en çok 8. Kullanıcı seçimi: "Toplam sınır 3'ten başlar".
+49. **Kışla:** 1 adet; Sv13'te 2., Sv26'da 3. kışla açılır.
+50. **Asker yeri (yumuşak tablo, kullanıcı seçimi):** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi yer birimidir: 20 + 4 × kışla seviyeleri toplamı (#35'i günceller).
+51. **Kılıçlı** en yakın yapıya saldırır (tür ayrımı yok; Duvar'ın çekmesi yine önceliklidir).
+52. **Yapıya dokununca açılır pencere:** Ordu ve Akademi düğmeleri kaldırıldı. Kışlaya dokununca asker eğitimi/geliştirme + kışla yükseltme penceresi; Akademi'ye dokununca araştırma penceresi; diğer yapılarda bilgi + yükseltme kartı; yola dokununca yol geliştirme.
+53. **Görünürlük:** kaynaklar üstte küçük şeritte simgeleriyle (kütük, taş, altın sikke, demir külçe); yükseltilen yapının üstünde kalan süre; boştaki köylü yollarda dolaşır, çalışan köylü yükseltilen yapının yanında çekiç sallar.
+54. **Düzen kuralları (onayda):** yollar birbirine (girişe) bağlı olmalı; binalar VE kuleler yola bağlı olmalı (8 komşudan biri yol; kullanıcı seçimi "Binalar ve kuleler"); envanterde yerleştirilmemiş öğe kalmamalı (tüm yol hakları kullanılır, #16-#21). Kural bozulursa ekranın ortasında "DÜZEN KABUL EDİLMEDİ" bildirimi çıkar; taslakta sorunlu hücreler kırmızı yanar.
+55. Denge (sim, 15.11.2026): hedef köy gücü yeniden kalibre edildi (rastgele savaşlar toplam %48 zafer; 16/28 seviye %45-55 bandında, Sv3-10 basamaklı). İlerleme hızını korumak için XP eğrisi 100 + 75l + 15l² (Sv30 ≈ 93 gün, 2 saatte bir giren oyuncu). Değerler GEÇİCİ.

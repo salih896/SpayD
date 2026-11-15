@@ -17,8 +17,8 @@ namespace GameCore.Game
     }
 
     /// <summary>
-    /// Akademi görevleri (kullanıcı kararı 14.11.2026, approved-mechanics #37-#39):
-    /// köylü evi başta 1 → görevlerle en çok 3; kule başta 5 → görevlerle en çok 8.
+    /// Akademi görevleri (approved-mechanics #37-#39, kule kısmı 15.11.2026'da güncellendi):
+    /// köylü evi başta 1 → görevlerle en çok 3; kule hakkı seviyeyle (3→6) + araştırma görevleriyle +2 → en çok 8.
     /// Görevler yalnızca Akademi kuruluyken alınabilir. Hedef sayıları GEÇİCİDİR.
     /// </summary>
     public static class AcademyTasks
@@ -27,9 +27,8 @@ namespace GameCore.Game
         {
             new AcademyTask { Id = "a_house1", Name = "Akademi'yi kur", Reward = AcademyReward.VillagerHouse, Target = 1, Progress = g => g.CountBuildings(BuildingType.University) },
             new AcademyTask { Id = "a_house2", Name = "3 araştırma tamamla", Reward = AcademyReward.VillagerHouse, Target = 3, Progress = g => g.Research.Done.Count },
-            new AcademyTask { Id = "a_tower1", Name = "Akademi'yi Sv3'e yükselt", Reward = AcademyReward.TowerSlot, Target = 3, Progress = g => g.UniversityLevel },
-            new AcademyTask { Id = "a_tower2", Name = "5 savaş kazan", Reward = AcademyReward.TowerSlot, Target = 5, Progress = g => g.BattlesWon },
-            new AcademyTask { Id = "a_tower3", Name = "15 araştırma tamamla", Reward = AcademyReward.TowerSlot, Target = 15, Progress = g => g.Research.Done.Count },
+            new AcademyTask { Id = "a_tower1", Name = "6 araştırma tamamla", Reward = AcademyReward.TowerSlot, Target = 6, Progress = g => g.Research.Done.Count },
+            new AcademyTask { Id = "a_tower2", Name = "15 araştırma tamamla", Reward = AcademyReward.TowerSlot, Target = 15, Progress = g => g.Research.Done.Count },
         };
 
         public static AcademyTask Get(string id)

@@ -33,14 +33,14 @@ namespace GameCore.Tests
         {
             var g = Rich(30);
             string err;
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 1), BuildingType.Forest, out err), "Başlangıçta zaten 1 orman var");
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 1), BuildingType.Forest, out err), "Başlangıçta zaten 1 orman var");
             StringAssert.Contains("sınırı 1", err);
-            Assert.IsTrue(g.TryPlaceBuilding(P(1, 4), BuildingType.LumberDepot, out err), err);
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 5), BuildingType.LumberDepot, out err));
-            Assert.IsTrue(g.TryPlaceBuilding(P(1, 1), BuildingType.StoneQuarry, out err), err);
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 2), BuildingType.StoneQuarry, out err));
-            Assert.IsTrue(g.TryPlaceBuilding(P(1, 2), BuildingType.GoldMine, out err), err);
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 3), BuildingType.GoldMine, out err));
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 4), BuildingType.LumberDepot, out err), err);
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 5), BuildingType.LumberDepot, out err));
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 1), BuildingType.StoneQuarry, out err), err);
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 2), BuildingType.StoneQuarry, out err));
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 2), BuildingType.GoldMine, out err), err);
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 3), BuildingType.GoldMine, out err));
         }
 
         [Test]
@@ -61,34 +61,38 @@ namespace GameCore.Tests
             var g = Rich(10);
             string err;
             Assert.AreEqual(1, g.MaxVillagerHouses);
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 1), BuildingType.VillagerHouse, out err));
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 1), BuildingType.VillagerHouse, out err));
             StringAssert.Contains("Akademi", err);
 
             Assert.IsFalse(g.TryClaimAcademy("a_house1", out err), "Akademi yokken alınamaz");
-            Assert.IsTrue(g.TryPlaceBuilding(P(2, 2), BuildingType.University, out err), err);
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 2), BuildingType.University, out err), err);
             Assert.IsTrue(g.TryClaimAcademy("a_house1", out err), err);
             Assert.IsFalse(g.TryClaimAcademy("a_house1", out err), "İki kez alınamaz");
             Assert.AreEqual(2, g.MaxVillagerHouses);
-            Assert.IsTrue(g.TryPlaceBuilding(P(1, 1), BuildingType.VillagerHouse, out err), err);
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 1), BuildingType.VillagerHouse, out err), err);
 
             Assert.IsFalse(g.TryClaimAcademy("a_house2", out err), "3 araştırma yapılmadı");
             foreach (var id in new[] { "0-01-1", "0-01-2", "1-01-1" }) g.Research.ForceComplete(id);
             Assert.IsTrue(g.TryClaimAcademy("a_house2", out err), err);
             Assert.AreEqual(3, g.MaxVillagerHouses);
-            Assert.IsTrue(g.TryPlaceBuilding(P(1, 2), BuildingType.VillagerHouse, out err), err);
-            Assert.IsFalse(g.TryPlaceBuilding(P(1, 3), BuildingType.VillagerHouse, out err), "En çok 3");
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 3), BuildingType.VillagerHouse, out err), err);
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 4), BuildingType.VillagerHouse, out err), "En çok 3");
         }
 
         [Test]
-        public void Towers_FiveFixed_ThreeAcademyTasksRaiseToEight_NotLevel()
+        public void Towers_StartAtThree_GrowWithLevel_ResearchTasksRaiseToEight()
         {
+            Assert.AreEqual(3, Rich(1).MaxTowers, "Başta 3");
+            Assert.AreEqual(3, Rich(5).MaxTowers);
+            Assert.AreEqual(4, Rich(6).MaxTowers, "Sv6 +1");
+            Assert.AreEqual(5, Rich(12).MaxTowers, "Sv12 +1");
             var g = Rich(30);
-            Assert.AreEqual(5, g.MaxTowers, "Seviye 30 olsa da başta 5");
+            Assert.AreEqual(6, g.MaxTowers, "Sv20 +1 → seviyeyle en çok 6");
             g.AddBuildingDirect(P(2, 2), BuildingType.University, 3);
-            g.BattlesWon = 5;
-            for (int i = 0; i < 15; i++) g.Research.ForceComplete(ResearchCatalog.All[i].Id);
             string err;
-            foreach (var id in new[] { "a_tower1", "a_tower2", "a_tower3" }) Assert.IsTrue(g.TryClaimAcademy(id, out err), id + ": " + err);
+            Assert.IsFalse(g.TryClaimAcademy("a_tower1", out err), "6 araştırma yapılmadı");
+            for (int i = 0; i < 15; i++) g.Research.ForceComplete(ResearchCatalog.All[i].Id);
+            foreach (var id in new[] { "a_tower1", "a_tower2" }) Assert.IsTrue(g.TryClaimAcademy(id, out err), id + ": " + err);
             Assert.AreEqual(8, g.MaxTowers);
             Assert.AreEqual(GameRules.MaxTowerSlots, g.MaxTowers);
         }
@@ -99,9 +103,55 @@ namespace GameCore.Tests
             var g = Rich(10);
             string err;
             var cells = new[] { P(4, 1), P(6, 1), P(4, 2), P(6, 2), P(4, 4), P(6, 4) };
-            for (int i = 0; i < 5; i++) Assert.IsTrue(g.TryPlaceTower(cells[i], TowerType.Archer, out err), err);
-            Assert.IsFalse(g.TryPlaceTower(cells[5], TowerType.Archer, out err));
-            StringAssert.Contains("Kule sınırı 5", err);
+            for (int i = 0; i < 4; i++) Assert.IsTrue(g.TryPlaceTower(cells[i], TowerType.Archer, out err), err);
+            Assert.IsFalse(g.TryPlaceTower(cells[4], TowerType.Archer, out err));
+            StringAssert.Contains("Kule sınırı 4", err);
+        }
+
+        [Test]
+        public void Barracks_OneThenSecondAtLevel13_ThirdAt26()
+        {
+            Assert.AreEqual(1, Rich(12).MaxCountOf(BuildingType.Barracks));
+            Assert.AreEqual(2, Rich(13).MaxCountOf(BuildingType.Barracks));
+            Assert.AreEqual(2, Rich(25).MaxCountOf(BuildingType.Barracks));
+            Assert.AreEqual(3, Rich(26).MaxCountOf(BuildingType.Barracks));
+            var g = Rich(12);
+            string err;
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 1), BuildingType.Barracks, out err), err);
+            Assert.IsFalse(g.TryPlaceBuilding(P(6, 2), BuildingType.Barracks, out err));
+            StringAssert.Contains("Kışla sınırı 1", err);
+        }
+
+        [Test]
+        public void Buildings_MustTouchRoad()
+        {
+            var g = Rich(10);
+            string err;
+            Assert.IsFalse(g.TryPlaceBuilding(P(1, 1), BuildingType.LumberDepot, out err), "Yola bağlı değil");
+            StringAssert.Contains("yola bağlı", err);
+            Assert.IsTrue(g.TryPlaceBuilding(P(6, 6), BuildingType.LumberDepot, out err), err);
+        }
+
+        [Test]
+        public void Housing_StrongerSoldiersTakeMoreSpace()
+        {
+            Assert.AreEqual(1, GameRules.Housing(SoldierType.Swordsman));
+            Assert.AreEqual(2, GameRules.Housing(SoldierType.Spearman));
+            Assert.AreEqual(3, GameRules.Housing(SoldierType.Cavalry));
+            Assert.AreEqual(5, GameRules.Housing(SoldierType.Giant));
+            Assert.AreEqual(6, GameRules.Housing(SoldierType.Catapult));
+            Assert.AreEqual(10, GameRules.Housing(SoldierType.DragonRider));
+            var g = Rich(30);
+            g.AddBuildingDirect(P(6, 1), BuildingType.Barracks, 1); // kapasite 24
+            string err;
+            Assert.AreEqual(24, g.ArmyCapacity);
+            Assert.IsTrue(g.TryTrain(SoldierType.DragonRider, out err), err);
+            Assert.IsTrue(g.TryTrain(SoldierType.DragonRider, out err), err);
+            Assert.AreEqual(20, g.ArmySize, "2 ejderha = 20 yer");
+            Assert.IsFalse(g.TryTrain(SoldierType.Giant, out err), "5 yer kalmadı (4 boş)");
+            Assert.IsTrue(g.TryTrain(SoldierType.Spearman, out err), err);
+            Assert.IsTrue(g.TryTrain(SoldierType.Spearman, out err), err);
+            Assert.IsFalse(g.TryTrain(SoldierType.Swordsman, out err), "Dolu");
         }
 
         [Test]

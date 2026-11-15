@@ -6,7 +6,7 @@ Can/hasar Sv1 değeri. Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
-| Kılıçlı | Sv3 | 120 | 14 | 8 | 1,5 | 0,07 | Zırh %10, kule veya kaynak hedefler | 40 odun | 2 dk |
+| Kılıçlı | Sv3 | 120 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 10 | 10 | 4,0 | 0,07 | Uzaktan, kırılgan | 45 odun | 3 dk |
 | Goblin | Sv4 | 35 | 6 | 6 | 1,5 | 0,13 | Çok hızlı, kaynak binalarını hedefler | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,065 | Zırh %30 | 60 odun, 15 taş | 5 dk |
@@ -17,7 +17,9 @@ Can/hasar Sv1 değeri. Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil
 | Mancınık | Sv17 | 140 | 70 | 35 | 6,0 | 0,045 | Kuşatma, alan 1,5 | 220 odun, 140 taş, 60 altın | 10 dk |
 | Ejderha Binicisi | Sv21 | 420 | 34 | 12 | 2,5 | 0,09 | Uçar, alan 1,0, ateş direnci %50 | 260 odun, 200 taş, 110 altın | 10 dk |
 
-**Geliştirme:** Kışla'da tür başına yapılır; işçi + kaynak (eğitim maliyeti × 8 × seviye çarpanı) + süre gerekir. Süre eğitim süresiyle orantılıdır (Goblin hızlı, Dev/Mancınık/Ejderha yavaş). Hedef seviye, kışla seviyesini ve oyuncu seviyesini aşamaz.
+**Orduda kapladığı yer:** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer).
+
+**Geliştirme:** Kışlaya dokununca açılan pencerede tür başına yapılır; işçi + kaynak (eğitim maliyeti × 8 × seviye çarpanı) + süre gerekir. Süre eğitim süresiyle orantılıdır (Goblin hızlı, Dev/Mancınık/Ejderha yavaş). Hedef seviye, kışla seviyesini ve oyuncu seviyesini aşamaz.
 
 **Yetenekler** (asker Sv2 / Sv3 / Sv8'de açılır, savaşta otomatik çalışır):
 
@@ -44,7 +46,7 @@ Can/hasar Sv1 değeri. Aralık = saldırı arası (tick, 10 tick = 1 sn). Menzil
 Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer; Mancınık'ta gövdeye levha ve bayrak eklenir.
 
 ## 2. Kuleler (7)
-Hakkı: başta 5, Akademi görevleriyle en çok 8.
+Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır.
 
 | Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
 |---|---|---|---|---|---|---|---|---|
@@ -95,7 +97,7 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 | Orman | Sv1 | 1 | 1500 odun/sa | 80 odun |
 | Kereste Deposu | Sv1 | 1 | +2500 odun depo (kurulunca Sv2 garanti) | 100 odun |
 | Köylü Evi | Sv1 | 1 (görevle 3) | +1 işçi | 60 odun |
-| Kışla | Sv3 | 3 | Asker eğitir; ordu = 20 + 0,7 × kışla seviyeleri toplamı | 150 odun |
+| Kışla | Sv3 | 1 (Sv13'te 2, Sv26'da 3) | Asker eğitir; ordu = 20 + 4 × kışla seviyeleri toplamı (yer) | 150 odun |
 | Taş Ocağı | Sv5 | 1 | 900 taş/sa | 160 odun, 60 taş |
 | Taş Deposu | Sv5 | 1 | +1800 taş depo | 180 odun, 80 taş |
 | Akademi | Sv5 | 1 | Araştırma (474), görevler, yol ve tuzak araştırmaları | 300 odun, 150 taş |
@@ -122,6 +124,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 65l + 13l² (Sv1→30 toplam ≈ 130 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 108 gün.
+- **XP eğrisi:** seviye başına 100 + 75l + 15l² (Sv1→30 toplam ≈ 150 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 474 araştırma.
 - **Savaş:** Zafer için hasar %51; %75'te 2 yıldız, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).
