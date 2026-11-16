@@ -7,7 +7,7 @@ namespace GameClient
     /// Karakter iskeleti (yalnızca görsel): "legL/legR" ve "armL/armR" adlı eklemleri yürürken sallar, saldırıda
     /// sağ kolla vuruş yapar. VillageArt.Human bu adlarla eklem üretir; at bacakları da aynı adları kullanır.
     /// </summary>
-    public sealed class CharacterRig : MonoBehaviour
+    public sealed class CharacterRig : MonoBehaviour, ISoldierAnim
     {
         private readonly List<Transform> legsL = new List<Transform>(), legsR = new List<Transform>();
         private readonly List<Transform> armsL = new List<Transform>(), armsR = new List<Transform>();

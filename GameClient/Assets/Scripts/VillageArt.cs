@@ -279,8 +279,26 @@ namespace GameClient
             }
         }
 
+        /// <summary>Hazır modelli görünüm (ModelArt) için dış erişim.</summary>
+        public static void EmbellishPublic(Transform g, int tier, int seed) => Embellish(g, tier, seed);
+        public static void LevelEffectsPublic(Transform g, int L, float foot, float headY) => LevelEffects(g, L, foot, headY);
+
+        /// <summary>Peri kanatları (hazır modelli Peri için): boy oranında, çırpan iki kanat.</summary>
+        public static void FairyWings(Transform root, float height)
+        {
+            float k = height / 0.42f;
+            foreach (var sgn in new[] { -1f, 1f })
+            {
+                var wing = Group(root, "wing", new Vector3(0.03f * sgn * k, height * 0.6f, -0.05f * k));
+                Part(wing, Shape.Ball, new Vector3(0.12f * sgn * k, 0.02f * k, 0), new Vector3(0.22f * k, 0.16f * k, 0.02f), Mat(new Color(0.8f, 0.95f, 1f), 0.9f, 0.8f));
+                Animate(wing.gameObject, ArtMotion.Kind.Flap, 18f, 35f * sgn);
+            }
+        }
+
         public static Transform BuildBuilding(Transform parent, BuildingType t, int level, int seed, Vector3 pos)
         {
+            var model = ModelArt.TryBuildBuilding(parent, t, level, seed, pos);
+            if (model != null) return model;
             int tier = Tier(level);
             float lv = 1.25f * (1f + Mathf.Min(0.25f, (level - 1) * 0.012f)); // hücreyi dolduracak boyut
             var g = Group(parent, t.ToString(), pos, 0f, lv);
@@ -394,6 +412,8 @@ namespace GameClient
         // ---------- Kuleler ----------
         public static Transform BuildTower(Transform parent, TowerType t, int level, bool damaged, Vector3 pos)
         {
+            var model = ModelArt.TryBuildTower(parent, t, level, damaged, pos);
+            if (model != null) return model;
             int tier = Tier(level);
             float lv = 1f + tier * 0.08f + Mathf.Min(0.1f, (level - 1) * 0.005f);
             var g = Group(parent, t.ToString(), pos, 0f, 1f);
@@ -888,6 +908,8 @@ namespace GameClient
 
         public static Transform BuildSoldier(Transform parent, SoldierType t, int level = 1)
         {
+            var model = ModelArt.TryBuildSoldier(parent, t, level);
+            if (model != null) return model;
             int tier = SoldierTier(level);
             var root = Group(parent, t.ToString(), Vector3.zero, 0f, SoldierScale * (1f + tier * 0.04f));
             var g = Group(root, "model", Vector3.zero);

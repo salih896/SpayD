@@ -22,7 +22,8 @@ namespace GameClient
         private readonly List<int> soldierBarColor = new List<int>();
         private readonly List<Vector3> soldierOff = new List<Vector3>(); // şerit kayması (yumuşatılmış)
         private readonly List<Vector2> simPrevPos = new List<Vector2>();   // bir önceki savaş adımındaki konum (ara konum için)
-        private readonly List<CharacterRig> soldierRigs = new List<CharacterRig>();
+        private readonly List<ISoldierAnim> soldierRigs = new List<ISoldierAnim>();
+        private readonly List<float> soldierBarH = new List<float>(); // can çubuğu yüksekliği (model boyu + pay)
         private readonly List<int> soldierPrevAttacks = new List<int>();
         private readonly List<Vector3> soldierDir = new List<Vector3>();   // (eski) yürüme yönü
         private readonly List<Vector3> soldierSep = new List<Vector3>();   // yakın askerlerden ayrışma (yumuşak, birikimli)
@@ -156,7 +157,7 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
@@ -189,7 +190,8 @@ namespace GameClient
                 VillageArt.Part(sf, VillageArt.Shape.Box, new Vector3(0.17f, 0f, 0f), new Vector3(0.34f, 0.045f, 0.015f), VillageArt.Mat(new Color(0.3f, 0.9f, 0.3f), 0.2f, 0.6f));
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
-                soldierRigs.Add(tr.GetComponent<CharacterRig>());
+                soldierRigs.Add(tr.GetComponent<ISoldierAnim>());
+                { float mh = ModelLibrary.WorldHeight(tr); soldierBarH.Add(mh > 0.05f ? Mathf.Min(mh, 1.6f) + 0.12f : 0.5f); }
                 soldierPrevAttacks.Add(st.AttackCount);
                 soldierDir.Add(Vector3.forward);
                 soldierSep.Add(Vector3.zero);
@@ -228,7 +230,7 @@ namespace GameClient
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
                 float hf = s.MaxHp > 0 ? Mathf.Clamp01((float)s.Hp / s.MaxHp) : 0f;
-                soldierBars[i].position = t.position + new Vector3(0f, s.Flying ? 0.55f : (s.Type == SoldierType.Giant || s.Type == SoldierType.Cavalry ? 0.75f : 0.5f), 0f);
+                soldierBars[i].position = t.position + new Vector3(0f, soldierBarH[i], 0f);
                 soldierBarFills[i].localScale = new Vector3(Mathf.Max(0.03f, hf), 1f, 1f);
                 int ci = hf > 0.6f ? 0 : (hf > 0.3f ? 1 : 2);
                 if (ci != soldierBarColor[i])
