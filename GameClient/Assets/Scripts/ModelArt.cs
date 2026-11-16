@@ -186,7 +186,7 @@ namespace GameClient
                 case SoldierType.Mage:
                     return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Walking_A", Height = 0.7f, Tint = w };
                 case SoldierType.Goblin:
-                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice,Melee_Dualwield_Attack_Chop", Idle = "Idle_A", Walk = "Walking_C", Height = 0.52f, Tint = new Color(0.72f, 1f, 0.62f) };
+                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice,Melee_Dualwield_Attack_Chop", Idle = "Idle_A", Walk = "Walking_C", Height = 0.48f, Tint = w };
                 case SoldierType.Spearman:
                     return new Look { Model = "Rogue_Hooded", Right = "staff", Left = L >= 10 ? "shield_spikes_color" : "shield_spikes", Attack = "Melee_2H_Attack_Stab,Melee_2H_Attack_Slice", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = new Color(1f, 0.92f, 0.8f) };
                 case SoldierType.Giant:
@@ -207,19 +207,63 @@ namespace GameClient
             if (t == SoldierType.Catapult)
             {
                 var croot = VillageArt.Group(parent, t.ToString(), Vector3.zero);
-                var c = ModelLibrary.Spawn(croot, "Kenney/Castle/siege-catapult", new Vector3(0.12f, 0.06f, 0f), 90f, 0.32f);
+                var c = ModelLibrary.Spawn(croot, "Kenney/Castle/siege-catapult", new Vector3(0.15f, 0.06f, 0f), 90f, 0.42f); // kullanıcı isteği: biraz büyük
                 if (c == null) { Object.Destroy(croot.gameObject); return null; }
-                VillageArt.LevelEffectsPublic(croot, L, 1.4f, 0.45f);
+                VillageArt.LevelEffectsPublic(croot, L, 1.7f, 0.58f);
                 return croot;
             }
             if (t == SoldierType.Cavalry || t == SoldierType.DragonRider) return Mounted(parent, t, L);
             var look = LookOf(t, L);
             if (look.Model == null) return null;
             var root = VillageArt.Group(parent, t.ToString(), Vector3.zero);
-            if (Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy ? 0.3f : 0.45f) == null) { Object.Destroy(root.gameObject); return null; }
+            var body = Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy ? 0.3f : 0.45f);
+            if (body == null) { Object.Destroy(root.gameObject); return null; }
+            if (t == SoldierType.Goblin) Goblinize(root, body, look.Height);
             if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);
             VillageArt.LevelEffectsPublic(root, L, t == SoldierType.Giant ? 1.8f : 1f, look.Height * 1.05f);
             return root;
+        }
+
+        /// <summary>
+        /// Goblin görünümü (kullanıcı isteği 16.11.2026): yeşil deri (baş), yırtık kahverengi giysi, pelerin yok,
+        /// sivri büyük kulaklar, iri burun, sarı gözler ve sırtta yağma çuvalı (depolara saldırır).
+        /// </summary>
+        private static void Goblinize(Transform root, Transform body, float h)
+        {
+            var skin = new Color(0.42f, 0.78f, 0.28f);
+            foreach (var r in body.GetComponentsInChildren<Renderer>(true))
+            {
+                if (r.name.Contains("Cape")) { r.enabled = false; continue; }
+                if (!r.name.StartsWith("Rogue_")) continue; // silahlar değil
+                // KayKit dokusu goblin için fazla koyu: düz renkli malzeme (yeşil baş, kahverengi deri giysi)
+                bool head = r.name.Contains("Head"), arm = r.name.Contains("Arm"), leg = r.name.Contains("Leg");
+                var col = head ? skin : arm ? new Color(0.6f, 0.42f, 0.25f) : leg ? new Color(0.42f, 0.3f, 0.2f) : new Color(0.68f, 0.5f, 0.3f);
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = VillageArt.Mat(col);
+                r.sharedMaterials = mats;
+            }
+            var headBone = ModelLibrary.FindDeep(body, "head");
+            if (headBone != null)
+            {
+                // başa bağlı parçalar: dünya ölçüsünde verilir, kemiğin ölçeğine bölünür
+                var g = new GameObject("goblinHead").transform;
+                g.SetParent(headBone, false);
+                var ls = headBone.lossyScale;
+                g.localScale = new Vector3(1f / Mathf.Max(ls.x, 1e-5f), 1f / Mathf.Max(ls.y, 1e-5f), 1f / Mathf.Max(ls.z, 1e-5f));
+                float k = h / 0.48f;
+                var ear = VillageArt.Mat(skin);
+                foreach (var sgn in new[] { -1f, 1f })
+                {
+                    VillageArt.Part(g, VillageArt.Shape.Cone, new Vector3(0.2f * sgn * k, 0.11f * k, -0.01f * k), new Vector3(0.07f * k, 0.2f * k, 0.04f * k), ear, new Vector3(10f, 0f, -75f * sgn));
+                    VillageArt.Part(g, VillageArt.Shape.Ball, new Vector3(0.055f * sgn * k, 0.12f * k, 0.13f * k), Vector3.one * 0.04f * k, VillageArt.Mat(new Color(1f, 0.85f, 0.15f), 0.6f, 1.5f));
+                }
+                VillageArt.Part(g, VillageArt.Shape.Ball, new Vector3(0f, 0.075f * k, 0.15f * k), new Vector3(0.06f, 0.05f, 0.08f) * k, VillageArt.Mat(skin * 0.85f));
+            }
+            // sırtta çuval
+            float s = h / 0.48f;
+            VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0f, h * 0.55f, -h * 0.2f), new Vector3(0.17f, 0.19f, 0.13f) * s, VillageArt.Mat(new Color(0.6f, 0.47f, 0.3f)));
+            VillageArt.Part(root, VillageArt.Shape.Cyl, new Vector3(0f, h * 0.76f, -h * 0.2f), new Vector3(0.05f, 0.04f, 0.05f) * s, VillageArt.Mat(new Color(0.45f, 0.32f, 0.2f)));
+            VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0.05f * s, h * 0.8f, -h * 0.2f), Vector3.one * 0.035f * s, VillageArt.Mat(new Color(1f, 0.82f, 0.2f), 0.8f, 0.6f)); // taşan altın
         }
 
         /// <summary>KayKit karakteri: boy, silahlar, renk tonu, animasyon (ModelRig holder üstünde). Model yoksa null.</summary>

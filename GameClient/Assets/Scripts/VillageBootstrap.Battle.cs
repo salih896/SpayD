@@ -162,7 +162,7 @@ namespace GameClient
             towerPrevCd = null; structPrevAlive = null;
         }
 
-        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize; public Color HitColor; public bool Spin; }
+        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; }
         private sealed class Fx { public Transform T; public float T0, Dur, Size; }
         private readonly List<Fx> fxs = new List<Fx>();
 
@@ -181,19 +181,19 @@ namespace GameClient
             float delay = impact; // animasyonun darbe anı (gerçek sn; hız çarpanı animasyona zaten yansıdı)
             if (IsRangedView(s.Type))
             {
-                Transform t; float cellsPerSec, arc; Color hit; float hitSize; bool spin = false;
+                Transform t; float cellsPerSec, arc; Color hit; float hitSize; bool spin = false; Color trail = Color.clear;
                 float h = s.Flying ? 0.95f : 0.42f;
                 switch (s.Type)
                 {
                     case SoldierType.Archer: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 4.5f; arc = 0.35f; hit = new Color(1f, 0.85f, 0.5f); hitSize = 0.12f; h = 0.45f; break;
-                    case SoldierType.Mage: t = VillageArt.MagicOrb(DynRoot(), new Color(0.75f, 0.35f, 1f), 0.2f); cellsPerSec = 3f; arc = 0.12f; hit = new Color(0.8f, 0.45f, 1f); hitSize = 0.4f; h = 0.55f; break;
+                    case SoldierType.Mage: t = VillageArt.Fireball(DynRoot(), 0.2f); cellsPerSec = 3f; arc = 0.12f; hit = new Color(1f, 0.55f, 0.12f); hitSize = 0.42f; h = 0.55f; trail = new Color(1f, 0.5f, 0.1f); break; // normal boy alev topu
                     case SoldierType.Fairy: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.85f), 0.14f); cellsPerSec = 3.2f; arc = 0.05f; hit = new Color(1f, 0.6f, 0.9f); hitSize = 0.25f; break;
-                    case SoldierType.DragonRider: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.12f), 0.24f); cellsPerSec = 3f; arc = 0.05f; hit = new Color(1f, 0.55f, 0.15f); hitSize = 0.5f; break;
+                    case SoldierType.DragonRider: t = VillageArt.Fireball(DynRoot(), 0.42f); cellsPerSec = 2.6f; arc = 0.05f; hit = new Color(1f, 0.45f, 0.1f); hitSize = 0.85f; h = 0.75f; trail = new Color(1f, 0.4f, 0.05f); break; // büyük ateş topu
                     default: t = VillageArt.Projectile(DynRoot(), TowerType.Cannon); cellsPerSec = 3.5f; arc = 0.9f; hit = new Color(0.65f, 0.55f, 0.45f); hitSize = 0.45f; spin = true; h = 0.4f; break; // mancınık taşı
                 }
                 var a = from + new Vector3(0f, h, 0f);
                 float dist = Vector3.Distance(new Vector3(a.x, 0f, a.z), new Vector3(center.x, 0f, center.z));
-                shots.Add(new Shot { T = t, A = a, B = center, T0 = Time.time + delay, Dur = Mathf.Max(0.32f, dist / cellsPerSec) / spd, Arc = arc, HitColor = hit, HitSize = hitSize, Spin = spin });
+                shots.Add(new Shot { T = t, A = a, B = center, T0 = Time.time + delay, Dur = Mathf.Max(0.32f, dist / cellsPerSec) / spd, Arc = arc, HitColor = hit, HitSize = hitSize, Spin = spin, Trail = trail, TrailSize = hitSize * 0.35f });
                 t.position = a;
                 t.gameObject.SetActive(false);
             }
@@ -375,6 +375,11 @@ namespace GameClient
                 sh.T.position = pos;
                 if (vel.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(vel.normalized, Vector3.up);
                 if (sh.Spin) sh.T.Rotate(0f, 0f, Time.time * 720f % 360f, Space.Self);
+                if (sh.Trail.a > 0f)
+                {
+                    sh.T.localScale = Vector3.one * (1f + Mathf.Sin(Time.time * 40f + i) * 0.08f); // alev titremesi
+                    if (Time.time >= sh.NextTrail) { sh.NextTrail = Time.time + 0.035f; SpawnSpark(pos - vel.normalized * sh.TrailSize, sh.Trail, sh.TrailSize); }
+                }
             }
 
             // vuruş kıvılcımları (gecikmeli başlar, büyüyüp söner)

@@ -1067,6 +1067,22 @@ namespace GameClient
             return g;
         }
 
+        /// <summary>Alev topu: beyaz-sarı çekirdek, turuncu alev, kırmızı dış hale ve arkada alev kuyruğu (z ekseni ileri).</summary>
+        public static Transform Fireball(Transform parent, float size)
+        {
+            var g = Group(parent, "fireball", Vector3.zero);
+            Part(g, Shape.Ball, Vector3.zero, Vector3.one * size * 0.55f, Mat(new Color(1f, 0.95f, 0.7f), 0.9f, 4f));
+            Part(g, Shape.Ball, Vector3.zero, Vector3.one * size * 0.8f, Mat(new Color(1f, 0.62f, 0.12f), 0.9f, 3f));
+            Part(g, Shape.Ball, new Vector3(0f, 0f, -size * 0.1f), Vector3.one * size, Mat(new Color(0.95f, 0.25f, 0.05f), 0.9f, 2f));
+            for (int i = 0; i < 3; i++)
+            {
+                float an = i * 2.094f, r = size * 0.22f;
+                Part(g, Shape.Cone, new Vector3(Mathf.Cos(an) * r, Mathf.Sin(an) * r, -size * 0.75f), new Vector3(size * 0.45f, size * 1.1f, size * 0.45f),
+                    Mat(i == 0 ? new Color(1f, 0.55f, 0.1f) : new Color(1f, 0.35f, 0.05f), 0.9f, 2.4f), new Vector3(-90f, 0f, 0f));
+            }
+            return g;
+        }
+
         public static void Smoke(Transform parent, Vector3 pos, int seed)
         {
             for (int i = 0; i < 5; i++)
