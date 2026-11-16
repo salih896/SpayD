@@ -23,6 +23,7 @@ namespace GameClient
         private readonly List<Vector3> soldierOff = new List<Vector3>(); // şerit kayması (yumuşatılmış)
         private readonly List<Vector2> simPrevPos = new List<Vector2>();   // bir önceki savaş adımındaki konum (ara konum için)
         private readonly List<ISoldierAnim> soldierRigs = new List<ISoldierAnim>();
+        private readonly List<float> soldierVel = new List<float>();
         private readonly List<float> soldierBarH = new List<float>(); // can çubuğu yüksekliği (model boyu + pay)
         private readonly List<int> soldierPrevAttacks = new List<int>();
         private readonly List<Vector3> soldierDir = new List<Vector3>();   // (eski) yürüme yönü
@@ -157,11 +158,67 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierVel.Clear(); fxs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
-        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur; }
+        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize; public Color HitColor; public bool Spin; }
+        private sealed class Fx { public Transform T; public float T0, Dur, Size; }
+        private readonly List<Fx> fxs = new List<Fx>();
+
+        /// <summary>
+        /// Asker vuruşunun görseli (yalnızca görsel; hasar simülasyonda anında işlenmiştir).
+        /// Menzilliler mermi atar (okçu ok, büyücü mor büyü, peri pembe büyü, mancınık taş, ejderha ateş topu);
+        /// yakın dövüşçüler vurduğu yerde kıvılcım çıkarır. Darbe anı animasyonla eşlenir (impact sn sonra).
+        /// </summary>
+        private void OnSoldierAttack(SimSoldier s, Vector3 from, float impact)
+        {
+            if (s.TargetId < 0 || s.TargetId >= sim.Structures.Count) return;
+            var tg = sim.Structures[s.TargetId];
+            bool tower = tg.Kind == StructKind.Tower;
+            var center = new Vector3(tg.Pos.X, tower ? 0.55f : 0.35f, tg.Pos.Y);
+            float spd = Mathf.Max(1f, speed);
+            float delay = impact; // animasyonun darbe anı (gerçek sn; hız çarpanı animasyona zaten yansıdı)
+            if (IsRangedView(s.Type))
+            {
+                Transform t; float cellsPerSec, arc; Color hit; float hitSize; bool spin = false;
+                float h = s.Flying ? 0.95f : 0.42f;
+                switch (s.Type)
+                {
+                    case SoldierType.Archer: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 4.5f; arc = 0.35f; hit = new Color(1f, 0.85f, 0.5f); hitSize = 0.12f; h = 0.45f; break;
+                    case SoldierType.Mage: t = VillageArt.MagicOrb(DynRoot(), new Color(0.75f, 0.35f, 1f), 0.2f); cellsPerSec = 3f; arc = 0.12f; hit = new Color(0.8f, 0.45f, 1f); hitSize = 0.4f; h = 0.55f; break;
+                    case SoldierType.Fairy: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.85f), 0.14f); cellsPerSec = 3.2f; arc = 0.05f; hit = new Color(1f, 0.6f, 0.9f); hitSize = 0.25f; break;
+                    case SoldierType.DragonRider: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.12f), 0.24f); cellsPerSec = 3f; arc = 0.05f; hit = new Color(1f, 0.55f, 0.15f); hitSize = 0.5f; break;
+                    default: t = VillageArt.Projectile(DynRoot(), TowerType.Cannon); cellsPerSec = 3.5f; arc = 0.9f; hit = new Color(0.65f, 0.55f, 0.45f); hitSize = 0.45f; spin = true; h = 0.4f; break; // mancınık taşı
+                }
+                var a = from + new Vector3(0f, h, 0f);
+                float dist = Vector3.Distance(new Vector3(a.x, 0f, a.z), new Vector3(center.x, 0f, center.z));
+                shots.Add(new Shot { T = t, A = a, B = center, T0 = Time.time + delay, Dur = Mathf.Max(0.32f, dist / cellsPerSec) / spd, Arc = arc, HitColor = hit, HitSize = hitSize, Spin = spin });
+                t.position = a;
+                t.gameObject.SetActive(false);
+            }
+            else
+            {
+                // vurulan nokta: yapının askere bakan yüzü
+                var dir = new Vector3(from.x - center.x, 0f, from.z - center.z);
+                var p = center + (dir.sqrMagnitude > 0.0001f ? dir.normalized * (tower ? 0.28f : 0.36f) : Vector3.zero);
+                p.y = s.Type == SoldierType.Giant ? 0.5f : 0.32f;
+                var col = s.Type == SoldierType.Giant ? new Color(1f, 0.75f, 0.35f) : new Color(1f, 0.95f, 0.65f);
+                SpawnSpark(p, col, s.Type == SoldierType.Giant ? 0.38f : 0.2f, delay);
+            }
+        }
+
+        private static bool IsRangedView(SoldierType t) =>
+            t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Catapult || t == SoldierType.DragonRider;
+
+        private void SpawnSpark(Vector3 pos, Color c, float size, float delay = 0f)
+        {
+            var g = VillageArt.Group(DynRoot(), "spark", pos);
+            VillageArt.Part(g, VillageArt.Shape.Ball, Vector3.zero, Vector3.one, VillageArt.Mat(c, 0.9f, 2.2f));
+            g.localScale = Vector3.one * size * 0.4f;
+            g.gameObject.SetActive(delay <= 0f);
+            fxs.Add(new Fx { T = g, T0 = Time.time + delay, Dur = 0.28f, Size = size });
+        }
         private readonly List<Shot> shots = new List<Shot>();
         private readonly List<Vector3> soldierPrev = new List<Vector3>();
         private readonly List<Transform> barFills = new List<Transform>();
@@ -191,6 +248,7 @@ namespace GameClient
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
                 soldierRigs.Add(tr.GetComponent<ISoldierAnim>());
+                soldierVel.Add(0f);
                 { var sh = tr.GetComponent<SoldierHeight>(); float mh = sh != null ? sh.Value - 0.12f : ModelLibrary.WorldHeight(tr); soldierBarH.Add(mh > 0.05f ? Mathf.Min(mh, 1.6f) + 0.12f : 0.5f); }
                 soldierPrevAttacks.Add(st.AttackCount);
                 soldierDir.Add(Vector3.forward);
@@ -210,14 +268,33 @@ namespace GameClient
                 var prevSim = i < simPrevPos.Count ? simPrevPos[i] : new Vector2(s.X, s.Y);
                 var p = new Vector3(Mathf.Lerp(prevSim.x, s.X, alpha) / 1000f, 0f, Mathf.Lerp(prevSim.y, s.Y, alpha) / 1000f);
                 var d = p - soldierPrev[i];
-                if (d.sqrMagnitude > 0.00002f) t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(d.normalized, Vector3.up), 0.35f);
-                bool moving = d.sqrMagnitude > 0.0000005f;
-                float bob = moving ? Mathf.Abs(Mathf.Sin(Time.time * 11f + i)) * 0.025f : 0f;
+                float dt = Mathf.Max(Time.deltaTime, 0.0001f);
+                // ekrandaki gerçek hız (kare/sn), yumuşatılmış: yürüme animasyonu buna uyar
+                soldierVel[i] = Mathf.Lerp(soldierVel[i], d.magnitude / dt, 1f - Mathf.Exp(-10f * dt));
+                bool moving = soldierVel[i] > 0.06f;
+                // yön: yürürken gidiş yönüne, dururken (saldırırken) hedef yapıya döner; kare hızından bağımsız yumuşak dönüş
+                Vector3 face = Vector3.zero;
+                if (!moving && s.TargetId >= 0 && s.TargetId < sim.Structures.Count)
+                {
+                    var tg = sim.Structures[s.TargetId];
+                    face = new Vector3(tg.Pos.X, 0f, tg.Pos.Y) - t.position; face.y = 0f;
+                }
+                else if (d.sqrMagnitude > 0.0000004f) face = d;
+                if (face.sqrMagnitude > 0.0001f)
+                    t.rotation = Quaternion.Slerp(t.rotation, Quaternion.LookRotation(face.normalized, Vector3.up), 1f - Mathf.Exp(-(moving ? 10f : 14f) * dt));
                 var rig = soldierRigs[i];
+                float bob = moving && rig is CharacterRig ? Mathf.Abs(Mathf.Sin(Time.time * 11f + i)) * 0.025f : 0f;
                 if (rig != null)
                 {
                     rig.SetMoving(moving);
-                    if (s.AttackCount != soldierPrevAttacks[i]) { soldierPrevAttacks[i] = s.AttackCount; rig.TriggerAttack(); }
+                    rig.SetSpeed(soldierVel[i]);
+                }
+                if (s.AttackCount != soldierPrevAttacks[i])
+                {
+                    soldierPrevAttacks[i] = s.AttackCount;
+                    float interval = RealSeconds(s.IntervalTicks) / Mathf.Max(1f, speed);
+                    float impact = rig != null ? rig.TriggerAttack(interval) : 0.15f;
+                    OnSoldierAttack(s, t.position, impact);
                 }
                 // Kişisel duruş: her yer askeri yolun içinde kendine ait sabit bir sapmayla yürür (dünya ekseninde; köşede dönmez).
                 // Uçanlar simülasyonun verdiği dağılımı kullanır. Üst üste binme, aşağıdaki yumuşak ayrışmayla önlenir.
@@ -282,12 +359,35 @@ namespace GameClient
             for (int i = shots.Count - 1; i >= 0; i--)
             {
                 var sh = shots[i];
+                if (sh.T == null) { shots.RemoveAt(i); continue; }
                 float a = (Time.time - sh.T0) / sh.Dur;
-                if (a >= 1f || sh.T == null) { if (sh.T != null) Destroy(sh.T.gameObject); shots.RemoveAt(i); continue; }
-                var pos = Vector3.Lerp(sh.A, sh.B, a) + new Vector3(0f, Mathf.Sin(a * Mathf.PI) * 0.35f, 0f);
-                var dir = sh.B - sh.A;
+                if (a < 0f) { if (sh.T.gameObject.activeSelf) sh.T.gameObject.SetActive(false); continue; } // bırakma anı gelmedi
+                if (!sh.T.gameObject.activeSelf) sh.T.gameObject.SetActive(true);
+                if (a >= 1f)
+                {
+                    if (sh.HitColor.a > 0f) SpawnSpark(sh.B, sh.HitColor, sh.HitSize);
+                    Destroy(sh.T.gameObject); shots.RemoveAt(i); continue;
+                }
+                float arc = sh.Arc;
+                var pos = Vector3.Lerp(sh.A, sh.B, a) + new Vector3(0f, Mathf.Sin(a * Mathf.PI) * arc, 0f);
+                // yönü yayın teğetine göre (ok ucu önce yükselir sonra iner)
+                var vel = (sh.B - sh.A) + new Vector3(0f, Mathf.Cos(a * Mathf.PI) * Mathf.PI * arc, 0f);
                 sh.T.position = pos;
-                if (dir.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+                if (vel.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(vel.normalized, Vector3.up);
+                if (sh.Spin) sh.T.Rotate(0f, 0f, Time.time * 720f % 360f, Space.Self);
+            }
+
+            // vuruş kıvılcımları (gecikmeli başlar, büyüyüp söner)
+            for (int i = fxs.Count - 1; i >= 0; i--)
+            {
+                var f = fxs[i];
+                if (f.T == null) { fxs.RemoveAt(i); continue; }
+                float a = (Time.time - f.T0) / f.Dur;
+                if (a < 0f) { if (f.T.gameObject.activeSelf) f.T.gameObject.SetActive(false); continue; }
+                if (a >= 1f) { Destroy(f.T.gameObject); fxs.RemoveAt(i); continue; }
+                if (!f.T.gameObject.activeSelf) f.T.gameObject.SetActive(true);
+                float k = Mathf.Sin(Mathf.Min(1f, a * 1.6f) * Mathf.PI * 0.5f) * (1f - a * a);
+                f.T.localScale = Vector3.one * (f.Size * (0.4f + k));
             }
         }
 

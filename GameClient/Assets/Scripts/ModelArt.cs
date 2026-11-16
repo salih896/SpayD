@@ -8,7 +8,10 @@ namespace GameClient
     public interface ISoldierAnim
     {
         void SetMoving(bool moving);
-        void TriggerAttack();
+        /// <summary>Ekrandaki gerçek yürüme hızı (kare/sn): yürüme animasyonu ayak kaymadan bu hıza uyar.</summary>
+        void SetSpeed(float cellsPerSecond);
+        /// <summary>Vuruş/atış animasyonu; animasyon saldırı aralığına sığdırılır. Dönüş: darbenin (ok bırakma) kaç sn sonra olduğu.</summary>
+        float TriggerAttack(float intervalSeconds);
     }
 
     /// <summary>
@@ -76,39 +79,70 @@ namespace GameClient
         }
     }
 
-    /// <summary>Hazır modelli asker için animasyon: Legacy Animation ile bekleme / yürüme / saldırı.</summary>
+    /// <summary>
+    /// Hazır modelli asker için animasyon (Legacy Animation): bekleme / yürüme / saldırı.
+    /// Yürüme hızı ekrandaki gerçek hıza göre ayarlanır (adım boyu = strideCells); saldırı klipleri sırayla değişir
+    /// ve saldırı aralığından uzunsa hızlandırılır.
+    /// </summary>
     public sealed class ModelRig : MonoBehaviour, ISoldierAnim
     {
         private Animation anim;
-        private string idle, walk, attack, current;
+        private string idle, walk, current;
+        private string[] attacks = new string[0];
+        private int atkIdx;
+        private float strideCells, walkSpeedNow = 1f, impactFrac;
         private bool moving;
         private float attackEnd = -1f;
 
-        public void Setup(Animation a, string idleClip, string walkClip, string attackClip, float walkSpeed)
+        /// <param name="attackClips">virgülle ayrılmış saldırı klipleri (sırayla oynar)</param>
+        /// <param name="stride">bir yürüme döngüsünde alınan yol (kare); 0 = hız uyarlaması yok</param>
+        /// <param name="impact">darbe anı, klip süresinin oranı</param>
+        public void Setup(Animation a, string idleClip, string walkClip, string attackClips, float stride, float impact = 0.45f)
         {
-            anim = a; idle = idleClip; walk = walkClip; attack = attackClip;
-            if (anim[walk] != null) { anim[walk].wrapMode = WrapMode.Loop; anim[walk].speed = walkSpeed; }
-            if (anim[idle] != null) anim[idle].wrapMode = WrapMode.Loop;
-            if (attack != null && anim[attack] != null) anim[attack].wrapMode = WrapMode.Once;
-            if (anim[idle] != null) { anim.Play(idle); current = idle; }
+            anim = a; idle = idleClip; walk = walkClip; strideCells = stride; impactFrac = impact;
+            var list = new List<string>();
+            if (!string.IsNullOrEmpty(attackClips))
+                foreach (var raw in attackClips.Split(','))
+                {
+                    var c = raw.Trim();
+                    if (anim[c] != null) { list.Add(c); anim[c].wrapMode = WrapMode.Once; }
+                }
+            attacks = list.ToArray();
+            atkIdx = Random.Range(0, 7);
+            if (walk != null && anim[walk] != null) anim[walk].wrapMode = WrapMode.Loop;
+            if (idle != null && anim[idle] != null) { anim[idle].wrapMode = WrapMode.Loop; anim.Play(idle); current = idle; }
         }
 
         public void SetMoving(bool m) => moving = m;
 
-        public void TriggerAttack()
+        public void SetSpeed(float v)
         {
-            if (anim == null || attack == null || anim[attack] == null) return;
-            anim.CrossFade(attack, 0.05f, PlayMode.StopAll);
-            anim[attack].time = 0f;
-            attackEnd = Time.time + anim[attack].length / Mathf.Max(0.01f, anim[attack].speed);
-            current = attack;
+            if (anim == null || walk == null || anim[walk] == null) return;
+            float target = strideCells > 0.001f ? Mathf.Clamp(v * anim[walk].length / strideCells, 0.35f, 3f) : 1f;
+            walkSpeedNow = Mathf.Lerp(walkSpeedNow, target, 1f - Mathf.Exp(-8f * Time.deltaTime));
+            anim[walk].speed = walkSpeedNow;
+        }
+
+        public float TriggerAttack(float interval)
+        {
+            if (anim == null || attacks.Length == 0) return 0.15f;
+            var clip = attacks[atkIdx++ % attacks.Length];
+            var st = anim[clip];
+            float len = st.length, maxDur = Mathf.Max(0.3f, interval * 0.92f);
+            st.speed = len > maxDur ? len / maxDur : 1f;
+            anim.CrossFade(clip, 0.05f, PlayMode.StopAll);
+            st.time = 0f;
+            float dur = len / st.speed;
+            attackEnd = Time.time + dur;
+            current = clip;
+            return dur * impactFrac;
         }
 
         private void Update()
         {
             if (anim == null || Time.time < attackEnd) return;
             string want = moving ? walk : idle;
-            if (want != current && anim[want] != null) { anim.CrossFade(want, 0.15f); current = want; }
+            if (want != null && want != current && anim[want] != null) { anim.CrossFade(want, 0.18f); current = want; }
         }
     }
 
@@ -121,7 +155,8 @@ namespace GameClient
         private ModelRig[] rigs;
         private ModelRig[] Rigs => rigs ??= GetComponentsInChildren<ModelRig>(true);
         public void SetMoving(bool moving) { foreach (var r in Rigs) r.SetMoving(moving); }
-        public void TriggerAttack() { foreach (var r in Rigs) r.TriggerAttack(); }
+        public void SetSpeed(float v) { foreach (var r in Rigs) r.SetSpeed(v); }
+        public float TriggerAttack(float interval) { float d = 0f; foreach (var r in Rigs) d = Mathf.Max(d, r.TriggerAttack(interval)); return d; }
     }
 
     /// <summary>
@@ -145,17 +180,17 @@ namespace GameClient
             switch (t)
             {
                 case SoldierType.Swordsman:
-                    return new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 15 ? "shield_badge_color" : (L >= 6 ? "shield_badge" : "shield_round"), Attack = "Melee_1H_Attack_Chop", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = w };
+                    return new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 15 ? "shield_badge_color" : (L >= 6 ? "shield_badge" : "shield_round"), Attack = "Melee_1H_Attack_Chop,Melee_1H_Attack_Slice_Diagonal,Melee_1H_Attack_Slice_Horizontal", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = w };
                 case SoldierType.Archer:
                     return new Look { Model = "Ranger", Left = "bow_withString", Right = null, Attack = "Ranged_Bow_Release", Idle = "Ranged_Bow_Idle", Walk = "Walking_B", Height = 0.7f, Tint = w };
                 case SoldierType.Mage:
                     return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Walking_A", Height = 0.7f, Tint = w };
                 case SoldierType.Goblin:
-                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab", Idle = "Idle_A", Walk = "Walking_C", Height = 0.52f, Tint = new Color(0.72f, 1f, 0.62f) };
+                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice,Melee_Dualwield_Attack_Chop", Idle = "Idle_A", Walk = "Walking_C", Height = 0.52f, Tint = new Color(0.72f, 1f, 0.62f) };
                 case SoldierType.Spearman:
-                    return new Look { Model = "Rogue_Hooded", Right = "staff", Left = L >= 10 ? "shield_spikes_color" : "shield_spikes", Attack = "Melee_2H_Attack_Stab", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = new Color(1f, 0.92f, 0.8f) };
+                    return new Look { Model = "Rogue_Hooded", Right = "staff", Left = L >= 10 ? "shield_spikes_color" : "shield_spikes", Attack = "Melee_2H_Attack_Stab,Melee_2H_Attack_Slice", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = new Color(1f, 0.92f, 0.8f) };
                 case SoldierType.Giant:
-                    return new Look { Model = "Barbarian", Right = "axe_2handed", Attack = "Melee_2H_Attack_Chop", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 1.1f, Tint = new Color(1f, 0.9f, 0.85f) };
+                    return new Look { Model = "Barbarian", Right = "axe_2handed", Attack = "Melee_2H_Attack_Chop,Melee_2H_Attack_Slice,Melee_2H_Attack_Chop,Melee_2H_Attack_Spin", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 1.1f, Tint = new Color(1f, 0.9f, 0.85f) };
                 case SoldierType.Fairy:
                     return new Look { Model = "Mage", Right = "wand", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Idle_B", Height = 0.42f, Tint = new Color(1f, 0.8f, 0.95f) };
                 default:
@@ -181,14 +216,14 @@ namespace GameClient
             var look = LookOf(t, L);
             if (look.Model == null) return null;
             var root = VillageArt.Group(parent, t.ToString(), Vector3.zero);
-            if (Character(root, look, L, t == SoldierType.Giant ? 0.6f : (t == SoldierType.Goblin ? 1.1f : 0.8f)) == null) { Object.Destroy(root.gameObject); return null; }
+            if (Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy ? 0.3f : 0.45f) == null) { Object.Destroy(root.gameObject); return null; }
             if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);
             VillageArt.LevelEffectsPublic(root, L, t == SoldierType.Giant ? 1.8f : 1f, look.Height * 1.05f);
             return root;
         }
 
         /// <summary>KayKit karakteri: boy, silahlar, renk tonu, animasyon (ModelRig holder üstünde). Model yoksa null.</summary>
-        private static Transform Character(Transform holder, Look look, int L, float walkSpeed)
+        private static Transform Character(Transform holder, Look look, int L, float stride, float impact = 0.45f)
         {
             var body = ModelLibrary.Spawn(holder, "KayKit/Characters/" + look.Model, Vector3.zero);
             if (body == null) return null;
@@ -207,7 +242,7 @@ namespace GameClient
             foreach (var f in AnimFiles)
                 foreach (var clip in ModelLibrary.Clips(f))
                     if (clip != null && !clip.name.StartsWith("__preview__") && anim.GetClip(clip.name) == null) { clip.legacy = true; anim.AddClip(clip, clip.name); }
-            holder.gameObject.AddComponent<ModelRig>().Setup(anim, look.Idle, look.Walk, look.Attack, walkSpeed);
+            holder.gameObject.AddComponent<ModelRig>().Setup(anim, look.Idle, look.Walk, look.Attack, stride * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)), impact);
             return body;
         }
 
@@ -281,14 +316,14 @@ namespace GameClient
                 string idle = ClipEnding(ma, dragon ? "_Flying" : "|Idle");
                 string move = ClipEnding(ma, dragon ? "_Flying" : "|Run");
                 string atk = dragon ? ClipEnding(ma, "_Attack") : null;
-                if (idle != null && move != null) mountHolder.gameObject.AddComponent<ModelRig>().Setup(ma, idle, move, atk, dragon ? 1f : 0.9f);
+                if (idle != null && move != null) mountHolder.gameObject.AddComponent<ModelRig>().Setup(ma, idle, move, atk, dragon ? 0f : targetH * 2.4f);
             }
 
             var riderLook = dragon
-                ? new Look { Model = "Barbarian", Right = "axe_1handed", Attack = "Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = new Color(1f, 0.85f, 0.75f) }
-                : new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 12 ? "shield_badge_color" : "shield_badge", Attack = "Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = Color.white };
+                ? new Look { Model = "Barbarian", Right = "axe_1handed", Attack = "Melee_1H_Attack_Chop,Melee_1H_Attack_Slice_Horizontal", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = new Color(1f, 0.85f, 0.75f) }
+                : new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 12 ? "shield_badge_color" : "shield_badge", Attack = "Melee_1H_Attack_Slice_Horizontal,Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = Color.white };
             var rider = VillageArt.Group(root, "rider", new Vector3(0f, (dragon ? DragonSeat : HorseSeat) * targetH, dragon ? DragonSeatZ : HorseSeatZ));
-            Character(rider, riderLook, L, 1f);
+            Character(rider, riderLook, L, 0f);
             root.gameObject.AddComponent<MultiRig>();
             root.gameObject.AddComponent<SoldierHeight>().Value = (dragon ? DragonSeat : HorseSeat) * targetH + 0.62f; // can çubuğu: binicinin başının üstü
             VillageArt.LevelEffectsPublic(root, L, 1.6f, targetH + 0.35f);

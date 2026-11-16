@@ -1042,6 +1042,31 @@ namespace GameClient
             return g;
         }
 
+        /// <summary>Okçu oku: gövde, demir uç, tüy (z ekseni boyunca, uç önde).</summary>
+        public static Transform Arrow(Transform parent)
+        {
+            var g = Group(parent, "arrow", Vector3.zero);
+            Part(g, Shape.Box, Vector3.zero, new Vector3(0.028f, 0.028f, 0.4f), Mat(new Color(0.72f, 0.52f, 0.3f)));
+            Part(g, Shape.Pyramid, new Vector3(0f, 0f, 0.23f), new Vector3(0.07f, 0.07f, 0.09f), Mat(new Color(0.85f, 0.87f, 0.9f), 0.8f, 0.3f), new Vector3(90, 0, 0));
+            Part(g, Shape.Box, new Vector3(0f, 0f, -0.17f), new Vector3(0.09f, 0.008f, 0.09f), Mat(new Color(1f, 1f, 0.96f), 0.2f, 0.4f));
+            Part(g, Shape.Box, new Vector3(0f, 0f, -0.17f), new Vector3(0.008f, 0.09f, 0.09f), Mat(new Color(0.95f, 0.22f, 0.18f), 0.2f, 0.4f));
+            return g;
+        }
+
+        /// <summary>Parlayan büyü küresi (çekirdek + hale), dönen kıvılcımlı.</summary>
+        public static Transform MagicOrb(Transform parent, Color c, float size)
+        {
+            var g = Group(parent, "orb", Vector3.zero);
+            Part(g, Shape.Ball, Vector3.zero, Vector3.one * size * 0.6f, Mat(Color.Lerp(c, Color.white, 0.6f), 0.9f, 3.5f));
+            Part(g, Shape.Ball, Vector3.zero, Vector3.one * size, Mat(c, 0.9f, 2.2f));
+            for (int i = 0; i < 3; i++)
+            {
+                float an = i * 2.094f;
+                Part(g, Shape.Ball, new Vector3(Mathf.Cos(an) * size * 0.8f, Mathf.Sin(an) * size * 0.8f, -size * 0.6f), Vector3.one * size * 0.3f, Mat(c, 0.9f, 2.5f));
+            }
+            return g;
+        }
+
         public static void Smoke(Transform parent, Vector3 pos, int seed)
         {
             for (int i = 0; i < 5; i++)

@@ -31,7 +31,9 @@ namespace GameClient
 
         public void SetMoving(bool moving) => targetWalk = moving ? 1f : 0f;
 
-        public void TriggerAttack() => attackT = 0f;
+        public void SetSpeed(float v) => StrideSpeed = Mathf.Clamp(v * 22f, 5f, 26f);
+
+        public float TriggerAttack(float interval) { attackT = 0f; return 0.17f; }
 
         private void Update()
         {
