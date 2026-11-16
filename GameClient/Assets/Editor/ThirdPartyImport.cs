@@ -16,10 +16,11 @@ namespace GameClient.EditorTools
             var mi = (ModelImporter)assetImporter;
             bool kayChar = assetPath.Contains("/KayKit/Characters/");
             bool kayAnim = assetPath.Contains("/KayKit/Animations/");
-            if (kayChar || kayAnim)
+            bool quat = assetPath.Contains("/Quaternius/"); // at ve ejderha: model + kendi animasyonları tek dosyada
+            if (kayChar || kayAnim || quat)
             {
                 mi.animationType = ModelImporterAnimationType.Legacy;
-                mi.importAnimation = kayAnim;
+                mi.importAnimation = kayAnim || quat;
                 mi.generateAnimations = ModelImporterGenerateAnimations.GenerateAnimations;
             }
             else

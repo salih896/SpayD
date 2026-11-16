@@ -191,7 +191,7 @@ namespace GameClient
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
                 soldierRigs.Add(tr.GetComponent<ISoldierAnim>());
-                { float mh = ModelLibrary.WorldHeight(tr); soldierBarH.Add(mh > 0.05f ? Mathf.Min(mh, 1.6f) + 0.12f : 0.5f); }
+                { var sh = tr.GetComponent<SoldierHeight>(); float mh = sh != null ? sh.Value - 0.12f : ModelLibrary.WorldHeight(tr); soldierBarH.Add(mh > 0.05f ? Mathf.Min(mh, 1.6f) + 0.12f : 0.5f); }
                 soldierPrevAttacks.Add(st.AttackCount);
                 soldierDir.Add(Vector3.forward);
                 soldierSep.Add(Vector3.zero);

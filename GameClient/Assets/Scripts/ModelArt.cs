@@ -112,6 +112,18 @@ namespace GameClient
         }
     }
 
+    /// <summary>Can çubuğu yüksekliği (sınır kutusu güvenilmez olan modeller için açık değer).</summary>
+    public sealed class SoldierHeight : MonoBehaviour { public float Value; }
+
+    /// <summary>Binekli asker: altındaki tüm ModelRig'lere (binek + binici) aynı komutu iletir.</summary>
+    public sealed class MultiRig : MonoBehaviour, ISoldierAnim
+    {
+        private ModelRig[] rigs;
+        private ModelRig[] Rigs => rigs ??= GetComponentsInChildren<ModelRig>(true);
+        public void SetMoving(bool moving) { foreach (var r in Rigs) r.SetMoving(moving); }
+        public void TriggerAttack() { foreach (var r in Rigs) r.TriggerAttack(); }
+    }
+
     /// <summary>
     /// Hazır modellerle askerler, binalar ve kuleler (kullanıcı kararı 16.11.2026: ücretsiz CC0 paketler).
     /// Model bulunamazsa null döner ve VillageArt kodla çizilen görünümü kullanır. Yalnızca görsel.
@@ -165,11 +177,21 @@ namespace GameClient
                 VillageArt.LevelEffectsPublic(croot, L, 1.4f, 0.45f);
                 return croot;
             }
+            if (t == SoldierType.Cavalry || t == SoldierType.DragonRider) return Mounted(parent, t, L);
             var look = LookOf(t, L);
-            if (look.Model == null) return null; // Atlı ve Ejderha Binicisi: kodla çizilir
+            if (look.Model == null) return null;
             var root = VillageArt.Group(parent, t.ToString(), Vector3.zero);
-            var body = ModelLibrary.Spawn(root, "KayKit/Characters/" + look.Model, Vector3.zero);
-            if (body == null) { Object.Destroy(root.gameObject); return null; }
+            if (Character(root, look, L, t == SoldierType.Giant ? 0.6f : (t == SoldierType.Goblin ? 1.1f : 0.8f)) == null) { Object.Destroy(root.gameObject); return null; }
+            if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);
+            VillageArt.LevelEffectsPublic(root, L, t == SoldierType.Giant ? 1.8f : 1f, look.Height * 1.05f);
+            return root;
+        }
+
+        /// <summary>KayKit karakteri: boy, silahlar, renk tonu, animasyon (ModelRig holder üstünde). Model yoksa null.</summary>
+        private static Transform Character(Transform holder, Look look, int L, float walkSpeed)
+        {
+            var body = ModelLibrary.Spawn(holder, "KayKit/Characters/" + look.Model, Vector3.zero);
+            if (body == null) return null;
             float h = ModelLibrary.WorldHeight(body);
             if (h > 0.001f) body.localScale *= look.Height * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)) / h;
             Attach(body, "handslot.r", W(look.Right));
@@ -177,7 +199,6 @@ namespace GameClient
             if (look.Tint != Color.white)
                 foreach (var r in body.GetComponentsInChildren<Renderer>())
                     foreach (var m in r.materials) m.color *= look.Tint;
-            if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);
 
             // Legacy içe aktarım modele zaten bir Animation bileşeni koyar; ikincisi eklenemez (AddComponent null döner).
             var anim = body.GetComponent<Animation>();
@@ -186,11 +207,97 @@ namespace GameClient
             foreach (var f in AnimFiles)
                 foreach (var clip in ModelLibrary.Clips(f))
                     if (clip != null && !clip.name.StartsWith("__preview__") && anim.GetClip(clip.name) == null) { clip.legacy = true; anim.AddClip(clip, clip.name); }
-            var rig = root.gameObject.AddComponent<ModelRig>();
-            rig.Setup(anim, look.Idle, look.Walk, look.Attack, t == SoldierType.Giant ? 0.6f : (t == SoldierType.Goblin ? 1.1f : 0.8f));
-            VillageArt.LevelEffectsPublic(root, L, t == SoldierType.Giant ? 1.8f : 1f, look.Height * 1.05f);
+            holder.gameObject.AddComponent<ModelRig>().Setup(anim, look.Idle, look.Walk, look.Attack, walkSpeed);
+            return body;
+        }
+
+        /// <summary>
+        /// Quaternius FBX'lerinde kök kemik 100 kat ölçekli; Unity'nin hazır sınır kutusu gerçek görüntüyle uyuşmuyor
+        /// (boy yanlış ölçülüyor, görünmez oluyor). Gerçek (pişirilmiş) mesh'ten sınır kutusunu yeniden kurar; dünya boyunu döner.
+        /// </summary>
+        private static float FixSkinnedBounds(Transform model, out float baseY)
+        {
+            // Kemiklerin dünya konumları gerçek görüntüyü izler; iskelet kutusuna mesh payı (%18) eklenir.
+            float minY = float.MaxValue, maxY = float.MinValue;
+            var all = new List<Vector3>();
+            foreach (var sk in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+                foreach (var b in sk.bones)
+                    if (b != null) { var w = b.position; all.Add(w); minY = Mathf.Min(minY, w.y); maxY = Mathf.Max(maxY, w.y); }
+            baseY = 0f;
+            if (all.Count < 2 || maxY <= minY) return ModelLibrary.WorldHeight(model);
+            float pad = (maxY - minY) * 0.18f;
+            foreach (var sk in model.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                var tr = sk.transform;
+                var lb = new Bounds(tr.InverseTransformPoint(all[0]), Vector3.zero);
+                foreach (var w in all) lb.Encapsulate(tr.InverseTransformPoint(w));
+                lb.Expand(lb.size.magnitude * 0.4f);
+                sk.localBounds = lb;
+            }
+            baseY = minY - pad * 0.5f - model.position.y;
+            return maxY - minY + pad;
+        }
+
+        /// <summary>Gömülü animasyonlu modelde adı belirli bir ekle biten klip (ör. "Armature|Run" için "|Run").</summary>
+        private static string ClipEnding(Animation a, string suffix)
+        {
+            foreach (AnimationState st in a)
+                if (st.name.EndsWith(suffix)) return st.name;
+            return null;
+        }
+
+        /// <summary>
+        /// Binekli askerler: Atlı Kılıçlı = Quaternius atı + şövalye, Ejderha Binicisi = Quaternius ejderhası + barbar.
+        /// Binek yürür/uçar, binici saldırır; ikisi birlikte MultiRig ile sürülür.
+        /// </summary>
+        private static Transform Mounted(Transform parent, SoldierType t, int L)
+        {
+            bool dragon = t == SoldierType.DragonRider;
+            var root = VillageArt.Group(parent, t.ToString(), Vector3.zero);
+            var mountHolder = VillageArt.Group(root, "mount", Vector3.zero);
+            var mount = ModelLibrary.Spawn(mountHolder, dragon ? "Quaternius/Dragon" : "Quaternius/Horse", Vector3.zero, dragon ? DragonYaw : HorseYaw);
+            if (mount == null) { Object.Destroy(root.gameObject); return null; }
+            // Quaternius malzemelerini oyunun ortak (opak, aynı ışıklı) malzemesiyle değiştir; renk korunur.
+            foreach (var r in mount.GetComponentsInChildren<Renderer>(true))
+            {
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++)
+                {
+                    var c = mats[i] != null ? mats[i].color : Color.gray; c.a = 1f;
+                    if (dragon) c = new Color(Mathf.Min(1f, c.r * 2.8f), Mathf.Min(1f, c.g * 1.8f), Mathf.Min(1f, c.b * 1.8f)); // çok koyu geliyor: kızıl ejderha
+                    mats[i] = VillageArt.Mat(c);
+                }
+                r.sharedMaterials = mats;
+            }
+            float mh = FixSkinnedBounds(mount, out float baseY);
+            float targetH = dragon ? 0.75f : 0.62f;
+            float k = mh > 0.001f ? targetH * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)) / mh : 1f;
+            mount.localScale *= k;
+            mount.localPosition -= new Vector3(0f, baseY * k, 0f); // ayaklar yere
+            var ma = mount.GetComponent<Animation>();
+            if (ma != null)
+            {
+                ma.playAutomatically = false;
+                string idle = ClipEnding(ma, dragon ? "_Flying" : "|Idle");
+                string move = ClipEnding(ma, dragon ? "_Flying" : "|Run");
+                string atk = dragon ? ClipEnding(ma, "_Attack") : null;
+                if (idle != null && move != null) mountHolder.gameObject.AddComponent<ModelRig>().Setup(ma, idle, move, atk, dragon ? 1f : 0.9f);
+            }
+
+            var riderLook = dragon
+                ? new Look { Model = "Barbarian", Right = "axe_1handed", Attack = "Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = new Color(1f, 0.85f, 0.75f) }
+                : new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 12 ? "shield_badge_color" : "shield_badge", Attack = "Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = Color.white };
+            var rider = VillageArt.Group(root, "rider", new Vector3(0f, (dragon ? DragonSeat : HorseSeat) * targetH, dragon ? DragonSeatZ : HorseSeatZ));
+            Character(rider, riderLook, L, 1f);
+            root.gameObject.AddComponent<MultiRig>();
+            root.gameObject.AddComponent<SoldierHeight>().Value = (dragon ? DragonSeat : HorseSeat) * targetH + 0.62f; // can çubuğu: binicinin başının üstü
+            VillageArt.LevelEffectsPublic(root, L, 1.6f, targetH + 0.35f);
             return root;
         }
+
+        // Binek yönü ve eyer konumu (bineğin boyuna oranla); oyunda bakılarak ayarlandı.
+        private const float HorseYaw = 0f, DragonYaw = 0f;
+        private const float HorseSeat = 0.45f, HorseSeatZ = -0.02f, DragonSeat = 0.4f, DragonSeatZ = 0f;
 
         private static void Attach(Transform body, string bone, string path)
         {
