@@ -44,6 +44,7 @@ namespace GameCore.Game
             }
             foreach (var it in g.Queue.Items)
                 sb.AppendLine("q " + (int)it.Type + " " + it.RemainingSeconds + " " + (it.Started ? 1 : 0) + " " + it.Cost.Wood + " " + it.Cost.Stone + " " + it.Cost.Gold + " " + it.Cost.Iron);
+            sb.AppendLine("rv " + ResearchCatalogVersion);
             foreach (var id in g.Research.Done) sb.AppendLine("rdone " + id);
             foreach (var a in g.Research.Active) sb.AppendLine("ract " + a.Id + " " + a.RemainingSeconds);
             foreach (var kv in g.Quests.Progress) sb.AppendLine("qp " + kv.Key + " " + kv.Value + " " + (g.Quests.IsClaimed(kv.Key) ? 1 : 0));
@@ -73,6 +74,7 @@ namespace GameCore.Game
                 var roadRows = new List<int[]>();
                 var entRows = new List<int[]>();
                 var towerRows = new List<int[]>();
+                var doneRows = new List<string>(); int researchVersion = 1;
                 var buildRows = new List<int[]>();
                 var daily = new List<string>();
                 int dailyDay = -1;
@@ -108,7 +110,8 @@ namespace GameCore.Game
                                 Type = (SoldierType)int.Parse(p[1]), RemainingSeconds = int.Parse(p[2]), Started = p[3] == "1",
                                 Cost = new ResourceCost(int.Parse(p[4]), int.Parse(p[5]), int.Parse(p[6]), int.Parse(p[7]))
                             }); break;
-                        case "rdone": g.Research.ForceComplete(RenamedResearch(p[1])); break;
+                        case "rv": researchVersion = int.Parse(p[1]); break;
+                        case "rdone": doneRows.Add(p[1]); break;
                         case "ract": g.Research.ForceActive(p[1], int.Parse(p[2])); break;
                         case "qp": qpRows.Add(p); break;
                         case "qd":
@@ -136,6 +139,12 @@ namespace GameCore.Game
                 string e;
                 foreach (var r in roadRows) layout.TryPlace(new GridPos(r[0], r[1]), CellKind.Road, out e, (RoadTier)r[2]);
                 foreach (var r in entRows) layout.ToggleEntrance(new GridPos(r[0], r[1]), out e);
+                // araştırmalar: güncel katalog kimlikleri olduğu gibi; eski katalogda (sürüm 1) yalnızca özel araştırmalar eşlenir
+                foreach (var id in doneRows)
+                {
+                    string nid = researchVersion >= ResearchCatalogVersion && GameCore.Progression.ResearchCatalog.Get(id) != null ? id : LegacyResearch(id);
+                    if (nid != null && GameCore.Progression.ResearchCatalog.Get(nid) != null) g.Research.ForceComplete(nid);
+                }
                 foreach (var r in towerRows)
                 {
                     var pos = new GridPos(r[0], r[1]);
@@ -165,15 +174,27 @@ namespace GameCore.Game
         {
             switch (id)
             {
-                case "a_house1": return GameCore.Progression.ResearchCatalog.MakeId(4, 1, 4);
-                case "a_house2": return GameCore.Progression.ResearchCatalog.MakeId(4, 3, 4);
-                case "a_tower1": return GameCore.Progression.ResearchCatalog.MakeId(4, 6, 5);
-                case "a_tower2": return GameCore.Progression.ResearchCatalog.MakeId(4, 15, 5);
+                case "a_house1": return "4-01-2";
+                case "a_house2": return "4-03-2";
+                case "a_tower1": return "1-06-2";
+                case "a_tower2": return "1-15-2";
                 default: return null;
             }
         }
 
-        /// <summary>Taşınan araştırma kimlikleri (25.11.2026: Kule Hakkı 4. sütundan 5. sütuna).</summary>
-        internal static string RenamedResearch(string id) => id == "4-06-4" ? "4-06-5" : id == "4-15-4" ? "4-15-5" : id;
+        /// <summary>Araştırma kataloğu sürümü (25.11.2026: düşük değerli araştırmalar kaldırıldı, 257 araştırma = 2).</summary>
+        public const int ResearchCatalogVersion = 2;
+
+        /// <summary>Eski katalogdaki özel araştırma → yeni kimlik (bonus araştırmaları taşınmaz).</summary>
+        internal static string LegacyResearch(string id)
+        {
+            switch (id)
+            {
+                case "4-01-4": return "4-01-2"; case "4-03-4": return "4-03-2"; case "4-08-4": return "4-08-2"; case "4-12-4": return "4-12-2"; case "4-18-4": return "4-18-2";
+                case "4-03-5": return "1-03-2"; case "4-06-5": case "4-06-4": return "1-06-2"; case "4-10-5": return "1-10-2"; case "4-15-5": case "4-15-4": return "1-15-2"; case "4-20-5": return "1-20-2";
+                case "6-01-1": return "6-03-2"; case "6-01-2": return "6-06-2"; case "6-01-3": return "6-09-2"; case "6-01-4": return "6-01-2"; case "6-01-5": return "6-13-2"; case "6-01-6": return "6-17-2";
+                default: return null;
+            }
+        }
     }
 }

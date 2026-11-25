@@ -136,6 +136,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 105l + 22l² (Sv1→30 toplam ≈ 215 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
-- **Araştırma:** 7 ağaç, 487 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
+- **XP eğrisi:** seviye başına 100 + 112l + 24l². Sv30'a 2 saatte bir giren oyuncu ≈ 100 gün.
+- **Araştırma:** 7 ağaç, 257 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

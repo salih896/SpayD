@@ -1,528 +1,298 @@
 # Akademi Araştırmaları (tam liste)
 
-Üretilmiş görünüm: `Core/Progression/ResearchData.cs` + `Research.cs`. Kaynak tasarım: `GameDesign/TechTrees.md`.
-Araştırma seviyesi = gereken Akademi seviyesi. Ön koşul: aynı sütunda bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu ister; 4. ve sonraki sütunlar aynı adlı bir öncekini ister. Bonus değerleri GEÇİCİDİR.
+Üretilmiş görünüm: `Core/Progression/ResearchData.cs` (kaynak: `GameDesign/TechTrees.md`). Araştırma seviyesi = gereken Akademi seviyesi.
+1. sütun: bonus (bir önceki seviyeyi ister). Diğer sütunlar: özel araştırmalar (aynı adlı bir öncekini ister). Değerler GEÇİCİDİR.
 
-Toplam: 487 araştırma, 7 ağaç.
+Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar kaldırıldı).
 
-## 1. Ekonomi (65)
+## 1. Ekonomi (34)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Orman İşletmeciliği | Üretim +%1,5 |
-| 1 | 2 | Kereste Verimliliği | Depo kapasitesi +%1,5 |
-| 2 | 1 | Ağaç Kesim Teknikleri | Üretim +%1,5 |
-| 2 | 2 | Odun Tasarrufu | Depo kapasitesi +%1,5 |
-| 3 | 1 | Gelişmiş Baltacılık | Üretim +%1,5 |
-| 3 | 2 | Orman Bakımı | Depo kapasitesi +%1,5 |
-| 4 | 1 | Hızlı Kereste Üretimi | Üretim +%1,5 |
-| 4 | 2 | Odun İşleme Sanatı | Depo kapasitesi +%1,5 |
-| 5 | 1 | Orman Uzmanlığı | Üretim +%1,5 |
-| 5 | 2 | Kereste Kapasitesi | Depo kapasitesi +%1,5 |
-| 5 | 3 | Kaynak Planlaması | Üretim +%2,5 |
-| 6 | 1 | Taş Madenciliği | Üretim +%1,5 |
-| 6 | 2 | Taş İşleme Teknikleri | Depo kapasitesi +%1,5 |
-| 7 | 1 | Gelişmiş Taş Çıkarma | Üretim +%1,5 |
-| 7 | 2 | Taş Tasarrufu | Depo kapasitesi +%1,5 |
-| 8 | 1 | Maden Damarı Analizi | Üretim +%1,5 |
-| 8 | 2 | Taş Depolama Uzmanlığı | Depo kapasitesi +%1,5 |
-| 9 | 1 | Verimli Taş Ocakları | Üretim +%1,5 |
-| 9 | 2 | İşlenmiş Taş Üretimi | Depo kapasitesi +%1,5 |
-| 10 | 1 | Taş Ustalığı | Üretim +%1,5 |
-| 10 | 2 | Gelişmiş Orman İşletmesi | Depo kapasitesi +%1,5 |
-| 10 | 3 | Kaynak Akışı | Üretim +%2,5 |
-| 11 | 1 | Derin Maden Kazısı | Üretim +%1,5 |
-| 11 | 2 | Kereste Organizasyonu | Depo kapasitesi +%1,5 |
-| 12 | 1 | Üretim Optimizasyonu | Üretim +%1,5 |
-| 12 | 2 | Depo Yönetimi | Depo kapasitesi +%1,5 |
-| 13 | 1 | Kaynak İşleme | Üretim +%1,5 |
-| 13 | 2 | Gelişmiş Taş Ustalığı | Depo kapasitesi +%1,5 |
-| 14 | 1 | Maden Planlaması | Üretim +%1,5 |
-| 14 | 2 | Üretim Disiplini | Depo kapasitesi +%1,5 |
-| 15 | 1 | Ekonomik Organizasyon | Üretim +%1,5 |
-| 15 | 2 | Kaynak Uzmanlığı | Depo kapasitesi +%1,5 |
-| 15 | 3 | Altın Madenciliği Hazırlığı | Üretim +%2,5 |
-| 16 | 1 | Altın Çıkarma Teknikleri | Üretim +%1,5 |
-| 16 | 2 | Altın Tasarrufu | Depo kapasitesi +%1,5 |
-| 17 | 1 | Kıymetli Maden İşleme | Üretim +%1,5 |
-| 17 | 2 | Altın Saflaştırma | Depo kapasitesi +%1,5 |
-| 18 | 1 | Altın Damarı Analizi | Üretim +%1,5 |
-| 18 | 2 | Külçe Üretimi | Depo kapasitesi +%1,5 |
-| 19 | 1 | Hazine Yönetimi | Üretim +%1,5 |
-| 19 | 2 | Altın Depolama Teknikleri | Depo kapasitesi +%1,5 |
-| 20 | 1 | Altın Ustalığı | Üretim +%1,5 |
-| 20 | 2 | Gelişmiş Maden İşletmesi | Depo kapasitesi +%1,5 |
-| 20 | 3 | Ekonomik Büyüme | Üretim +%2,5 |
-| 21 | 1 | Gelişmiş Altın İşleme | Üretim +%1,5 |
-| 21 | 2 | Üretim Zinciri | Depo kapasitesi +%1,5 |
-| 22 | 1 | Büyük Ölçekli Madencilik | Üretim +%1,5 |
-| 22 | 2 | Kaynak Biriktirme | Depo kapasitesi +%1,5 |
-| 23 | 1 | Maden Verimliliği | Üretim +%1,5 |
-| 23 | 2 | Ekonomik İstikrar | Depo kapasitesi +%1,5 |
-| 24 | 1 | İleri Depolama Sistemleri | Üretim +%1,5 |
-| 24 | 2 | Üretim Yönetimi | Depo kapasitesi +%1,5 |
-| 25 | 1 | Zengin Maden Yatakları | Üretim +%1,5 |
-| 25 | 2 | Ekonomik Hâkimiyet | Depo kapasitesi +%1,5 |
-| 26 | 1 | Demir Madenciliği | Üretim +%1,5 |
-| 26 | 2 | Demir İşleme Teknikleri | Depo kapasitesi +%1,5 |
-| 27 | 1 | Demir Tasarrufu | Üretim +%1,5 |
-| 27 | 2 | Çelik Üretimi | Depo kapasitesi +%1,5 |
-| 28 | 1 | Derin Demir Kazısı | Üretim +%1,5 |
-| 28 | 2 | Metalurji Bilgisi | Depo kapasitesi +%1,5 |
-| 29 | 1 | Gelişmiş Demir İşletmesi | Üretim +%1,5 |
-| 29 | 2 | Endüstriyel Üretim | Depo kapasitesi +%1,5 |
-| 30 | 1 | Efsanevi Ekonomi | Üretim +%1,5 |
-| 30 | 2 | Büyük Üretim Organizasyonu | Depo kapasitesi +%1,5 |
-| 30 | 3 | Kaynak İmparatorluğu | Üretim +%2,5 |
+| 1 | 1 | Verimli Üretim I | Üretim +%4 |
+| 2 | 1 | Geniş Depolar I | Depo +%4 |
+| 3 | 1 | Verimli Üretim II | Üretim +%4 |
+| 4 | 1 | Geniş Depolar II | Depo +%4 |
+| 5 | 1 | Verimli Üretim III | Üretim +%4 |
+| 6 | 1 | Geniş Depolar III | Depo +%4 |
+| 7 | 1 | Verimli Üretim IV | Üretim +%4 |
+| 8 | 1 | Geniş Depolar IV | Depo +%4 |
+| 8 | 2 | Odun Bölgesi II | +1 Orman ve +1 Kereste Deposu |
+| 9 | 1 | Verimli Üretim V | Üretim +%4 |
+| 10 | 1 | Geniş Depolar V | Depo +%4 |
+| 11 | 1 | Verimli Üretim VI | Üretim +%4 |
+| 12 | 1 | Geniş Depolar VI | Depo +%4 |
+| 13 | 1 | Verimli Üretim VII | Üretim +%4 |
+| 14 | 1 | Geniş Depolar VII | Depo +%4 |
+| 14 | 2 | Taş Bölgesi II | +1 Taş Ocağı ve +1 Taş Deposu |
+| 15 | 1 | Verimli Üretim VIII | Üretim +%4 |
+| 16 | 1 | Geniş Depolar VIII | Depo +%4 |
+| 17 | 1 | Verimli Üretim IX | Üretim +%4 |
+| 18 | 1 | Geniş Depolar IX | Depo +%4 |
+| 19 | 1 | Verimli Üretim X | Üretim +%4 |
+| 20 | 1 | Geniş Depolar X | Depo +%4 |
+| 20 | 2 | Altın Bölgesi II | +1 Altın Madeni ve +1 Banka |
+| 21 | 1 | Verimli Üretim XI | Üretim +%4 |
+| 22 | 1 | Geniş Depolar XI | Depo +%4 |
+| 23 | 1 | Verimli Üretim XII | Üretim +%4 |
+| 24 | 1 | Geniş Depolar XII | Depo +%4 |
+| 25 | 1 | Verimli Üretim XIII | Üretim +%4 |
+| 26 | 1 | Geniş Depolar XIII | Depo +%4 |
+| 27 | 1 | Verimli Üretim XIV | Üretim +%4 |
+| 27 | 2 | Demir Bölgesi II | +1 Demir Madeni ve +1 Demir Deposu |
+| 28 | 1 | Geniş Depolar XIV | Depo +%4 |
+| 29 | 1 | Verimli Üretim XV | Üretim +%4 |
+| 30 | 1 | Geniş Depolar XV | Depo +%4 |
 
-## 2. Savunma (66)
+## 2. Savunma (35)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Temel Balistik | Kule hasarı +%1 |
-| 1 | 2 | Güçlendirilmiş Mühimmat | Kule canı +%1 |
-| 2 | 1 | Hızlı Atış Mekanizması | Kule hasarı +%1 |
-| 2 | 2 | Kule Menzil Eğitimi | Kule canı +%1 |
-| 3 | 1 | Hassas Namlu İşçiliği | Kule hasarı +%1 |
-| 3 | 2 | Güçlü Kule Gövdesi | Kule canı +%1 |
-| 4 | 1 | Gelişmiş Atış Sistemi | Kule hasarı +%1 |
-| 4 | 2 | Kule Dayanıklılığı | Kule canı +%1 |
-| 5 | 1 | Usta Balistik | Kule hasarı +%1 |
-| 5 | 2 | Yoğun Mühimmat | Kule canı +%1 |
-| 5 | 3 | Savunma Düzeni | Kule hasarı +%1,8 |
-| 6 | 1 | Uzun Menzilli Atış | Kule hasarı +%1 |
-| 6 | 2 | Hızlı Doldurma | Kule canı +%1 |
-| 7 | 1 | Buzul Darbesi | Kule hasarı +%1 |
-| 7 | 2 | Donma Süresi | Kule canı +%1 |
-| 8 | 1 | Alev Yoğunluğu | Kule hasarı +%1 |
-| 8 | 2 | Kor Yakıcılığı | Kule canı +%1 |
-| 9 | 1 | Zehirli Birikim | Kule hasarı +%1 |
-| 9 | 2 | Toksin Yayılımı | Kule canı +%1 |
-| 10 | 1 | Kule Ateş Gücü | Kule hasarı +%1 |
-| 10 | 2 | Saldırı Ritmi | Kule canı +%1 |
-| 10 | 3 | Alan Muhafazası | Kule hasarı +%1,8 |
-| 11 | 1 | Gelişmiş Kule Temelleri | Kule hasarı +%1 |
-| 11 | 2 | Zırhlı Kule Yapısı | Kule canı +%1 |
-| 12 | 1 | Delici Mühimmat | Kule hasarı +%1 |
-| 12 | 2 | Kule Atış Dengesi | Kule canı +%1 |
-| 13 | 1 | Buzul Baskısı | Kule hasarı +%1 |
-| 13 | 2 | Donma Yoğunluğu | Kule canı +%1 |
-| 14 | 1 | Alev Fırtınası | Kule hasarı +%1 |
-| 14 | 2 | Yanma Yoğunluğu | Kule canı +%1 |
-| 15 | 1 | Zehir Bulutu | Kule hasarı +%1 |
-| 15 | 2 | Toksin Yoğunluğu | Kule canı +%1 |
-| 15 | 3 | Element Kule Uzmanlığı | Kule hasarı +%1,8 |
-| 16 | 1 | Kuşatma Savunması | Kule hasarı +%1 |
-| 16 | 2 | Kule Onarım Teknikleri | Kule canı +%1 |
-| 17 | 1 | Genişletilmiş Atış Alanı | Kule hasarı +%1 |
-| 17 | 2 | Güçlendirilmiş Namlu | Kule canı +%1 |
-| 18 | 1 | Buzul Hapishanesi | Kule hasarı +%1 |
-| 18 | 2 | Aşırı Soğutma | Kule canı +%1 |
-| 19 | 1 | Cehennem Darbesi | Kule hasarı +%1 |
-| 19 | 2 | Kor Patlaması | Kule canı +%1 |
-| 20 | 1 | Ölümcül Salgın | Kule hasarı +%1 |
-| 20 | 2 | Zehirli Alan | Kule canı +%1 |
-| 20 | 3 | Element Kule Ustalığı | Kule hasarı +%1,8 |
-| 21 | 1 | Kule Direnç Sistemi | Kule hasarı +%1 |
-| 21 | 2 | Gelişmiş Atış Mekanizması | Kule canı +%1 |
-| 22 | 1 | Buzul Fırtınası | Kule hasarı +%1 |
-| 22 | 2 | Derin Donma | Kule canı +%1 |
-| 23 | 1 | Alev Kasırgası | Kule hasarı +%1 |
-| 23 | 2 | Erimiş Zemin | Kule canı +%1 |
-| 24 | 1 | Kara Veba | Kule hasarı +%1 |
-| 24 | 2 | Toksik Patlama | Kule canı +%1 |
-| 25 | 1 | Kule Savaş Doktrini | Kule hasarı +%1 |
-| 25 | 2 | Savunma Hatları | Kule canı +%1 |
-| 25 | 3 | Element Kule Hâkimiyeti | Kule hasarı +%1,8 |
-| 26 | 1 | Efsanevi Balistik | Kule hasarı +%1 |
-| 26 | 2 | Aşılmaz Kule Gövdesi | Kule canı +%1 |
-| 27 | 1 | Sonsuz Atış Döngüsü | Kule hasarı +%1 |
-| 27 | 2 | Kuşatma Ustalığı | Kule canı +%1 |
-| 28 | 1 | Kutup Felaketi | Kule hasarı +%1 |
-| 28 | 2 | Cehennem Ateşi | Kule canı +%1 |
-| 29 | 1 | Zehir Kıyameti | Kule hasarı +%1 |
-| 29 | 2 | Element Fırtınası | Kule canı +%1 |
-| 30 | 1 | Efsanevi Kule Savunması | Kule hasarı +%1 |
-| 30 | 2 | Mutlak Savunma Hattı | Kule canı +%1 |
-| 30 | 3 | Kadim Kule Gücü | Kule hasarı +%1,8 |
+| 1 | 1 | Keskin Oklar I | Kule hasarı +%2,5 |
+| 2 | 1 | Sağlam Kuleler I | Kule canı +%2,5 |
+| 3 | 1 | Keskin Oklar II | Kule hasarı +%2,5 |
+| 3 | 2 | Kule Hakkı I | +1 Kule hakkı |
+| 4 | 1 | Sağlam Kuleler II | Kule canı +%2,5 |
+| 5 | 1 | Keskin Oklar III | Kule hasarı +%2,5 |
+| 6 | 1 | Sağlam Kuleler III | Kule canı +%2,5 |
+| 6 | 2 | Kule Hakkı II | +1 Kule hakkı |
+| 7 | 1 | Keskin Oklar IV | Kule hasarı +%2,5 |
+| 8 | 1 | Sağlam Kuleler IV | Kule canı +%2,5 |
+| 9 | 1 | Keskin Oklar V | Kule hasarı +%2,5 |
+| 10 | 1 | Sağlam Kuleler V | Kule canı +%2,5 |
+| 10 | 2 | Kule Hakkı III | +1 Kule hakkı |
+| 11 | 1 | Keskin Oklar VI | Kule hasarı +%2,5 |
+| 12 | 1 | Sağlam Kuleler VI | Kule canı +%2,5 |
+| 13 | 1 | Keskin Oklar VII | Kule hasarı +%2,5 |
+| 14 | 1 | Sağlam Kuleler VII | Kule canı +%2,5 |
+| 15 | 1 | Keskin Oklar VIII | Kule hasarı +%2,5 |
+| 15 | 2 | Kule Hakkı IV | +1 Kule hakkı |
+| 16 | 1 | Sağlam Kuleler VIII | Kule canı +%2,5 |
+| 17 | 1 | Keskin Oklar IX | Kule hasarı +%2,5 |
+| 18 | 1 | Sağlam Kuleler IX | Kule canı +%2,5 |
+| 19 | 1 | Keskin Oklar X | Kule hasarı +%2,5 |
+| 20 | 1 | Sağlam Kuleler X | Kule canı +%2,5 |
+| 20 | 2 | Kule Hakkı V | +1 Kule hakkı |
+| 21 | 1 | Keskin Oklar XI | Kule hasarı +%2,5 |
+| 22 | 1 | Sağlam Kuleler XI | Kule canı +%2,5 |
+| 23 | 1 | Keskin Oklar XII | Kule hasarı +%2,5 |
+| 24 | 1 | Sağlam Kuleler XII | Kule canı +%2,5 |
+| 25 | 1 | Keskin Oklar XIII | Kule hasarı +%2,5 |
+| 26 | 1 | Sağlam Kuleler XIII | Kule canı +%2,5 |
+| 27 | 1 | Keskin Oklar XIV | Kule hasarı +%2,5 |
+| 28 | 1 | Sağlam Kuleler XIV | Kule canı +%2,5 |
+| 29 | 1 | Keskin Oklar XV | Kule hasarı +%2,5 |
+| 30 | 1 | Sağlam Kuleler XV | Kule canı +%2,5 |
 
-## 3. Askerî (66)
+## 3. Askerî (35)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Temel Savaş Talimi | Asker hasarı +%1 |
-| 1 | 2 | Asker Donanımı | Asker canı +%1 |
-| 2 | 1 | Gelişmiş Muharebe Eğitimi | Asker hasarı +%1 |
-| 2 | 2 | Savaşçı Dayanıklılığı | Asker canı +%1 |
-| 3 | 1 | Hızlı Birlik Hareketi | Asker hasarı +%1 |
-| 3 | 2 | Birlik Disiplini | Asker canı +%1 |
-| 4 | 1 | Saldırı Formasyonu | Asker hasarı +%1 |
-| 4 | 2 | Savunma Formasyonu | Asker canı +%1 |
-| 5 | 1 | Savaş Meydanı Tecrübesi | Asker hasarı +%1 |
-| 5 | 2 | Güçlendirilmiş Zırh | Asker canı +%1 |
-| 5 | 3 | Asker Dayanıklılığı | Asker hasarı +%1,8 |
-| 6 | 1 | Kuşatma Birlikleri | Asker hasarı +%1 |
-| 6 | 2 | Tahkimat Yıkımı | Asker canı +%1 |
-| 7 | 1 | Hücum Taktikleri | Asker hasarı +%1 |
-| 7 | 2 | Geri Çekilme Eğitimi | Asker canı +%1 |
-| 8 | 1 | Birlik Kondisyonu | Asker hasarı +%1 |
-| 8 | 2 | Silah Kullanım Ustalığı | Asker canı +%1 |
-| 9 | 1 | Savaşçı Refleksleri | Asker hasarı +%1 |
-| 9 | 2 | Gelişmiş Kalkan Kullanımı | Asker canı +%1 |
-| 10 | 1 | Muharebe Uzmanlığı | Asker hasarı +%1 |
-| 10 | 2 | Birlik Sağlamlığı | Asker canı +%1 |
-| 10 | 3 | Savaş Düzeni | Asker hasarı +%1,8 |
-| 11 | 1 | Ateş Direnci | Asker hasarı +%1 |
-| 11 | 2 | Buz Direnci | Asker canı +%1 |
-| 12 | 1 | Zehir Direnci | Asker hasarı +%1 |
-| 12 | 2 | Gelişmiş Asker Zırhı | Asker canı +%1 |
-| 13 | 1 | Element Dayanımı | Asker hasarı +%1 |
-| 13 | 2 | Savaşçı İradesi | Asker canı +%1 |
-| 14 | 1 | Birlik Koordinasyonu | Asker hasarı +%1 |
-| 14 | 2 | Kuşatma Disiplini | Asker canı +%1 |
-| 15 | 1 | Taktik Eğitimi | Asker hasarı +%1 |
-| 15 | 2 | Element Savunma Talimi | Asker canı +%1 |
-| 15 | 3 | Element Etki Direnci | Asker hasarı +%1,8 |
-| 16 | 1 | Ağır Silah Eğitimi | Asker hasarı +%1 |
-| 16 | 2 | Güçlü Hücum | Asker canı +%1 |
-| 17 | 1 | Gelişmiş Birlik Hareketi | Asker hasarı +%1 |
-| 17 | 2 | Savaş Alanı Kontrolü | Asker canı +%1 |
-| 18 | 1 | Kırılmaz Kalkan | Asker hasarı +%1 |
-| 18 | 2 | Çelik Zırh İşçiliği | Asker canı +%1 |
-| 19 | 1 | Kuşatma Mühendisliği | Asker hasarı +%1 |
-| 19 | 2 | Duvar Yıkıcıları | Asker canı +%1 |
-| 20 | 1 | Savaşçı Ustalığı | Asker hasarı +%1 |
-| 20 | 2 | Askerî Organizasyon | Asker canı +%1 |
-| 20 | 3 | Birlik Moral Gücü | Asker hasarı +%1,8 |
-| 21 | 1 | Ateşten Korunma | Asker hasarı +%1 |
-| 21 | 2 | Buzuldan Korunma | Asker canı +%1 |
-| 22 | 1 | Zehirden Korunma | Asker hasarı +%1 |
-| 22 | 2 | Gelişmiş Element Direnci | Asker canı +%1 |
-| 23 | 1 | Efsanevi Silah Eğitimi | Asker hasarı +%1 |
-| 23 | 2 | Muharebe Dayanımı | Asker canı +%1 |
-| 24 | 1 | Büyük Hücum Doktrini | Asker hasarı +%1 |
-| 24 | 2 | Savunma Hattı Disiplini | Asker canı +%1 |
-| 25 | 1 | Kuşatma Ustalığı | Asker hasarı +%1 |
-| 25 | 2 | Savaş Alanı Hâkimiyeti | Asker canı +%1 |
-| 25 | 3 | Birlik Uzmanlığı | Asker hasarı +%1,8 |
-| 26 | 1 | Kadim Savaş Teknikleri | Asker hasarı +%1 |
-| 26 | 2 | Aşılmaz Zırh | Asker canı +%1 |
-| 27 | 1 | Efsanevi Hücum | Asker hasarı +%1 |
-| 27 | 2 | Efsanevi Savunma | Asker canı +%1 |
-| 28 | 1 | Savaşçı Efsanesi | Asker hasarı +%1 |
-| 28 | 2 | Demir İrade | Asker canı +%1 |
-| 29 | 1 | Mutlak Muharebe Disiplini | Asker hasarı +%1 |
-| 29 | 2 | Büyük Kuşatma Gücü | Asker canı +%1 |
-| 30 | 1 | Efsanevi Ordu | Asker hasarı +%1 |
-| 30 | 2 | Savaşın Efendileri | Asker canı +%1 |
-| 30 | 3 | Kadim Birlik Gücü | Asker hasarı +%1,8 |
+| 1 | 1 | Savaş Eğitimi I | Asker hasarı +%2,5 |
+| 2 | 1 | Dayanıklılık I | Asker canı +%2,5 |
+| 3 | 1 | Savaş Eğitimi II | Asker hasarı +%2,5 |
+| 4 | 1 | Dayanıklılık II | Asker canı +%2,5 |
+| 4 | 2 | Kalkanlı | Yeni asker |
+| 5 | 1 | Savaş Eğitimi III | Asker hasarı +%2,5 |
+| 6 | 1 | Dayanıklılık III | Asker canı +%2,5 |
+| 7 | 1 | Savaş Eğitimi IV | Asker hasarı +%2,5 |
+| 8 | 1 | Dayanıklılık IV | Asker canı +%2,5 |
+| 9 | 1 | Savaş Eğitimi V | Asker hasarı +%2,5 |
+| 9 | 2 | Suikastçı | Yeni asker |
+| 10 | 1 | Dayanıklılık V | Asker canı +%2,5 |
+| 11 | 1 | Savaş Eğitimi VI | Asker hasarı +%2,5 |
+| 12 | 1 | Dayanıklılık VI | Asker canı +%2,5 |
+| 13 | 1 | Savaş Eğitimi VII | Asker hasarı +%2,5 |
+| 14 | 1 | Dayanıklılık VII | Asker canı +%2,5 |
+| 14 | 2 | Şifacı | Yeni asker |
+| 15 | 1 | Savaş Eğitimi VIII | Asker hasarı +%2,5 |
+| 16 | 1 | Dayanıklılık VIII | Asker canı +%2,5 |
+| 17 | 1 | Savaş Eğitimi IX | Asker hasarı +%2,5 |
+| 18 | 1 | Dayanıklılık IX | Asker canı +%2,5 |
+| 19 | 1 | Savaş Eğitimi X | Asker hasarı +%2,5 |
+| 19 | 2 | Arbaletli | Yeni asker |
+| 20 | 1 | Dayanıklılık X | Asker canı +%2,5 |
+| 21 | 1 | Savaş Eğitimi XI | Asker hasarı +%2,5 |
+| 22 | 1 | Dayanıklılık XI | Asker canı +%2,5 |
+| 23 | 1 | Savaş Eğitimi XII | Asker hasarı +%2,5 |
+| 24 | 1 | Dayanıklılık XII | Asker canı +%2,5 |
+| 24 | 2 | Bombacı | Yeni asker |
+| 25 | 1 | Savaş Eğitimi XIII | Asker hasarı +%2,5 |
+| 26 | 1 | Dayanıklılık XIII | Asker canı +%2,5 |
+| 27 | 1 | Savaş Eğitimi XIV | Asker hasarı +%2,5 |
+| 28 | 1 | Dayanıklılık XIV | Asker canı +%2,5 |
+| 29 | 1 | Savaş Eğitimi XV | Asker hasarı +%2,5 |
+| 30 | 1 | Dayanıklılık XV | Asker canı +%2,5 |
 
-## 4. Mimarlık (66)
+## 4. Mimarlık (33)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Temel Yapı Planlaması | Bina canı +%1,5 |
-| 1 | 2 | İnşaat Teknikleri | Yükseltme maliyeti -%1 |
-| 2 | 1 | Hızlı Yapı Kurulumu | Bina canı +%1,5 |
-| 2 | 2 | Malzeme Tasarrufu | Yükseltme maliyeti -%1 |
-| 3 | 1 | Güçlendirilmiş Temeller | Bina canı +%1,5 |
-| 3 | 2 | Yapı Bakım Bilgisi | Yükseltme maliyeti -%1 |
-| 4 | 1 | Taşıyıcı Sistemler | Bina canı +%1,5 |
-| 4 | 2 | İnşaat Organizasyonu | Yükseltme maliyeti -%1 |
-| 5 | 1 | Usta Mimarlık | Bina canı +%1,5 |
-| 5 | 2 | Dayanıklı Yapı Tasarımı | Yükseltme maliyeti -%1 |
-| 5 | 3 | Yapı Onarım Teknikleri | Bina canı +%2 |
-| 6 | 1 | Gelişmiş İnşaat Planı | Bina canı +%1,5 |
-| 6 | 2 | İşçi Verimliliği | Yükseltme maliyeti -%1 |
-| 7 | 1 | Kalın Taş Duvarlar | Bina canı +%1,5 |
-| 7 | 2 | Sağlam Ahşap İşçiliği | Yükseltme maliyeti -%1 |
-| 8 | 1 | Yapı Canlandırma | Bina canı +%1,5 |
-| 8 | 2 | Temel Güçlendirme | Yükseltme maliyeti -%1 |
-| 9 | 1 | Kule Temel Mühendisliği | Bina canı +%1,5 |
-| 9 | 2 | Depo Güvenliği | Yükseltme maliyeti -%1 |
-| 10 | 1 | Gelişmiş Mimarlık | Bina canı +%1,5 |
-| 10 | 2 | Yapı Dayanıklılığı | Yükseltme maliyeti -%1 |
-| 10 | 3 | Hızlı Onarım | Bina canı +%2 |
-| 11 | 1 | Taş Tahkimat | Bina canı +%1,5 |
-| 11 | 2 | Ahşap Tahkimat | Yükseltme maliyeti -%1 |
-| 12 | 1 | Gelişmiş Taşıyıcı Sistem | Bina canı +%1,5 |
-| 12 | 2 | Yapı Canı Artırımı | Yükseltme maliyeti -%1 |
-| 13 | 1 | İnşaat Maliyet Yönetimi | Bina canı +%1,5 |
-| 13 | 2 | Yapı Koruma Sanatı | Yükseltme maliyeti -%1 |
-| 14 | 1 | Kule Zırh Kaplaması | Bina canı +%1,5 |
-| 14 | 2 | Bina Güçlendirme | Yükseltme maliyeti -%1 |
-| 15 | 1 | Büyük Yapı Mühendisliği | Bina canı +%1,5 |
-| 15 | 2 | Deprem Dayanımı | Yükseltme maliyeti -%1 |
-| 15 | 3 | Yapı Kurtarma | Bina canı +%2 |
-| 16 | 1 | Gelişmiş Onarım Sistemi | Bina canı +%1,5 |
-| 16 | 2 | İnşaat Hızı Optimizasyonu | Yükseltme maliyeti -%1 |
-| 17 | 1 | Çelik Destek Sistemleri | Bina canı +%1,5 |
-| 17 | 2 | Derin Temel İşçiliği | Yükseltme maliyeti -%1 |
-| 18 | 1 | Depo Tahkimatı | Bina canı +%1,5 |
-| 18 | 2 | Üretim Binası Güçlendirmesi | Yükseltme maliyeti -%1 |
-| 19 | 1 | Kule Gövde Zırhı | Bina canı +%1,5 |
-| 19 | 2 | Duvar Dayanıklılığı | Yükseltme maliyeti -%1 |
-| 20 | 1 | Mimari Ustalık | Bina canı +%1,5 |
-| 20 | 2 | Yapısal Bütünlük | Yükseltme maliyeti -%1 |
-| 20 | 3 | Gelişmiş Yapı Koruması | Bina canı +%2 |
-| 21 | 1 | Ateş Koruyucu Kaplama | Bina canı +%1,5 |
-| 21 | 2 | Buz Koruyucu Kaplama | Yükseltme maliyeti -%1 |
-| 22 | 1 | Zehir Koruyucu Kaplama | Bina canı +%1,5 |
-| 22 | 2 | Element Yalıtımı | Yükseltme maliyeti -%1 |
-| 23 | 1 | Kule Savunma Mühendisliği | Bina canı +%1,5 |
-| 23 | 2 | Bina Hasar Azaltımı | Yükseltme maliyeti -%1 |
-| 24 | 1 | Gelişmiş Yapı Kurtarma | Bina canı +%1,5 |
-| 24 | 2 | Onarım Verimliliği | Yükseltme maliyeti -%1 |
-| 25 | 1 | Aşılmaz Tahkimat | Bina canı +%1,5 |
-| 25 | 2 | Büyük Mimari Proje | Yükseltme maliyeti -%1 |
-| 25 | 3 | Yapı Muhafazası | Bina canı +%2 |
-| 26 | 1 | Kadim Temel Teknolojisi | Bina canı +%1,5 |
-| 26 | 2 | Efsanevi Duvar İşçiliği | Yükseltme maliyeti -%1 |
-| 27 | 1 | Devasa Kule Temelleri | Bina canı +%1,5 |
-| 27 | 2 | Üstün Yapı Dayanımı | Yükseltme maliyeti -%1 |
-| 28 | 1 | Element Duvar Koruması | Bina canı +%1,5 |
-| 28 | 2 | Mutlak Yapı Bütünlüğü | Yükseltme maliyeti -%1 |
-| 29 | 1 | Efsanevi Mimari | Bina canı +%1,5 |
-| 29 | 2 | Kusursuz İnşaat | Yükseltme maliyeti -%1 |
-| 30 | 1 | Mimarlık Mirası | Bina canı +%1,5 |
-| 30 | 2 | Aşılmaz Köy Yapıları | Yükseltme maliyeti -%1 |
-| 30 | 3 | Kadim Yapı Gücü | Bina canı +%2 |
+| 1 | 1 | Güçlü Temeller I | Bina canı +%4 |
+| 2 | 1 | Tasarruflu Yapım I | Yükseltme maliyeti -%2 |
+| 3 | 1 | Güçlü Temeller II | Bina canı +%4 |
+| 4 | 1 | Tasarruflu Yapım II | Yükseltme maliyeti -%2 |
+| 5 | 1 | Güçlü Temeller III | Bina canı +%4 |
+| 6 | 1 | Tasarruflu Yapım III | Yükseltme maliyeti -%2 |
+| 7 | 1 | Güçlü Temeller IV | Bina canı +%4 |
+| 7 | 2 | Otomatik Tamir | Kuleler savunmadan sonra kendiliğinden onarılır |
+| 8 | 1 | Tasarruflu Yapım IV | Yükseltme maliyeti -%2 |
+| 9 | 1 | Güçlü Temeller V | Bina canı +%4 |
+| 10 | 1 | Tasarruflu Yapım V | Yükseltme maliyeti -%2 |
+| 11 | 1 | Güçlü Temeller VI | Bina canı +%4 |
+| 11 | 2 | İş Sırası I | Köylü başına +1 sıralı iş |
+| 12 | 1 | Tasarruflu Yapım VI | Yükseltme maliyeti -%2 |
+| 13 | 1 | Güçlü Temeller VII | Bina canı +%4 |
+| 14 | 1 | Tasarruflu Yapım VII | Yükseltme maliyeti -%2 |
+| 15 | 1 | Güçlü Temeller VIII | Bina canı +%4 |
+| 16 | 1 | Tasarruflu Yapım VIII | Yükseltme maliyeti -%2 |
+| 17 | 1 | Güçlü Temeller IX | Bina canı +%4 |
+| 18 | 1 | Tasarruflu Yapım IX | Yükseltme maliyeti -%2 |
+| 19 | 1 | Güçlü Temeller X | Bina canı +%4 |
+| 20 | 1 | Tasarruflu Yapım X | Yükseltme maliyeti -%2 |
+| 21 | 1 | Güçlü Temeller XI | Bina canı +%4 |
+| 22 | 1 | Tasarruflu Yapım XI | Yükseltme maliyeti -%2 |
+| 22 | 2 | İş Sırası II | Köylü başına +1 sıralı iş |
+| 23 | 1 | Güçlü Temeller XII | Bina canı +%4 |
+| 24 | 1 | Tasarruflu Yapım XII | Yükseltme maliyeti -%2 |
+| 25 | 1 | Güçlü Temeller XIII | Bina canı +%4 |
+| 26 | 1 | Tasarruflu Yapım XIII | Yükseltme maliyeti -%2 |
+| 27 | 1 | Güçlü Temeller XIV | Bina canı +%4 |
+| 28 | 1 | Tasarruflu Yapım XIV | Yükseltme maliyeti -%2 |
+| 29 | 1 | Güçlü Temeller XV | Bina canı +%4 |
+| 30 | 1 | Tasarruflu Yapım XV | Yükseltme maliyeti -%2 |
 
-## 5. Köy Gelişimi (76)
+## 5. Köy Gelişimi (39)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Köy Yönetimi | İnşa süresi -%1 |
-| 1 | 2 | Yerleşim Planlaması | Eğitim süresi -%1 |
-| 1 | 4 | Köylü Evi I | +1 Köylü Evi hakkı |
-| 2 | 1 | Köy Organizasyonu I | İnşa süresi -%1 |
-| 2 | 2 | İşçi Verimliliği | Eğitim süresi -%1 |
-| 3 | 1 | İşçi Eğitimi I | İnşa süresi -%1 |
-| 3 | 2 | Yerleşim Düzeni | Eğitim süresi -%1 |
-| 3 | 4 | Köylü Evi II | +1 Köylü Evi hakkı |
-| 3 | 5 | Kule Hakkı I | +1 Kule hakkı |
-| 4 | 1 | Korunaklı Kaynaklar I | İnşa süresi -%1 |
-| 4 | 2 | Köy Güvenliği | Eğitim süresi -%1 |
-| 5 | 1 | Harita Genişletme I | İnşa süresi -%1 |
-| 5 | 2 | Gelişmiş Yerleşim | Eğitim süresi -%1 |
-| 5 | 3 | Köy Planlaması | İnşa süresi -%1,5 |
-| 6 | 1 | Kaynak Koruma Sistemi | İnşa süresi -%1 |
-| 6 | 2 | Köy Nöbetçileri | Eğitim süresi -%1 |
-| 6 | 5 | Kule Hakkı II | +1 Kule hakkı |
-| 7 | 1 | Köy Organizasyonu II | İnşa süresi -%1 |
-| 7 | 2 | Acil Durum Hazırlığı | Eğitim süresi -%1 |
-| 8 | 1 | İşçi Eğitimi II | İnşa süresi -%1 |
-| 8 | 2 | Gelişmiş İş Bölümü | Eğitim süresi -%1 |
-| 8 | 4 | Kışla II | +1 Kışla hakkı |
-| 9 | 1 | Korunaklı Kaynaklar II | İnşa süresi -%1 |
-| 9 | 2 | Köy Savunma Düzeni | Eğitim süresi -%1 |
-| 10 | 1 | Harita Genişletme II | İnşa süresi -%1 |
-| 10 | 2 | Kalkan Yönetimi I | Eğitim süresi -%1 |
-| 10 | 3 | Yerleşim Uzmanlığı | İnşa süresi -%1,5 |
-| 10 | 5 | Kule Hakkı III | +1 Kule hakkı |
-| 11 | 1 | Köy İdaresi | İnşa süresi -%1 |
-| 11 | 2 | Gelişmiş Köy Güvenliği | Eğitim süresi -%1 |
-| 12 | 1 | Kalkan Süresi Geliştirmesi I | İnşa süresi -%1 |
-| 12 | 2 | Kaynak Muhafazası | Eğitim süresi -%1 |
-| 12 | 4 | Akademi II | +1 Akademi hakkı (+1 yuva) |
-| 13 | 1 | Korunaklı Kaynaklar III | İnşa süresi -%1 |
-| 13 | 2 | Genişletilmiş Yerleşim | Eğitim süresi -%1 |
-| 14 | 1 | İşçi Organizasyonu | İnşa süresi -%1 |
-| 14 | 2 | Köy İletişim Ağı | Eğitim süresi -%1 |
-| 15 | 1 | Harita Genişletme III | İnşa süresi -%1 |
-| 15 | 2 | Kalkan Yönetimi II | Eğitim süresi -%1 |
-| 15 | 3 | Köy Gelişim Planı | İnşa süresi -%1,5 |
-| 15 | 5 | Kule Hakkı IV | +1 Kule hakkı |
-| 16 | 1 | Köy Refahı | İnşa süresi -%1 |
-| 16 | 2 | Gelişmiş Yönetim | Eğitim süresi -%1 |
-| 17 | 1 | Kaynak Güvenliği | İnşa süresi -%1 |
-| 17 | 2 | Saldırı Sonrası Toparlanma | Eğitim süresi -%1 |
-| 18 | 1 | Korunaklı Kaynaklar IV | İnşa süresi -%1 |
-| 18 | 2 | Köy Gözetleme Sistemi | Eğitim süresi -%1 |
-| 18 | 4 | Kışla III | +1 Kışla hakkı |
-| 19 | 1 | Kalkan Süresi Geliştirmesi II | İnşa süresi -%1 |
-| 19 | 2 | Gelişmiş Nöbet Sistemi | Eğitim süresi -%1 |
-| 20 | 1 | Harita Genişletme IV | İnşa süresi -%1 |
-| 20 | 2 | Büyük Yerleşim Planı | Eğitim süresi -%1 |
-| 20 | 3 | Köy Organizasyonu Ustalığı | İnşa süresi -%1,5 |
-| 20 | 5 | Kule Hakkı V | +1 Kule hakkı |
-| 21 | 1 | Köy Yönetim Merkezi | İnşa süresi -%1 |
-| 21 | 2 | Gelişmiş Kaynak Muhafazası | Eğitim süresi -%1 |
-| 22 | 1 | Acil Savunma Hazırlığı | İnşa süresi -%1 |
-| 22 | 2 | Yerleşim Koordinasyonu | Eğitim süresi -%1 |
-| 23 | 1 | Kalkan Yönetimi III | İnşa süresi -%1 |
-| 23 | 2 | Köy Gözetleme Uzmanlığı | Eğitim süresi -%1 |
-| 24 | 1 | Gelişmiş Köy Organizasyonu | İnşa süresi -%1 |
-| 24 | 2 | Kaynak Güvenliği Ustalığı | Eğitim süresi -%1 |
-| 25 | 1 | Büyük Köy Planlaması | İnşa süresi -%1 |
-| 25 | 2 | Köy Refahı Uzmanlığı | Eğitim süresi -%1 |
-| 25 | 3 | Yerleşim Hâkimiyeti | İnşa süresi -%1,5 |
-| 26 | 1 | Kalkan Süresi Geliştirmesi III | İnşa süresi -%1 |
-| 26 | 2 | Saldırı Öncesi Hazırlık | Eğitim süresi -%1 |
-| 27 | 1 | Köy Güvenlik Ağı | İnşa süresi -%1 |
-| 27 | 2 | Gelişmiş Nöbet Organizasyonu | Eğitim süresi -%1 |
-| 28 | 1 | Kalkan Yönetimi IV | İnşa süresi -%1 |
-| 28 | 2 | Kaynak Koruma Ustalığı | Eğitim süresi -%1 |
-| 29 | 1 | Efsanevi Köy Organizasyonu | İnşa süresi -%1 |
-| 29 | 2 | Büyük Yerleşim Düzeni | Eğitim süresi -%1 |
-| 30 | 1 | Köy Gelişim Mirası | İnşa süresi -%1 |
-| 30 | 2 | Mutlak Köy Güvenliği | Eğitim süresi -%1 |
-| 30 | 3 | Kadim Yerleşim | İnşa süresi -%1,5 |
+| 1 | 1 | Hızlı İnşaat I | Yükseltme süresi -%2,5 |
+| 1 | 2 | Köylü Evi I | +1 Köylü Evi hakkı |
+| 2 | 1 | Hızlı Eğitim I | Eğitim süresi -%2,5 |
+| 3 | 1 | Hızlı İnşaat II | Yükseltme süresi -%2,5 |
+| 3 | 2 | Köylü Evi II | +1 Köylü Evi hakkı |
+| 4 | 1 | Hızlı Eğitim II | Eğitim süresi -%2,5 |
+| 5 | 1 | Hızlı İnşaat III | Yükseltme süresi -%2,5 |
+| 5 | 3 | Yol Hakkı I | +2 yol hakkı |
+| 6 | 1 | Hızlı Eğitim III | Eğitim süresi -%2,5 |
+| 7 | 1 | Hızlı İnşaat IV | Yükseltme süresi -%2,5 |
+| 8 | 1 | Hızlı Eğitim IV | Eğitim süresi -%2,5 |
+| 8 | 2 | Kışla II | +1 Kışla hakkı |
+| 9 | 1 | Hızlı İnşaat V | Yükseltme süresi -%2,5 |
+| 10 | 1 | Hızlı Eğitim V | Eğitim süresi -%2,5 |
+| 10 | 3 | Yol Hakkı II | +2 yol hakkı |
+| 11 | 1 | Hızlı İnşaat VI | Yükseltme süresi -%2,5 |
+| 12 | 1 | Hızlı Eğitim VI | Eğitim süresi -%2,5 |
+| 12 | 2 | Akademi II | +1 Akademi (+1 araştırma yuvası) |
+| 13 | 1 | Hızlı İnşaat VII | Yükseltme süresi -%2,5 |
+| 14 | 1 | Hızlı Eğitim VII | Eğitim süresi -%2,5 |
+| 15 | 1 | Hızlı İnşaat VIII | Yükseltme süresi -%2,5 |
+| 16 | 1 | Hızlı Eğitim VIII | Eğitim süresi -%2,5 |
+| 16 | 3 | Yol Hakkı III | +2 yol hakkı |
+| 17 | 1 | Hızlı İnşaat IX | Yükseltme süresi -%2,5 |
+| 18 | 1 | Hızlı Eğitim IX | Eğitim süresi -%2,5 |
+| 18 | 2 | Kışla III | +1 Kışla hakkı |
+| 19 | 1 | Hızlı İnşaat X | Yükseltme süresi -%2,5 |
+| 20 | 1 | Hızlı Eğitim X | Eğitim süresi -%2,5 |
+| 21 | 1 | Hızlı İnşaat XI | Yükseltme süresi -%2,5 |
+| 22 | 1 | Hızlı Eğitim XI | Eğitim süresi -%2,5 |
+| 23 | 1 | Hızlı İnşaat XII | Yükseltme süresi -%2,5 |
+| 24 | 1 | Hızlı Eğitim XII | Eğitim süresi -%2,5 |
+| 24 | 3 | Yol Hakkı IV | +2 yol hakkı |
+| 25 | 1 | Hızlı İnşaat XIII | Yükseltme süresi -%2,5 |
+| 26 | 1 | Hızlı Eğitim XIII | Eğitim süresi -%2,5 |
+| 27 | 1 | Hızlı İnşaat XIV | Yükseltme süresi -%2,5 |
+| 28 | 1 | Hızlı Eğitim XIV | Eğitim süresi -%2,5 |
+| 29 | 1 | Hızlı İnşaat XV | Yükseltme süresi -%2,5 |
+| 30 | 1 | Hızlı Eğitim XV | Eğitim süresi -%2,5 |
 
-## 6. Bilim (66)
+## 6. Bilim (36)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Bilimsel Temeller | Araştırma süresi -%1,4 |
-| 1 | 2 | Araştırma Metodolojisi | Araştırma maliyeti -%1 |
-| 2 | 1 | Bilgi Arşivleme | Araştırma süresi -%1,4 |
-| 2 | 2 | Deneysel Gözlem | Araştırma maliyeti -%1 |
-| 3 | 1 | Hızlı Öğrenme | Araştırma süresi -%1,4 |
-| 3 | 2 | Bilimsel Disiplin | Araştırma maliyeti -%1 |
-| 4 | 1 | Araştırma Planlaması | Araştırma süresi -%1,4 |
-| 4 | 2 | Kaynak Analizi | Araştırma maliyeti -%1 |
-| 5 | 1 | Bilimsel Organizasyon | Araştırma süresi -%1,4 |
-| 5 | 2 | Deney Laboratuvarı | Araştırma maliyeti -%1 |
-| 5 | 3 | Bilgi Yönetimi | Araştırma süresi -%2 |
-| 6 | 1 | Gelişmiş Araştırma Teknikleri | Araştırma süresi -%1,4 |
-| 6 | 2 | Veri İşleme | Araştırma maliyeti -%1 |
-| 7 | 1 | Akademik Uzmanlık | Araştırma süresi -%1,4 |
-| 7 | 2 | Deneysel Yöntemler | Araştırma maliyeti -%1 |
-| 8 | 1 | Araştırma Hızı I | Araştırma süresi -%1,4 |
-| 8 | 2 | Bilimsel Tasarruf I | Araştırma maliyeti -%1 |
-| 9 | 1 | Laboratuvar Geliştirmesi | Araştırma süresi -%1,4 |
-| 9 | 2 | Araştırma Verimliliği | Araştırma maliyeti -%1 |
-| 10 | 1 | Bilimsel İlerleme | Araştırma süresi -%1,4 |
-| 10 | 2 | Bilgi Birikimi | Araştırma maliyeti -%1 |
-| 10 | 3 | Araştırma Mühendisliği | Araştırma süresi -%2 |
-| 11 | 1 | Araştırma Hızı II | Araştırma süresi -%1,4 |
-| 11 | 2 | Bilimsel Tasarruf II | Araştırma maliyeti -%1 |
-| 12 | 1 | Gelişmiş Veri Analizi | Araştırma süresi -%1,4 |
-| 12 | 2 | Deney Tasarımı | Araştırma maliyeti -%1 |
-| 13 | 1 | Akademik Gelişim | Araştırma süresi -%1,4 |
-| 13 | 2 | Bilimsel Keşif | Araştırma maliyeti -%1 |
-| 14 | 1 | Araştırma Otomasyonu | Araştırma süresi -%1,4 |
-| 14 | 2 | Laboratuvar Optimizasyonu | Araştırma maliyeti -%1 |
-| 15 | 1 | Teknolojik Atılım | Araştırma süresi -%1,4 |
-| 15 | 2 | Bilgi Ustalığı | Araştırma maliyeti -%1 |
-| 15 | 3 | Bilimsel Uzmanlık | Araştırma süresi -%2 |
-| 16 | 1 | Araştırma Hızı III | Araştırma süresi -%1,4 |
-| 16 | 2 | Bilimsel Tasarruf III | Araştırma maliyeti -%1 |
-| 17 | 1 | İleri Deney Teknolojisi | Araştırma süresi -%1,4 |
-| 17 | 2 | Bilimsel Hassasiyet | Araştırma maliyeti -%1 |
-| 18 | 1 | Akademik Mükemmellik | Araştırma süresi -%1,4 |
-| 18 | 2 | Gelişmiş Araştırma Ağı | Araştırma maliyeti -%1 |
-| 19 | 1 | Bilimsel Verimlilik | Araştırma süresi -%1,4 |
-| 19 | 2 | Laboratuvar Otomasyonu | Araştırma maliyeti -%1 |
-| 20 | 1 | Araştırma Hızı IV | Araştırma süresi -%1,4 |
-| 20 | 2 | Bilimsel Tasarruf IV | Araştırma maliyeti -%1 |
-| 20 | 3 | Bilimsel Ustalık | Araştırma süresi -%2 |
-| 21 | 1 | Kadim Bilgi | Araştırma süresi -%1,4 |
-| 21 | 2 | İleri Teknoloji Analizi | Araştırma maliyeti -%1 |
-| 22 | 1 | Araştırma Süreç Yönetimi | Araştırma süresi -%1,4 |
-| 22 | 2 | Deneysel Mükemmellik | Araştırma maliyeti -%1 |
-| 23 | 1 | Büyük Bilimsel Keşif | Araştırma süresi -%1,4 |
-| 23 | 2 | Gelişmiş Bilgi İşleme | Araştırma maliyeti -%1 |
-| 24 | 1 | Araştırma Hızı V | Araştırma süresi -%1,4 |
-| 24 | 2 | Bilimsel Tasarruf V | Araştırma maliyeti -%1 |
-| 25 | 1 | Teknoloji Devrimi | Araştırma süresi -%1,4 |
-| 25 | 2 | Akademik Hâkimiyet | Araştırma maliyeti -%1 |
-| 25 | 3 | Bilimsel Miras | Araştırma süresi -%2 |
-| 26 | 1 | Araştırma Hızı VI | Araştırma süresi -%1,4 |
-| 26 | 2 | Bilimsel Tasarruf VI | Araştırma maliyeti -%1 |
-| 27 | 1 | Evrensel Bilgi | Araştırma süresi -%1,4 |
-| 27 | 2 | İleri Laboratuvar Teknolojisi | Araştırma maliyeti -%1 |
-| 28 | 1 | Bilimsel Deha | Araştırma süresi -%1,4 |
-| 28 | 2 | Araştırma Mükemmelliği | Araştırma maliyeti -%1 |
-| 29 | 1 | Kadim Teknoloji | Araştırma süresi -%1,4 |
-| 29 | 2 | Büyük Bilimsel Atılım | Araştırma maliyeti -%1 |
-| 30 | 1 | Paralel Araştırma | Araştırma süresi -%1,4 |
-| 30 | 2 | Efsanevi Bilim Ustalığı | Araştırma maliyeti -%1 |
-| 30 | 3 | Bilimsel Zirve | Araştırma süresi -%2 |
+| 1 | 1 | Hızlı Araştırma I | Araştırma süresi -%2 |
+| 2 | 1 | Ucuz Araştırma I | Araştırma maliyeti -%1,5 |
+| 3 | 1 | Hızlı Araştırma II | Araştırma süresi -%2 |
+| 4 | 1 | Ucuz Araştırma II | Araştırma maliyeti -%1,5 |
+| 5 | 1 | Hızlı Araştırma III | Araştırma süresi -%2 |
+| 6 | 1 | Ucuz Araştırma III | Araştırma maliyeti -%1,5 |
+| 6 | 2 | Asker Zırhı I | Saldıran askerlere +3 zırh |
+| 7 | 1 | Hızlı Araştırma IV | Araştırma süresi -%2 |
+| 8 | 1 | Ucuz Araştırma IV | Araştırma maliyeti -%1,5 |
+| 9 | 1 | Hızlı Araştırma V | Araştırma süresi -%2 |
+| 9 | 3 | Kule Zırhı I | Kuleler %5 daha az hasar alır |
+| 10 | 1 | Ucuz Araştırma V | Araştırma maliyeti -%1,5 |
+| 11 | 1 | Hızlı Araştırma VI | Araştırma süresi -%2 |
+| 12 | 1 | Ucuz Araştırma VI | Araştırma maliyeti -%1,5 |
+| 13 | 1 | Hızlı Araştırma VII | Araştırma süresi -%2 |
+| 14 | 1 | Ucuz Araştırma VII | Araştırma maliyeti -%1,5 |
+| 15 | 1 | Hızlı Araştırma VIII | Araştırma süresi -%2 |
+| 15 | 2 | Asker Zırhı II | Saldıran askerlere +3 zırh |
+| 16 | 1 | Ucuz Araştırma VIII | Araştırma maliyeti -%1,5 |
+| 17 | 1 | Hızlı Araştırma IX | Araştırma süresi -%2 |
+| 18 | 1 | Ucuz Araştırma IX | Araştırma maliyeti -%1,5 |
+| 18 | 3 | Kule Zırhı II | Kuleler %5 daha az hasar alır |
+| 19 | 1 | Hızlı Araştırma X | Araştırma süresi -%2 |
+| 20 | 1 | Ucuz Araştırma X | Araştırma maliyeti -%1,5 |
+| 21 | 1 | Hızlı Araştırma XI | Araştırma süresi -%2 |
+| 22 | 1 | Ucuz Araştırma XI | Araştırma maliyeti -%1,5 |
+| 23 | 1 | Hızlı Araştırma XII | Araştırma süresi -%2 |
+| 24 | 1 | Ucuz Araştırma XII | Araştırma maliyeti -%1,5 |
+| 25 | 1 | Hızlı Araştırma XIII | Araştırma süresi -%2 |
+| 25 | 2 | Asker Zırhı III | Saldıran askerlere +3 zırh |
+| 26 | 1 | Ucuz Araştırma XIII | Araştırma maliyeti -%1,5 |
+| 27 | 1 | Hızlı Araştırma XIV | Araştırma süresi -%2 |
+| 28 | 1 | Ucuz Araştırma XIV | Araştırma maliyeti -%1,5 |
+| 28 | 3 | Kule Zırhı III | Kuleler %5 daha az hasar alır |
+| 29 | 1 | Hızlı Araştırma XV | Araştırma süresi -%2 |
+| 30 | 1 | Paralel Araştırma | Araştırma süresi -%2 |
 
-## 7. Element (82)
+## 7. Element (45)
 
-| Sv | Sütun | Araştırma | Bonus |
+| Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
-| 1 | 1 | Ateş | Okçu Kulesi için Ateş elementinin kilidi + Element ustalığı +%0,3 |
-| 1 | 2 | Buz | Okçu Kulesi için Buz elementinin kilidi + Element ustalığı +%0,3 |
-| 1 | 3 | Zehir | Okçu Kulesi için Zehir elementinin kilidi + Element ustalığı +%0,3 |
-| 1 | 4 | Ok | Okçu Kulesi için Ok elementinin kilidi + Element ustalığı +%0,3 |
-| 1 | 5 | Büyü | Okçu Kulesi için Büyü elementinin kilidi + Element ustalığı +%0,3 |
-| 1 | 6 | Şimşek | Okçu Kulesi için Şimşek elementinin kilidi + Element ustalığı +%0,3 |
-| 2 | 1 | Ateş Saldırısı | Element ustalığı +%0,3 |
-| 2 | 2 | Buz Saldırısı | Element ustalığı +%0,3 |
-| 2 | 3 | Zehir Saldırısı | Element ustalığı +%0,3 |
-| 3 | 1 | Yanma Etkisi | Element ustalığı +%0,3 |
-| 3 | 2 | Yavaşlatma Etkisi | Element ustalığı +%0,3 |
-| 3 | 3 | Zehirlenme Etkisi | Element ustalığı +%0,3 |
-| 4 | 1 | Ateş Savunması | Element ustalığı +%0,3 |
-| 4 | 2 | Buz Savunması | Element ustalığı +%0,3 |
-| 4 | 3 | Zehir Savunması | Element ustalığı +%0,3 |
-| 5 | 1 | Alev Kudreti | Element ustalığı +%0,3 |
-| 5 | 2 | Buzul Gücü | Element ustalığı +%0,3 |
-| 5 | 3 | Zehirin Özü | Element ustalığı +%0,3 |
-| 6 | 1 | Kor Zırhı | Element ustalığı +%0,3 |
-| 6 | 2 | Kristal Muhafaza | Element ustalığı +%0,3 |
-| 6 | 3 | Panzehir Doktrini | Element ustalığı +%0,3 |
-| 7 | 1 | Kızıl Hâkimiyet | Element ustalığı +%0,3 |
-| 7 | 2 | Mutlak Donuş | Element ustalığı +%0,3 |
-| 7 | 3 | Ölümcül Sızıntı | Element ustalığı +%0,3 |
-| 8 | 1 | Ejderha Alevi | Element ustalığı +%0,3 |
-| 8 | 2 | Kutup Fırtınası | Element ustalığı +%0,3 |
-| 8 | 3 | Kara Özüt | Element ustalığı +%0,3 |
-| 9 | 1 | Kül Muhafızlığı | Element ustalığı +%0,3 |
-| 9 | 2 | Buzul Bariyeri | Element ustalığı +%0,3 |
-| 9 | 3 | Zehir Perdesi | Element ustalığı +%0,3 |
-| 10 | 1 | Kor Hâkimiyeti | Element ustalığı +%0,3 |
-| 10 | 2 | Donmuş Hâkimiyet | Element ustalığı +%0,3 |
-| 10 | 3 | Toksin Hâkimiyeti | Element ustalığı +%0,3 |
-| 11 | 1 | Cehennem Kudreti | Element ustalığı +%0,3 |
-| 11 | 2 | Kadim Buz Gücü | Element ustalığı +%0,3 |
-| 11 | 3 | Ölümcül Toksin | Element ustalığı +%0,3 |
-| 12 | 1 | Alev Kalkanı | Element ustalığı +%0,3 |
-| 12 | 2 | Sonsuz Buz Zırhı | Element ustalığı +%0,3 |
-| 12 | 3 | Kara Panzehir | Element ustalığı +%0,3 |
-| 13 | 1 | Güneşin Öfkesi | Element ustalığı +%0,3 |
-| 13 | 2 | Mutlak Sıfır | Element ustalığı +%0,3 |
-| 13 | 3 | Veba Hâkimiyeti | Element ustalığı +%0,3 |
-| 14 | 1 | Lav Çekirdeği | Element ustalığı +%0,3 |
-| 14 | 2 | Buzul Çekirdeği | Element ustalığı +%0,3 |
-| 14 | 3 | Zehir Çekirdeği | Element ustalığı +%0,3 |
-| 15 | 1 | Kızıl Ejder Muhafazası | Element ustalığı +%0,3 |
-| 15 | 2 | Kutup Muhafazası | Element ustalığı +%0,3 |
-| 15 | 3 | Akrep Muhafazası | Element ustalığı +%0,3 |
-| 16 | 1 | Ateşin Efendisi | Element ustalığı +%0,3 |
-| 16 | 2 | Buzulun Efendisi | Element ustalığı +%0,3 |
-| 16 | 3 | Zehrin Efendisi | Element ustalığı +%0,3 |
-| 17 | 1 | Element Etki Süresi | Element ustalığı +%0,3 |
-| 17 | 2 | Element Direnci Kırma | Element ustalığı +%0,3 |
-| 18 | 1 | Element Alan Etkisi | Element ustalığı +%0,3 |
-| 18 | 2 | Gelişmiş Yanma | Element ustalığı +%0,3 |
-| 19 | 1 | Gelişmiş Yavaşlatma | Element ustalığı +%0,3 |
-| 19 | 2 | Gelişmiş Zehirlenme | Element ustalığı +%0,3 |
-| 20 | 1 | Element Kontrolü III | Element ustalığı +%0,3 |
-| 20 | 2 | Element Patlaması | Element ustalığı +%0,3 |
-| 20 | 3 | Element Etki Ustalığı | Element ustalığı +%0,3 |
-| 21 | 1 | Ateş Patlaması | Element ustalığı +%0,3 |
-| 21 | 2 | Buz Patlaması | Element ustalığı +%0,3 |
-| 22 | 1 | Zehir Patlaması | Element ustalığı +%0,3 |
-| 22 | 2 | Ateş Etki Alanı | Element ustalığı +%0,3 |
-| 23 | 1 | Buz Etki Alanı | Element ustalığı +%0,3 |
-| 23 | 2 | Zehir Etki Alanı | Element ustalığı +%0,3 |
-| 24 | 1 | Element Zinciri | Element ustalığı +%0,3 |
-| 24 | 2 | Element Direnci Delme | Element ustalığı +%0,3 |
-| 25 | 1 | Element Kontrolü IV | Element ustalığı +%0,3 |
-| 25 | 2 | Element Zincirleme Ustalığı | Element ustalığı +%0,3 |
-| 25 | 3 | Element Etki Uzmanlığı | Element ustalığı +%0,3 |
-| 26 | 1 | Ateş Zinciri | Element ustalığı +%0,3 |
-| 26 | 2 | Buz Zinciri | Element ustalığı +%0,3 |
-| 27 | 1 | Zehir Zinciri | Element ustalığı +%0,3 |
-| 27 | 2 | Element Kombinasyonu I | Element ustalığı +%0,3 |
-| 28 | 1 | Element Kombinasyonu II | Element ustalığı +%0,3 |
-| 28 | 2 | Element Etki Ustalığı II | Element ustalığı +%0,3 |
-| 29 | 1 | Element Patlaması II | Element ustalığı +%0,3 |
-| 29 | 2 | Efsanevi Element Kontrolü | Element ustalığı +%0,3 |
-| 30 | 1 | Efsanevi Element Ustalığı | Element ustalığı +%0,3 |
-| 30 | 2 | Kadim Element Gücü | Element ustalığı +%0,3 |
-| 30 | 3 | Efsanevi Element Hâkimiyeti | Element ustalığı +%0,3 |
+| 1 | 1 | Element Ustalığı 1 | Asker ve kule hasarı +%0,8 |
+| 1 | 2 | Ok | Okçu Kulesi elementi |
+| 2 | 1 | Element Ustalığı 2 | Asker ve kule hasarı +%0,8 |
+| 3 | 1 | Element Ustalığı 3 | Asker ve kule hasarı +%0,8 |
+| 3 | 2 | Ateş | Okçu Kulesi elementi |
+| 4 | 1 | Element Ustalığı 4 | Asker ve kule hasarı +%0,8 |
+| 5 | 1 | Element Ustalığı 5 | Asker ve kule hasarı +%0,8 |
+| 5 | 3 | Ateş Kalkanı | Kule savunma elementi |
+| 6 | 1 | Element Ustalığı 6 | Asker ve kule hasarı +%0,8 |
+| 6 | 2 | Buz | Okçu Kulesi elementi |
+| 7 | 1 | Element Ustalığı 7 | Asker ve kule hasarı +%0,8 |
+| 7 | 4 | Ateş Silahları | Asker saldırı elementi |
+| 8 | 1 | Element Ustalığı 8 | Asker ve kule hasarı +%0,8 |
+| 9 | 1 | Element Ustalığı 9 | Asker ve kule hasarı +%0,8 |
+| 9 | 2 | Zehir | Okçu Kulesi elementi |
+| 10 | 1 | Element Ustalığı 10 | Asker ve kule hasarı +%0,8 |
+| 10 | 4 | Ateş Zırhı | Asker savunma elementi |
+| 11 | 1 | Element Ustalığı 11 | Asker ve kule hasarı +%0,8 |
+| 11 | 3 | Buz Kalkanı | Kule savunma elementi |
+| 12 | 1 | Element Ustalığı 12 | Asker ve kule hasarı +%0,8 |
+| 13 | 1 | Element Ustalığı 13 | Asker ve kule hasarı +%0,8 |
+| 13 | 2 | Büyü | Okçu Kulesi elementi |
+| 14 | 1 | Element Ustalığı 14 | Asker ve kule hasarı +%0,8 |
+| 14 | 4 | Buz Silahları | Asker saldırı elementi |
+| 15 | 1 | Element Ustalığı 15 | Asker ve kule hasarı +%0,8 |
+| 16 | 1 | Element Ustalığı 16 | Asker ve kule hasarı +%0,8 |
+| 16 | 3 | Zehir Kalkanı | Kule savunma elementi |
+| 17 | 1 | Element Ustalığı 17 | Asker ve kule hasarı +%0,8 |
+| 17 | 2 | Şimşek | Okçu Kulesi elementi |
+| 18 | 1 | Element Ustalığı 18 | Asker ve kule hasarı +%0,8 |
+| 19 | 1 | Element Ustalığı 19 | Asker ve kule hasarı +%0,8 |
+| 19 | 4 | Buz Zırhı | Asker savunma elementi |
+| 20 | 1 | Element Ustalığı 20 | Asker ve kule hasarı +%0,8 |
+| 20 | 4 | Zehir Silahları | Asker saldırı elementi |
+| 21 | 1 | Element Ustalığı 21 | Asker ve kule hasarı +%0,8 |
+| 22 | 1 | Element Ustalığı 22 | Asker ve kule hasarı +%0,8 |
+| 23 | 1 | Element Ustalığı 23 | Asker ve kule hasarı +%0,8 |
+| 24 | 1 | Element Ustalığı 24 | Asker ve kule hasarı +%0,8 |
+| 25 | 1 | Element Ustalığı 25 | Asker ve kule hasarı +%0,8 |
+| 25 | 4 | Zehir Zırhı | Asker savunma elementi |
+| 26 | 1 | Element Ustalığı 26 | Asker ve kule hasarı +%0,8 |
+| 27 | 1 | Element Ustalığı 27 | Asker ve kule hasarı +%0,8 |
+| 28 | 1 | Element Ustalığı 28 | Asker ve kule hasarı +%0,8 |
+| 29 | 1 | Element Ustalığı 29 | Asker ve kule hasarı +%0,8 |
+| 30 | 1 | Element Ustalığı 30 | Asker ve kule hasarı +%0,8 |

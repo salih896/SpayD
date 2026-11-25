@@ -156,7 +156,7 @@ namespace GameCore.Game
         }
 
         /// <summary>Tipik oyuncunun o seviyedeki savunma araştırma bonusu (‰). Sv10≈%3, Sv20≈%13, Sv30≈%30 (simülasyondan kaba tahmin).</summary>
-        public static int ExpectedDefenseResearchPermille(int level) => level * level / 2; // geç oyun zorluğu (Sv30 ≈ +%45)
+        public static int ExpectedDefenseResearchPermille(int level) => level * level * 4 / 5; // geç oyun zorluğu (Sv30 ≈ +%72; 25.11.2026 yeni araştırma kataloğuyla)
 
         /// <summary>Tipik oyuncunun saldırı araştırma bonusu (‰): baskıncı askerleri bunu alır.</summary>
         public static int ExpectedAttackResearchPermille(int level) => level * level / 3;

@@ -103,7 +103,7 @@ namespace GameCore.Combat
                 structures.Add(new SimStructure
                 {
                     Id = structures.Count, Pos = p, Kind = StructKind.Tower, TowerType = spec.Type, Level = spec.Level, Element = spec.Element,
-                    IntervalPct = wall ? 100 : spec.IntervalPct, DamagePct = wall ? 100 : spec.DamagePct, ArmorPct = wall ? spec.WallArmorPct : 0,
+                    IntervalPct = wall ? 100 : spec.IntervalPct, DamagePct = wall ? 100 : spec.DamagePct, ArmorPct = Math.Min(70, (wall ? spec.WallArmorPct : 0) + defense.Mods.TowerArmor),
                     MaxHp = max, Hp = start, StartHp = start, Disabled = perm >= 70
                 });
             }
@@ -137,7 +137,7 @@ namespace GameCore.Combat
                 Id = soldiers.Count, Type = type, Level = lvl, Perks = perks,
                 MaxHp = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, lvl), AttackerMods.SoldierHp), Attack = CombatMods.Apply(ContentCatalog.Scaled(def.Attack, lvl), AttackerMods.SoldierDamage),
                 IntervalTicks = def.IntervalTicks, RangeMilli = def.RangeMilli * (100 + perks.RangePct) / 100, SpeedMilli = def.SpeedMilli * (100 + perks.SpeedPct) / 100,
-                ArmorPct = Math.Min(80, def.ArmorPct + perks.ArmorAdd), FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli + perks.SplashAdd,
+                ArmorPct = Math.Min(80, def.ArmorPct + perks.ArmorAdd + AttackerMods.SoldierArmor), FireResistPct = def.FireResistPct, SplashMilli = def.SplashMilli + perks.SplashAdd,
                 Flying = def.Flying, Mounted = def.Mounted,
                 // aynı noktaya basılı tutunca askerler üst üste doğmasın: kimliğe bağlı küçük dağılım (±0,2 kare, deterministik)
                 X = x * 1000 + ((soldiers.Count * 37) % 400 - 200), Y = -row * 1000 + ((soldiers.Count * 53 + 211) % 400 - 200), Phase = def.Flying ? 1 : 0

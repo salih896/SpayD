@@ -28,19 +28,11 @@ namespace GameCore.Game
         public const int MaxBarracksCount = 3, MaxAcademyCount = 2;
 
         /// <summary>
-        /// Seviyeyle açılan yapı sayısı (kullanıcı kararı 25.11.2026): Orman ve Kereste Deposu Sv13'te 2; Taş Ocağı/Deposu Sv5 + Sv17;
-        /// Altın Madeni/Banka Sv15 + Sv28; Demir Madeni/Deposu 1 (Sv25). Kışla/Akademi/Köylü evi için araştırmasız taban (1) — hakları GameState ekler.
+        /// Yapı başına taban sayı 1 (kullanıcı kararı 25.11.2026): kaynak yapılarının 2. kopyası Ekonomi "Bölge II" araştırmasıyla
+        /// (üretim + depo birlikte; en çok 2). Kışla/Akademi/Köylü evi hakları da araştırmayla (GameState.MaxCountOf).
         /// </summary>
-        public static int MaxBuildingCount(BuildingType t, int playerLevel = MaxLevel)
-        {
-            switch (t)
-            {
-                case BuildingType.Forest: case BuildingType.LumberDepot: return playerLevel >= 13 ? 2 : 1;
-                case BuildingType.StoneQuarry: case BuildingType.StoneDepot: return playerLevel >= 17 ? 2 : 1;
-                case BuildingType.GoldMine: case BuildingType.Bank: return playerLevel >= 28 ? 2 : 1;
-                default: return 1;
-            }
-        }
+        public const int MaxResourceBuildingCount = 2;
+        public static int MaxBuildingCount(BuildingType t, int playerLevel = MaxLevel) => 1;
 
         /// <summary>Tipik oyuncunun kışla sayısı (Kışla II ≈ Sv10, Kışla III ≈ Sv20 civarı araştırılır). Yapay ordu büyüklüğü için.</summary>
         public static int ExpectedBarracks(int playerLevel) => playerLevel < 3 ? 0 : playerLevel >= 20 ? 3 : playerLevel >= 10 ? 2 : 1;

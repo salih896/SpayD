@@ -162,9 +162,18 @@ namespace GameCore.Game
                 case BuildingType.VillagerHouse: return MaxVillagerHouses;
                 case BuildingType.Barracks: return Math.Min(GameRules.MaxBarracksCount, 1 + Research.Total(ResearchStat.BarracksSlot));
                 case BuildingType.University: return Math.Min(GameRules.MaxAcademyCount, 1 + Research.Total(ResearchStat.AcademySlot));
+                case BuildingType.Forest: case BuildingType.LumberDepot: return ResourceSlots(ResearchStat.WoodSlot);
+                case BuildingType.StoneQuarry: case BuildingType.StoneDepot: return ResourceSlots(ResearchStat.StoneSlot);
+                case BuildingType.GoldMine: case BuildingType.Bank: return ResourceSlots(ResearchStat.GoldSlot);
+                case BuildingType.IronMine: case BuildingType.IronDepot: return ResourceSlots(ResearchStat.IronSlot);
                 default: return GameRules.MaxBuildingCount(t, Level);
             }
         }
+
+        private int ResourceSlots(ResearchStat s) => Math.Min(GameRules.MaxResourceBuildingCount, 1 + Research.Total(s));
+
+        /// <summary>Yol hakkı: seviyeyle + Köy Gelişimi "Yol Hakkı I-IV" (+2'şer; araştırma bitince eklenir, kayıtta saklanır).</summary>
+        private void AddRoadSlots(int n) => Layout = Layout.WithLimits(Layout.RoadLimit + n, RoadRules.MaxEntrances);
 
         /// <summary>Sınırı araştırmayla artan yapılar için ipucu.</summary>
         public string LimitHint(BuildingType t)
@@ -172,6 +181,8 @@ namespace GameCore.Game
             if (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses) return " (Akademi araştırmasıyla artar)";
             if (t == BuildingType.Barracks && MaxCountOf(t) < GameRules.MaxBarracksCount) return " (Akademi: Kışla II-III)";
             if (t == BuildingType.University && MaxCountOf(t) < GameRules.MaxAcademyCount) return " (Akademi: Akademi II)";
+            if (GameRules.ProducedBy(t).HasValue || ContentCatalog.Building(t).IsDepot)
+                if (MaxCountOf(t) < GameRules.MaxResourceBuildingCount) return " (Akademi: Ekonomi bölge araştırması)";
             return "";
         }
 
@@ -312,8 +323,8 @@ namespace GameCore.Game
                 info.Reward = GameRules.Scale(new ResourceCost(w, w / 2, w / 4, w / 6), Config, l, 100);
                 foreach (ResourceType t in Enum.GetValues(typeof(ResourceType)))
                     if (info.Reward.Get(t) > 0) Wallet.TryAdd(t, info.Reward.Get(t), l, out _, out _);
-                Layout = Layout.WithLimits(RoadRules.RoadLimitForLevel(l), RoadRules.MaxEntrances);
-                info.Unlocks.Add("Yol hakkı " + RoadRules.RoadLimitForLevel(l));
+                Layout = Layout.WithLimits(RoadRules.RoadLimitForLevel(l) + Research.Total(ResearchStat.RoadSlot), RoadRules.MaxEntrances);
+                info.Unlocks.Add("Yol hakkı " + (RoadRules.RoadLimitForLevel(l) + Research.Total(ResearchStat.RoadSlot)));
                 foreach (ResourceType t in Enum.GetValues(typeof(ResourceType))) if (Config.Get(t).UnlockLevel == l) info.Unlocks.Add("Kaynak: " + ResName(t));
                 for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) { var d = ContentCatalog.Soldier((SoldierType)i); if (d.UnlockLevel == l) info.Unlocks.Add("Asker: " + d.Name); }
                 foreach (TowerType t in Enum.GetValues(typeof(TowerType))) { var d = ContentCatalog.Tower(t); if (d.UnlockLevel == l) info.Unlocks.Add("Kule: " + d.Name); }
@@ -375,6 +386,7 @@ namespace GameCore.Game
             {
                 Quests.Report(QuestEvent.ResearchDone, 1, lvl);
                 events.Add("Araştırma tamamlandı: " + d.Name);
+                if (d.Stat == ResearchStat.RoadSlot) AddRoadSlots(d.Permille);
             }
             RecomputeCapacity();
 
@@ -661,8 +673,8 @@ namespace GameCore.Game
 
         public bool ElementUnlocked(TowerElement e)
         {
-            int col = ContentCatalog.ElementResearchColumn(e);
-            return col > 0 && Research.IsDone(ResearchCatalog.MakeId((int)ResearchTree.Element, 1, col));
+            var d = ResearchCatalog.FindSpecial(ResearchStat.TowerAttackElement, (int)e);
+            return d != null && Research.IsDone(d.Id);
         }
 
         /// <summary>Element uygulama önizlemesi: null = uygulanabilir, aksi halde sebep.</summary>
@@ -674,7 +686,7 @@ namespace GameCore.Game
             cost = GameRules.ElementCost(t.Level, Config, Level);
             if (e == TowerElement.None) return "Element seç";
             if (t.Element == e) return "Zaten " + ContentCatalog.ElementName(e);
-            if (!ElementUnlocked(e)) return "Akademi: Element ağacında " + ContentCatalog.ElementName(e) + " araştırması gerekli";
+            if (!ElementUnlocked(e)) { var rd = ResearchCatalog.FindSpecial(ResearchStat.TowerAttackElement, (int)e); return "Akademi: Element ağacında " + ContentCatalog.ElementName(e) + " araştırması gerekli" + (rd != null ? " (Sv" + rd.Level + ")" : ""); }
             if (IsUpgrading(JobKind.Tower, pos, SoldierType.Swordsman) || IsUpgrading(JobKind.TowerElement, pos, SoldierType.Swordsman)) return "Kulede iş sürüyor";
             if (FreeBuilders <= 0) return "Boş işçi yok (Köylü Evi ekle)";
             return null;

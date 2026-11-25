@@ -11,7 +11,10 @@ namespace GameCore.Progression
     {
         ProductionPct, StoragePct, TowerDamage, TowerHp, SoldierDamage, SoldierHp, BuildingHp,
         UpgradeCost, BuildTime, TrainTime, ResearchTime, ResearchCost, ElementMastery,
-        VillagerHouseSlot, TowerSlot, BarracksSlot, AcademySlot   // yapı hakkı: Permille = +adet
+        VillagerHouseSlot, TowerSlot, BarracksSlot, AcademySlot,   // yapı hakkı: Permille = +adet
+        WoodSlot, StoneSlot, GoldSlot, IronSlot, RoadSlot,         // ek kaynak yapısı (üretim + depo) / ek yol
+        AutoRepair, JobQueue, SoldierArmor, TowerArmor,            // Mimarlık/Bilim özel: bayrak, +iş sırası, +zırh
+        SoldierUnlock, TowerAttackElement, TowerDefenseElement, SoldierAttackElement, SoldierDefenseElement // Değer = asker türü / element kimliği
     }
 
     public sealed class ResearchDef
@@ -19,15 +22,15 @@ namespace GameCore.Progression
         public string Id;
         public ResearchTree Tree;
         public int Level;      // araştırma seviyesi (1..30) = gereken Üniversite seviyesi
-        public int Column;     // 1..3 (Köy Gelişimi 4-5. sütun: yapı/kule hakkı; Element Sv1 4-6: Ok/Büyü/Şimşek)
+        public int Column;     // 1 = bonus; 2+ = özel (haklar, askerler, elementler)
         public string Name;
         public ResearchStat Stat;
         public int Permille;   // bonus (‰)
     }
 
     /// <summary>
-    /// 487 araştırmanın kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
-    /// Ön koşul: aynı sütundaki bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu gerektirir (öneri, onay bekler).
+    /// araştırma kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
+    /// Ön koşul: 1. sütunda bir önceki seviye; özel sütunlarda (2+) aynı adlı bir önceki araştırma.
     /// Element ağacının diğer ağaçlarla ortak kilitleri henüz uygulanmadı (docs/open-questions.md).
     /// </summary>
     public static class ResearchCatalog
@@ -43,7 +46,9 @@ namespace GameCore.Progression
                 var p = row.Split('|');
                 int tree = int.Parse(p[0]), lvl = int.Parse(p[1]), col = int.Parse(p[2]);
                 var d = new ResearchDef { Tree = (ResearchTree)tree, Level = lvl, Column = col, Name = p[3], Id = MakeId(tree, lvl, col) };
-                AssignStat(d);
+                // etki ve değer veriden (TechTrees.md hücresi "Ad [Etki:Değer]")
+                d.Stat = (ResearchStat)Enum.Parse(typeof(ResearchStat), p[4]);
+                d.Permille = int.Parse(p[5]);
                 all.Add(d); byId[d.Id] = d;
             }
         }
@@ -53,23 +58,11 @@ namespace GameCore.Progression
         public static ResearchDef Get(string id) => byId.TryGetValue(id, out var d) ? d : null;
         public static ResearchDef Find(ResearchTree tree, int level, int col) => Get(MakeId((int)tree, level, col));
 
-        private static void AssignStat(ResearchDef d)
+        /// <summary>Özel araştırma (asker kilidi, element kilidi vb.): etkisi ve değeri eşleşen ilk araştırma.</summary>
+        public static ResearchDef FindSpecial(ResearchStat stat, int value)
         {
-            bool c3 = d.Column == 3;
-            switch (d.Tree)
-            {
-                case ResearchTree.Economy: d.Stat = d.Column == 2 ? ResearchStat.StoragePct : ResearchStat.ProductionPct; d.Permille = c3 ? 25 : 15; break;
-                case ResearchTree.Defense: d.Stat = d.Column == 2 ? ResearchStat.TowerHp : ResearchStat.TowerDamage; d.Permille = c3 ? 18 : 10; break;
-                case ResearchTree.Military: d.Stat = d.Column == 2 ? ResearchStat.SoldierHp : ResearchStat.SoldierDamage; d.Permille = c3 ? 18 : 10; break;
-                case ResearchTree.Architecture: d.Stat = d.Column == 2 ? ResearchStat.UpgradeCost : ResearchStat.BuildingHp; d.Permille = d.Column == 2 ? 10 : (c3 ? 20 : 15); break;
-                case ResearchTree.Village when d.Column >= 4:
-                    d.Stat = d.Name.StartsWith("Köylü Evi") ? ResearchStat.VillagerHouseSlot : d.Name.StartsWith("Kışla") ? ResearchStat.BarracksSlot
-                        : d.Name.StartsWith("Akademi") ? ResearchStat.AcademySlot : ResearchStat.TowerSlot;
-                    d.Permille = 1; break;
-                case ResearchTree.Village: d.Stat = d.Column == 2 ? ResearchStat.TrainTime : ResearchStat.BuildTime; d.Permille = c3 ? 15 : 10; break;
-                case ResearchTree.Science: d.Stat = d.Column == 2 ? ResearchStat.ResearchCost : ResearchStat.ResearchTime; d.Permille = c3 ? 20 : (d.Column == 2 ? 10 : 14); break;
-                default: d.Stat = ResearchStat.ElementMastery; d.Permille = 3; break;
-            }
+            foreach (var d in all) if (d.Stat == stat && d.Permille == value) return d;
+            return null;
         }
 
         /// <summary>Üst sınırlar (‰): Bilim süre -%30, maliyet -%20 (onaylı); diğerleri GEÇİCİ.</summary>
@@ -86,12 +79,13 @@ namespace GameCore.Progression
             }
         }
 
-        public static int BaseSeconds(ResearchDef d) => (60 * d.Level + 20 * d.Level * d.Level) * (d.Column == 3 ? 3 : 2) / 2;
+        // 25.11.2026: araştırma sayısı ~yarıya indi (257); toplam süre/maliyet korunsun diye her biri 2 kat
+        public static int BaseSeconds(ResearchDef d) => (60 * d.Level + 20 * d.Level * d.Level) * (d.Column >= 2 ? 3 : 2);
 
         /// <summary>Yalnızca oyuncu seviyesinde AÇIK kaynaklarla ödenir (onaylı kural). Odun tabanı, diğerleri oranla.</summary>
         public static ResourceCost BaseCost(ResearchDef d, ResourceConfig cfg, int playerLevel)
         {
-            int w = (60 * d.Level + 8 * d.Level * d.Level) * (d.Column == 3 ? 3 : 2) / 2;
+            int w = (60 * d.Level + 8 * d.Level * d.Level) * (d.Column >= 2 ? 3 : 2);
             return new ResourceCost(w,
                 ResourceRules.IsUnlocked(cfg, ResourceType.Stone, playerLevel) ? w / 2 : 0,
                 ResourceRules.IsUnlocked(cfg, ResourceType.Gold, playerLevel) ? w / 4 : 0,
@@ -152,7 +146,8 @@ namespace GameCore.Progression
             {
                 SoldierDamage = Total(ResearchStat.SoldierDamage) + m, SoldierHp = Total(ResearchStat.SoldierHp),
                 TowerDamage = Total(ResearchStat.TowerDamage) + m, TowerHp = Total(ResearchStat.TowerHp),
-                BuildingHp = Total(ResearchStat.BuildingHp)
+                BuildingHp = Total(ResearchStat.BuildingHp),
+                SoldierArmor = Total(ResearchStat.SoldierArmor), TowerArmor = Total(ResearchStat.TowerArmor)
             };
         }
 
@@ -165,26 +160,14 @@ namespace GameCore.Progression
             if (IsActive(d.Id)) return "Sürüyor";
             if (playerLevel < UniversityUnlockLevel || universityLevel < 1) return "Akademi Sv" + UniversityUnlockLevel + "'te açılır";
             if (universityLevel < d.Level) return "Akademi Sv " + d.Level + " gerekli";
-            if (d.Column >= 4)
+            if (d.Column >= 2)
             {
-                // ek sütunlar: aynı sütunda AYNI ADLI bir önceki araştırma (Kışla III → Kışla II); seviye boşluklu
+                // özel sütunlar: aynı sütunda AYNI ADLI bir önceki araştırma (Kışla III → Kışla II); seviye boşluklu
                 string fam = Family(d.Name);
                 for (int l = d.Level - 1; l >= 1; l--)
                 {
                     var prev = ResearchCatalog.Find(d.Tree, l, d.Column);
                     if (prev == null || Family(prev.Name) != fam) continue;
-                    if (!done.Contains(prev.Id)) return "Önce: " + prev.Name;
-                    break;
-                }
-            }
-            else if (d.Column == 3)
-            {
-                if (!done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 1)) || !done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 2)))
-                    return "Aynı seviyedeki 1. ve 2. araştırma gerekli";
-                for (int l = d.Level - 1; l >= 1; l--)
-                {
-                    var prev = ResearchCatalog.Find(d.Tree, l, 3);
-                    if (prev == null) continue;
                     if (!done.Contains(prev.Id)) return "Önce: " + prev.Name;
                     break;
                 }

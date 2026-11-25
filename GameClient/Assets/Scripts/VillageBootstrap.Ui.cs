@@ -515,8 +515,9 @@ namespace GameClient
                 if (!any) continue;
                 GUILayout.BeginHorizontal(GUILayout.Height(40));
                 GUILayout.Label("Sv " + lv, GUILayout.Width(44));
-                int cols = researchTree == (int)ResearchTree.Village ? 5 : researchTree == (int)ResearchTree.Element ? 6 : 3; // ek sütunlar: yapı/kule hakkı, kule elementleri
-                float colW = cols == 3 ? 250f : cols == 5 ? 165f : 140f;
+                int cols = 1;
+                foreach (var rd in ResearchCatalog.All) if ((int)rd.Tree == researchTree && rd.Column > cols) cols = rd.Column;
+                float colW = cols <= 2 ? 300f : cols == 3 ? 230f : 180f; // 1. sütun bonus, sonrakiler özel araştırmalar
                 for (int c = 1; c <= cols; c++)
                 {
                     var d = ResearchCatalog.Find((ResearchTree)researchTree, lv, c);
@@ -534,7 +535,7 @@ namespace GameClient
             var sel = selResearch != null ? ResearchCatalog.Get(selResearch) : null;
             var dr = new Rect(r.x + 6, r.y + r.height - 94, r.width - 12, 88);
             GUI.Box(dr, "");
-            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. Ön koşul: aynı sütundaki önceki araştırma; 3. sütun için aynı seviyedeki 1. ve 2. sütun. Köy Gelişimi 4-5. sütun: yapı ve kule hakları (aynı adlı bir öncekini ister)."); return; }
+            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. 1. sütun: bonus (bir önceki seviyeyi ister). Diğer sütunlar: haklar, askerler, elementler (aynı adlı bir öncekini ister)."); return; }
             string reason = g.Research.LockReason(sel, g.Level, g.UniversityLevel);
             string bonus = StatText(sel);
             GUI.Label(new Rect(dr.x + 8, dr.y + 4, dr.width - 180, 80), sel.Name + "  (Sv " + sel.Level + ")  " + bonus + "\nMaliyet: " + g.Research.CostFor(sel, g.Config, g.Level) + "   Süre: " + Dur(g.Research.SecondsFor(sel)) + "\n" + (reason ?? "Başlatılabilir"));
@@ -555,6 +556,20 @@ namespace GameClient
                 case ResearchStat.TowerSlot: return "+1 Kule hakkı";
                 case ResearchStat.BarracksSlot: return "+1 Kışla hakkı";
                 case ResearchStat.AcademySlot: return "+1 Akademi hakkı (+1 araştırma yuvası)";
+                case ResearchStat.WoodSlot: return "+1 Orman ve +1 Kereste Deposu hakkı";
+                case ResearchStat.StoneSlot: return "+1 Taş Ocağı ve +1 Taş Deposu hakkı";
+                case ResearchStat.GoldSlot: return "+1 Altın Madeni ve +1 Banka hakkı";
+                case ResearchStat.IronSlot: return "+1 Demir Madeni ve +1 Demir Deposu hakkı";
+                case ResearchStat.RoadSlot: return "+" + d.Permille + " yol hakkı";
+                case ResearchStat.AutoRepair: return "Kuleler savunmadan sonra kendiliğinden onarılır";
+                case ResearchStat.JobQueue: return "Köylü başına +1 sıralı iş";
+                case ResearchStat.SoldierArmor: return "Saldıran askerlere +" + d.Permille + " zırh";
+                case ResearchStat.TowerArmor: return "Kuleler %" + d.Permille + " daha az hasar alır";
+                case ResearchStat.SoldierUnlock: return "Yeni asker: " + d.Name;
+                case ResearchStat.TowerAttackElement: return "Kule elementi: " + d.Name;
+                case ResearchStat.TowerDefenseElement: return "Kule savunma elementi: " + d.Name;
+                case ResearchStat.SoldierAttackElement: return "Asker saldırı elementi: " + d.Name;
+                case ResearchStat.SoldierDefenseElement: return "Asker savunma elementi: " + d.Name;
                 case ResearchStat.ProductionPct: return "Üretim +" + v;
                 case ResearchStat.StoragePct: return "Depo +" + v;
                 case ResearchStat.TowerDamage: return "Kule hasarı +" + v;

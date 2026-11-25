@@ -119,17 +119,6 @@ namespace GameCore.Combat
             }
         }
 
-        /// <summary>Elementin kilit araştırması: Element ağacı Sv1, sütun (Ateş 1, Buz 2, Zehir 3, Ok 4, Büyü 5, Şimşek 6).</summary>
-        public static int ElementResearchColumn(TowerElement e)
-        {
-            switch (e)
-            {
-                case TowerElement.Fire: return 1; case TowerElement.Ice: return 2; case TowerElement.Poison: return 3;
-                case TowerElement.Arrow: return 4; case TowerElement.Magic: return 5; case TowerElement.Lightning: return 6;
-                default: return 0;
-            }
-        }
-
         /// <summary>Eski kule türü → Okçu Kulesi elementi (kayıt dönüşümü).</summary>
         public static TowerElement LegacyElement(TowerType t)
         {

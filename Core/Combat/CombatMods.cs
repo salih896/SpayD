@@ -4,6 +4,7 @@ namespace GameCore.Combat
     public sealed class CombatMods
     {
         public int SoldierDamage, SoldierHp, TowerDamage, TowerHp, BuildingHp;
+        public int SoldierArmor, TowerArmor; // Bilim: asker zırhı (+zırh puanı), kule zırhı (askerin kuleye hasarı -%)
 
         public static int Apply(int value, int permille)
         {

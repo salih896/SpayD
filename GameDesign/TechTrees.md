@@ -17,7 +17,8 @@ Genel kurallar:
 
 - Üniversite köy seviyesi 5'te açılır.
 - Üniversitenin maksimum seviyesi 30'dur.
-- Her araştırma seviyesinde 2 veya 3 araştırma bulunur.
+- Her ağaçta her seviyede 1 güçlü bonus araştırması; özel araştırmalar (haklar, askerler, elementler) farklı seviyelere dağılmıştır (kullanıcı kararı 25.11.2026: düşük değerli araştırmalar kaldırıldı).
+- Hücre biçimi: `Ad [Etki:Değer]` — Etki koddaki ResearchStat adı, Değer ‰ (bonus) ya da adet/kimlik.
 - Araştırmaların kendi kademe/rank seviyeleri ile üniversite seviyeleri birbirinden bağımsızdır.
 - Araştırma ön koşulları sunucu tarafından doğrulanmalıdır.
 - Araştırma kilitleri ağaç bazında bağımsız ilerler.
@@ -29,534 +30,278 @@ Genel kurallar:
 
 # 1. EKONOMİ AĞACI
 
-Amaç: Kaynak üretimini, kaynak depolama kapasitesini, üretim verimliliğini ve ekonomik gelişimi artırmak.
+Amaç: Kaynak üretimi, depolama ve ek kaynak yapıları (her kaynak yapısı en çok 2).
 
-Kaynaklar:
-- Odun
-- Taş
-- Altın
-- Demir
+| Seviye | Araştırma 1 | Araştırma 4 |
+|---|---|---|
+| 1 | Verimli Üretim I [ProductionPct:40] | — |
+| 2 | Geniş Depolar I [StoragePct:40] | — |
+| 3 | Verimli Üretim II [ProductionPct:40] | — |
+| 4 | Geniş Depolar II [StoragePct:40] | — |
+| 5 | Verimli Üretim III [ProductionPct:40] | — |
+| 6 | Geniş Depolar III [StoragePct:40] | — |
+| 7 | Verimli Üretim IV [ProductionPct:40] | — |
+| 8 | Geniş Depolar IV [StoragePct:40] | Odun Bölgesi II [WoodSlot:1] |
+| 9 | Verimli Üretim V [ProductionPct:40] | — |
+| 10 | Geniş Depolar V [StoragePct:40] | — |
+| 11 | Verimli Üretim VI [ProductionPct:40] | — |
+| 12 | Geniş Depolar VI [StoragePct:40] | — |
+| 13 | Verimli Üretim VII [ProductionPct:40] | — |
+| 14 | Geniş Depolar VII [StoragePct:40] | Taş Bölgesi II [StoneSlot:1] |
+| 15 | Verimli Üretim VIII [ProductionPct:40] | — |
+| 16 | Geniş Depolar VIII [StoragePct:40] | — |
+| 17 | Verimli Üretim IX [ProductionPct:40] | — |
+| 18 | Geniş Depolar IX [StoragePct:40] | — |
+| 19 | Verimli Üretim X [ProductionPct:40] | — |
+| 20 | Geniş Depolar X [StoragePct:40] | Altın Bölgesi II [GoldSlot:1] |
+| 21 | Verimli Üretim XI [ProductionPct:40] | — |
+| 22 | Geniş Depolar XI [StoragePct:40] | — |
+| 23 | Verimli Üretim XII [ProductionPct:40] | — |
+| 24 | Geniş Depolar XII [StoragePct:40] | — |
+| 25 | Verimli Üretim XIII [ProductionPct:40] | — |
+| 26 | Geniş Depolar XIII [StoragePct:40] | — |
+| 27 | Verimli Üretim XIV [ProductionPct:40] | Demir Bölgesi II [IronSlot:1] |
+| 28 | Geniş Depolar XIV [StoragePct:40] | — |
+| 29 | Verimli Üretim XV [ProductionPct:40] | — |
+| 30 | Geniş Depolar XV [StoragePct:40] | — |
 
-Kaynak açılma seviyeleri:
-- Odun: Köy seviyesi 1.
-- Taş: Köy seviyesi 5.
-- Altın: Köy seviyesi 15.
-- Demir: Köy seviyesi 25.
-
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 1 | Orman İşletmeciliği | Kereste Verimliliği | — |
-| 2 | Ağaç Kesim Teknikleri | Odun Tasarrufu | — |
-| 3 | Gelişmiş Baltacılık | Orman Bakımı | — |
-| 4 | Hızlı Kereste Üretimi | Odun İşleme Sanatı | — |
-| 5 | Orman Uzmanlığı | Kereste Kapasitesi | Kaynak Planlaması |
-| 6 | Taş Madenciliği | Taş İşleme Teknikleri | — |
-| 7 | Gelişmiş Taş Çıkarma | Taş Tasarrufu | — |
-| 8 | Maden Damarı Analizi | Taş Depolama Uzmanlığı | — |
-| 9 | Verimli Taş Ocakları | İşlenmiş Taş Üretimi | — |
-| 10 | Taş Ustalığı | Gelişmiş Orman İşletmesi | Kaynak Akışı |
-| 11 | Derin Maden Kazısı | Kereste Organizasyonu | — |
-| 12 | Üretim Optimizasyonu | Depo Yönetimi | — |
-| 13 | Kaynak İşleme | Gelişmiş Taş Ustalığı | — |
-| 14 | Maden Planlaması | Üretim Disiplini | — |
-| 15 | Ekonomik Organizasyon | Kaynak Uzmanlığı | Altın Madenciliği Hazırlığı |
-| 16 | Altın Çıkarma Teknikleri | Altın Tasarrufu | — |
-| 17 | Kıymetli Maden İşleme | Altın Saflaştırma | — |
-| 18 | Altın Damarı Analizi | Külçe Üretimi | — |
-| 19 | Hazine Yönetimi | Altın Depolama Teknikleri | — |
-| 20 | Altın Ustalığı | Gelişmiş Maden İşletmesi | Ekonomik Büyüme |
-| 21 | Gelişmiş Altın İşleme | Üretim Zinciri | — |
-| 22 | Büyük Ölçekli Madencilik | Kaynak Biriktirme | — |
-| 23 | Maden Verimliliği | Ekonomik İstikrar | — |
-| 24 | İleri Depolama Sistemleri | Üretim Yönetimi | — |
-| 25 | Zengin Maden Yatakları | Ekonomik Hâkimiyet | — |
-| 26 | Demir Madenciliği | Demir İşleme Teknikleri | — |
-| 27 | Demir Tasarrufu | Çelik Üretimi | — |
-| 28 | Derin Demir Kazısı | Metalurji Bilgisi | — |
-| 29 | Gelişmiş Demir İşletmesi | Endüstriyel Üretim | — |
-| 30 | Efsanevi Ekonomi | Büyük Üretim Organizasyonu | Kaynak İmparatorluğu |
-
-Özel kurallar:
-- Kaynak üretimi, ilgili kaynak üretim binası açılmadan geliştirilemez.
-- Depo kapasitesi araştırmaları, ilgili depo açılmadan geliştirilemez.
-- Depo dolduğunda üretim durur.
-- Depo yıkıldığında kapasite azalır; kapasiteyi aşan kaynaklar silinmez ancak üretim durur.
-- Kaynaklar geçici depoya aktarılmaz.
-
----
+- Bölge II araştırmaları: +1 üretim binası ve +1 depo hakkı (Orman + Kereste Deposu, Taş Ocağı + Taş Deposu, Altın Madeni + Banka, Demir Madeni + Demir Deposu). Her kaynak yapısı en çok 2.
 
 # 2. SAVUNMA AĞACI
 
-Amaç: Savunma kulelerinin hasarını, atış hızını, menzilini, dayanıklılığını ve element kulelerinin özel etkilerini geliştirmek.
+Amaç: Kule hasarı, kule canı ve ek kule hakları.
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 1 | Temel Balistik | Güçlendirilmiş Mühimmat | — |
-| 2 | Hızlı Atış Mekanizması | Kule Menzil Eğitimi | — |
-| 3 | Hassas Namlu İşçiliği | Güçlü Kule Gövdesi | — |
-| 4 | Gelişmiş Atış Sistemi | Kule Dayanıklılığı | — |
-| 5 | Usta Balistik | Yoğun Mühimmat | Savunma Düzeni |
-| 6 | Uzun Menzilli Atış | Hızlı Doldurma | — |
-| 7 | Buzul Darbesi | Donma Süresi | — |
-| 8 | Alev Yoğunluğu | Kor Yakıcılığı | — |
-| 9 | Zehirli Birikim | Toksin Yayılımı | — |
-| 10 | Kule Ateş Gücü | Saldırı Ritmi | Alan Muhafazası |
-| 11 | Gelişmiş Kule Temelleri | Zırhlı Kule Yapısı | — |
-| 12 | Delici Mühimmat | Kule Atış Dengesi | — |
-| 13 | Buzul Baskısı | Donma Yoğunluğu | — |
-| 14 | Alev Fırtınası | Yanma Yoğunluğu | — |
-| 15 | Zehir Bulutu | Toksin Yoğunluğu | Element Kule Uzmanlığı |
-| 16 | Kuşatma Savunması | Kule Onarım Teknikleri | — |
-| 17 | Genişletilmiş Atış Alanı | Güçlendirilmiş Namlu | — |
-| 18 | Buzul Hapishanesi | Aşırı Soğutma | — |
-| 19 | Cehennem Darbesi | Kor Patlaması | — |
-| 20 | Ölümcül Salgın | Zehirli Alan | Element Kule Ustalığı |
-| 21 | Kule Direnç Sistemi | Gelişmiş Atış Mekanizması | — |
-| 22 | Buzul Fırtınası | Derin Donma | — |
-| 23 | Alev Kasırgası | Erimiş Zemin | — |
-| 24 | Kara Veba | Toksik Patlama | — |
-| 25 | Kule Savaş Doktrini | Savunma Hatları | Element Kule Hâkimiyeti |
-| 26 | Efsanevi Balistik | Aşılmaz Kule Gövdesi | — |
-| 27 | Sonsuz Atış Döngüsü | Kuşatma Ustalığı | — |
-| 28 | Kutup Felaketi | Cehennem Ateşi | — |
-| 29 | Zehir Kıyameti | Element Fırtınası | — |
-| 30 | Efsanevi Kule Savunması | Mutlak Savunma Hattı | Kadim Kule Gücü |
+| Seviye | Araştırma 1 | Araştırma 4 |
+|---|---|---|
+| 1 | Keskin Oklar I [TowerDamage:25] | — |
+| 2 | Sağlam Kuleler I [TowerHp:25] | — |
+| 3 | Keskin Oklar II [TowerDamage:25] | Kule Hakkı I [TowerSlot:1] |
+| 4 | Sağlam Kuleler II [TowerHp:25] | — |
+| 5 | Keskin Oklar III [TowerDamage:25] | — |
+| 6 | Sağlam Kuleler III [TowerHp:25] | Kule Hakkı II [TowerSlot:1] |
+| 7 | Keskin Oklar IV [TowerDamage:25] | — |
+| 8 | Sağlam Kuleler IV [TowerHp:25] | — |
+| 9 | Keskin Oklar V [TowerDamage:25] | — |
+| 10 | Sağlam Kuleler V [TowerHp:25] | Kule Hakkı III [TowerSlot:1] |
+| 11 | Keskin Oklar VI [TowerDamage:25] | — |
+| 12 | Sağlam Kuleler VI [TowerHp:25] | — |
+| 13 | Keskin Oklar VII [TowerDamage:25] | — |
+| 14 | Sağlam Kuleler VII [TowerHp:25] | — |
+| 15 | Keskin Oklar VIII [TowerDamage:25] | Kule Hakkı IV [TowerSlot:1] |
+| 16 | Sağlam Kuleler VIII [TowerHp:25] | — |
+| 17 | Keskin Oklar IX [TowerDamage:25] | — |
+| 18 | Sağlam Kuleler IX [TowerHp:25] | — |
+| 19 | Keskin Oklar X [TowerDamage:25] | — |
+| 20 | Sağlam Kuleler X [TowerHp:25] | Kule Hakkı V [TowerSlot:1] |
+| 21 | Keskin Oklar XI [TowerDamage:25] | — |
+| 22 | Sağlam Kuleler XI [TowerHp:25] | — |
+| 23 | Keskin Oklar XII [TowerDamage:25] | — |
+| 24 | Sağlam Kuleler XII [TowerHp:25] | — |
+| 25 | Keskin Oklar XIII [TowerDamage:25] | — |
+| 26 | Sağlam Kuleler XIII [TowerHp:25] | — |
+| 27 | Keskin Oklar XIV [TowerDamage:25] | — |
+| 28 | Sağlam Kuleler XIV [TowerHp:25] | — |
+| 29 | Keskin Oklar XV [TowerDamage:25] | — |
+| 30 | Sağlam Kuleler XV [TowerHp:25] | — |
 
-Özel kurallar:
-- Gelişmiş Hedefleme araştırması bulunmayacaktır.
-- Savunma Uzmanlığı araştırması bulunmayacaktır.
-- Buz kulelerinin özel yavaşlatma ve donma geliştirmeleri ilgili Buz araştırmalarına bağlanacaktır.
-- Ateş kulelerinin yanma geliştirmeleri ilgili Ateş araştırmalarına bağlanacaktır.
-- Zehir kulelerinin zehir etkileri ilgili Zehir araştırmalarına bağlanacaktır.
-- Kulelerin genel hasarı ile element hasarı birbirinden ayrı hesaplanacaktır.
+- Kule hakkı: oyun başında 3; Kule Hakkı I-V her biri +1 → en çok 8. Her biri bir öncekini ister.
 
----
+# 3. ASKERÎ AĞACI
 
-# 3. ASKERÎ AĞAÇ
+Amaç: Asker hasarı, asker canı ve yeni askerler.
 
-Amaç: Askerlerin hasarını, canını, zırhını, hareket hızını, kuşatma gücünü ve element dirençlerini geliştirmek.
+| Seviye | Araştırma 1 | Araştırma 4 |
+|---|---|---|
+| 1 | Savaş Eğitimi I [SoldierDamage:25] | — |
+| 2 | Dayanıklılık I [SoldierHp:25] | — |
+| 3 | Savaş Eğitimi II [SoldierDamage:25] | — |
+| 4 | Dayanıklılık II [SoldierHp:25] | Kalkanlı [SoldierUnlock:10] |
+| 5 | Savaş Eğitimi III [SoldierDamage:25] | — |
+| 6 | Dayanıklılık III [SoldierHp:25] | — |
+| 7 | Savaş Eğitimi IV [SoldierDamage:25] | — |
+| 8 | Dayanıklılık IV [SoldierHp:25] | — |
+| 9 | Savaş Eğitimi V [SoldierDamage:25] | Suikastçı [SoldierUnlock:11] |
+| 10 | Dayanıklılık V [SoldierHp:25] | — |
+| 11 | Savaş Eğitimi VI [SoldierDamage:25] | — |
+| 12 | Dayanıklılık VI [SoldierHp:25] | — |
+| 13 | Savaş Eğitimi VII [SoldierDamage:25] | — |
+| 14 | Dayanıklılık VII [SoldierHp:25] | Şifacı [SoldierUnlock:12] |
+| 15 | Savaş Eğitimi VIII [SoldierDamage:25] | — |
+| 16 | Dayanıklılık VIII [SoldierHp:25] | — |
+| 17 | Savaş Eğitimi IX [SoldierDamage:25] | — |
+| 18 | Dayanıklılık IX [SoldierHp:25] | — |
+| 19 | Savaş Eğitimi X [SoldierDamage:25] | Arbaletli [SoldierUnlock:13] |
+| 20 | Dayanıklılık X [SoldierHp:25] | — |
+| 21 | Savaş Eğitimi XI [SoldierDamage:25] | — |
+| 22 | Dayanıklılık XI [SoldierHp:25] | — |
+| 23 | Savaş Eğitimi XII [SoldierDamage:25] | — |
+| 24 | Dayanıklılık XII [SoldierHp:25] | Bombacı [SoldierUnlock:14] |
+| 25 | Savaş Eğitimi XIII [SoldierDamage:25] | — |
+| 26 | Dayanıklılık XIII [SoldierHp:25] | — |
+| 27 | Savaş Eğitimi XIV [SoldierDamage:25] | — |
+| 28 | Dayanıklılık XIV [SoldierHp:25] | — |
+| 29 | Savaş Eğitimi XV [SoldierDamage:25] | — |
+| 30 | Dayanıklılık XV [SoldierHp:25] | — |
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 1 | Temel Savaş Talimi | Asker Donanımı | — |
-| 2 | Gelişmiş Muharebe Eğitimi | Savaşçı Dayanıklılığı | — |
-| 3 | Hızlı Birlik Hareketi | Birlik Disiplini | — |
-| 4 | Saldırı Formasyonu | Savunma Formasyonu | — |
-| 5 | Savaş Meydanı Tecrübesi | Güçlendirilmiş Zırh | Asker Dayanıklılığı |
-| 6 | Kuşatma Birlikleri | Tahkimat Yıkımı | — |
-| 7 | Hücum Taktikleri | Geri Çekilme Eğitimi | — |
-| 8 | Birlik Kondisyonu | Silah Kullanım Ustalığı | — |
-| 9 | Savaşçı Refleksleri | Gelişmiş Kalkan Kullanımı | — |
-| 10 | Muharebe Uzmanlığı | Birlik Sağlamlığı | Savaş Düzeni |
-| 11 | Ateş Direnci | Buz Direnci | — |
-| 12 | Zehir Direnci | Gelişmiş Asker Zırhı | — |
-| 13 | Element Dayanımı | Savaşçı İradesi | — |
-| 14 | Birlik Koordinasyonu | Kuşatma Disiplini | — |
-| 15 | Taktik Eğitimi | Element Savunma Talimi | Element Etki Direnci |
-| 16 | Ağır Silah Eğitimi | Güçlü Hücum | — |
-| 17 | Gelişmiş Birlik Hareketi | Savaş Alanı Kontrolü | — |
-| 18 | Kırılmaz Kalkan | Çelik Zırh İşçiliği | — |
-| 19 | Kuşatma Mühendisliği | Duvar Yıkıcıları | — |
-| 20 | Savaşçı Ustalığı | Askerî Organizasyon | Birlik Moral Gücü |
-| 21 | Ateşten Korunma | Buzuldan Korunma | — |
-| 22 | Zehirden Korunma | Gelişmiş Element Direnci | — |
-| 23 | Efsanevi Silah Eğitimi | Muharebe Dayanımı | — |
-| 24 | Büyük Hücum Doktrini | Savunma Hattı Disiplini | — |
-| 25 | Kuşatma Ustalığı | Savaş Alanı Hâkimiyeti | Birlik Uzmanlığı |
-| 26 | Kadim Savaş Teknikleri | Aşılmaz Zırh | — |
-| 27 | Efsanevi Hücum | Efsanevi Savunma | — |
-| 28 | Savaşçı Efsanesi | Demir İrade | — |
-| 29 | Mutlak Muharebe Disiplini | Büyük Kuşatma Gücü | — |
-| 30 | Efsanevi Ordu | Savaşın Efendileri | Kadim Birlik Gücü |
-
-Özel kurallar:
-- Asker Uzmanlığı araştırması kullanılmayacaktır.
-- Asker Dayanıklılığı genel hasara karşı dayanıklılığı artırır.
-- Element dirençleri genel Asker Dayanıklılığı bonusundan ayrı hesaplanır.
-- Ateş Direnci, Buz Direnci ve Zehir Direnci için Element ağacındaki ilgili savunma kilitleri zorunludur.
-- Taktik Eğitimi, askerlerin element saldırılarına karşı dayanıklılığını ve element etkilerine karşı direncini geliştiren araştırmaları destekler.
-
----
+- Yeni askerler (kışlada eğitilir): Kalkanlı (zırhlı, kule ateşini üstüne çeker), Suikastçı (çok hızlı, kulelere büyük hasar, az can), Şifacı (saldırmaz, yakındaki askerleri iyileştirir), Arbaletli (uzun menzil, kulelere bonus), Bombacı (yapıya ulaşınca patlar: büyük alan hasarı, kendisi ölür).
 
 # 4. MİMARLIK AĞACI
 
-Amaç: Binaların inşaatını, canını, dayanıklılığını, onarımını ve hasar direncini geliştirmek.
+Amaç: Bina canı, yükseltme maliyeti, otomatik tamir ve işçi iş sırası.
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 1 | Temel Yapı Planlaması | İnşaat Teknikleri | — |
-| 2 | Hızlı Yapı Kurulumu | Malzeme Tasarrufu | — |
-| 3 | Güçlendirilmiş Temeller | Yapı Bakım Bilgisi | — |
-| 4 | Taşıyıcı Sistemler | İnşaat Organizasyonu | — |
-| 5 | Usta Mimarlık | Dayanıklı Yapı Tasarımı | Yapı Onarım Teknikleri |
-| 6 | Gelişmiş İnşaat Planı | İşçi Verimliliği | — |
-| 7 | Kalın Taş Duvarlar | Sağlam Ahşap İşçiliği | — |
-| 8 | Yapı Canlandırma | Temel Güçlendirme | — |
-| 9 | Kule Temel Mühendisliği | Depo Güvenliği | — |
-| 10 | Gelişmiş Mimarlık | Yapı Dayanıklılığı | Hızlı Onarım |
-| 11 | Taş Tahkimat | Ahşap Tahkimat | — |
-| 12 | Gelişmiş Taşıyıcı Sistem | Yapı Canı Artırımı | — |
-| 13 | İnşaat Maliyet Yönetimi | Yapı Koruma Sanatı | — |
-| 14 | Kule Zırh Kaplaması | Bina Güçlendirme | — |
-| 15 | Büyük Yapı Mühendisliği | Deprem Dayanımı | Yapı Kurtarma |
-| 16 | Gelişmiş Onarım Sistemi | İnşaat Hızı Optimizasyonu | — |
-| 17 | Çelik Destek Sistemleri | Derin Temel İşçiliği | — |
-| 18 | Depo Tahkimatı | Üretim Binası Güçlendirmesi | — |
-| 19 | Kule Gövde Zırhı | Duvar Dayanıklılığı | — |
-| 20 | Mimari Ustalık | Yapısal Bütünlük | Gelişmiş Yapı Koruması |
-| 21 | Ateş Koruyucu Kaplama | Buz Koruyucu Kaplama | — |
-| 22 | Zehir Koruyucu Kaplama | Element Yalıtımı | — |
-| 23 | Kule Savunma Mühendisliği | Bina Hasar Azaltımı | — |
-| 24 | Gelişmiş Yapı Kurtarma | Onarım Verimliliği | — |
-| 25 | Aşılmaz Tahkimat | Büyük Mimari Proje | Yapı Muhafazası |
-| 26 | Kadim Temel Teknolojisi | Efsanevi Duvar İşçiliği | — |
-| 27 | Devasa Kule Temelleri | Üstün Yapı Dayanımı | — |
-| 28 | Element Duvar Koruması | Mutlak Yapı Bütünlüğü | — |
-| 29 | Efsanevi Mimari | Kusursuz İnşaat | — |
-| 30 | Mimarlık Mirası | Aşılmaz Köy Yapıları | Kadim Yapı Gücü |
+| Seviye | Araştırma 1 | Araştırma 4 |
+|---|---|---|
+| 1 | Güçlü Temeller I [BuildingHp:40] | — |
+| 2 | Tasarruflu Yapım I [UpgradeCost:20] | — |
+| 3 | Güçlü Temeller II [BuildingHp:40] | — |
+| 4 | Tasarruflu Yapım II [UpgradeCost:20] | — |
+| 5 | Güçlü Temeller III [BuildingHp:40] | — |
+| 6 | Tasarruflu Yapım III [UpgradeCost:20] | — |
+| 7 | Güçlü Temeller IV [BuildingHp:40] | Otomatik Tamir [AutoRepair:1] |
+| 8 | Tasarruflu Yapım IV [UpgradeCost:20] | — |
+| 9 | Güçlü Temeller V [BuildingHp:40] | — |
+| 10 | Tasarruflu Yapım V [UpgradeCost:20] | — |
+| 11 | Güçlü Temeller VI [BuildingHp:40] | İş Sırası I [JobQueue:1] |
+| 12 | Tasarruflu Yapım VI [UpgradeCost:20] | — |
+| 13 | Güçlü Temeller VII [BuildingHp:40] | — |
+| 14 | Tasarruflu Yapım VII [UpgradeCost:20] | — |
+| 15 | Güçlü Temeller VIII [BuildingHp:40] | — |
+| 16 | Tasarruflu Yapım VIII [UpgradeCost:20] | — |
+| 17 | Güçlü Temeller IX [BuildingHp:40] | — |
+| 18 | Tasarruflu Yapım IX [UpgradeCost:20] | — |
+| 19 | Güçlü Temeller X [BuildingHp:40] | — |
+| 20 | Tasarruflu Yapım X [UpgradeCost:20] | — |
+| 21 | Güçlü Temeller XI [BuildingHp:40] | — |
+| 22 | Tasarruflu Yapım XI [UpgradeCost:20] | İş Sırası II [JobQueue:1] |
+| 23 | Güçlü Temeller XII [BuildingHp:40] | — |
+| 24 | Tasarruflu Yapım XII [UpgradeCost:20] | — |
+| 25 | Güçlü Temeller XIII [BuildingHp:40] | — |
+| 26 | Tasarruflu Yapım XIII [UpgradeCost:20] | — |
+| 27 | Güçlü Temeller XIV [BuildingHp:40] | — |
+| 28 | Tasarruflu Yapım XIV [UpgradeCost:20] | — |
+| 29 | Güçlü Temeller XV [BuildingHp:40] | — |
+| 30 | Tasarruflu Yapım XV [UpgradeCost:20] | — |
 
-Özel kurallar:
-- Yapı canı ve yapı dayanıklılığı birbirinden farklı özelliklerdir.
-- Yapı canı, yapının toplam hasar alabilme miktarını belirler.
-- Yapı dayanıklılığı, alınan hasarı azaltan savunma özelliğidir.
-- Element koruma araştırmaları ilgili Element Savunması kilitlerine bağlıdır.
-- Kule, depo ve üretim binası dayanıklılıkları gerektiğinde ayrı ayrı geliştirilebilir.
-
----
+- Otomatik Tamir: savunma sonrası kulelerdeki kalıcı aşınma kendiliğinden (ücretsiz) onarılır.
+- İş Sırası I-II: bir köylüye sırayla 2, sonra 3 iş verilebilir (ör. önce kule, sonra kışla, sonra Akademi); işler sırayla yapılır.
 
 # 5. KÖY GELİŞİMİ AĞACI
 
-Amaç: Köyün büyümesini, işçi kapasitesini, harita genişlemesini, kaynak korumasını ve kalkan sistemini geliştirmek.
+Amaç: İnşa ve eğitim süresi, köylü evi, kışla, Akademi ve yol hakları.
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 | Araştırma 4 (Yapı hakkı) | Araştırma 5 (Kule hakkı) |
-|---|---|---|---|---|---|
-| 1 | Köy Yönetimi | Yerleşim Planlaması | — | Köylü Evi I | — |
-| 2 | Köy Organizasyonu I | İşçi Verimliliği | — | — | — |
-| 3 | İşçi Eğitimi I | Yerleşim Düzeni | — | Köylü Evi II | Kule Hakkı I |
-| 4 | Korunaklı Kaynaklar I | Köy Güvenliği | — | — | — |
-| 5 | Harita Genişletme I | Gelişmiş Yerleşim | Köy Planlaması | — | — |
-| 6 | Kaynak Koruma Sistemi | Köy Nöbetçileri | — | — | Kule Hakkı II |
-| 7 | Köy Organizasyonu II | Acil Durum Hazırlığı | — | — | — |
-| 8 | İşçi Eğitimi II | Gelişmiş İş Bölümü | — | Kışla II | — |
-| 9 | Korunaklı Kaynaklar II | Köy Savunma Düzeni | — | — | — |
-| 10 | Harita Genişletme II | Kalkan Yönetimi I | Yerleşim Uzmanlığı | — | Kule Hakkı III |
-| 11 | Köy İdaresi | Gelişmiş Köy Güvenliği | — | — | — |
-| 12 | Kalkan Süresi Geliştirmesi I | Kaynak Muhafazası | — | Akademi II | — |
-| 13 | Korunaklı Kaynaklar III | Genişletilmiş Yerleşim | — | — | — |
-| 14 | İşçi Organizasyonu | Köy İletişim Ağı | — | — | — |
-| 15 | Harita Genişletme III | Kalkan Yönetimi II | Köy Gelişim Planı | — | Kule Hakkı IV |
-| 16 | Köy Refahı | Gelişmiş Yönetim | — | — | — |
-| 17 | Kaynak Güvenliği | Saldırı Sonrası Toparlanma | — | — | — |
-| 18 | Korunaklı Kaynaklar IV | Köy Gözetleme Sistemi | — | Kışla III | — |
-| 19 | Kalkan Süresi Geliştirmesi II | Gelişmiş Nöbet Sistemi | — | — | — |
-| 20 | Harita Genişletme IV | Büyük Yerleşim Planı | Köy Organizasyonu Ustalığı | — | Kule Hakkı V |
-| 21 | Köy Yönetim Merkezi | Gelişmiş Kaynak Muhafazası | — | — | — |
-| 22 | Acil Savunma Hazırlığı | Yerleşim Koordinasyonu | — | — | — |
-| 23 | Kalkan Yönetimi III | Köy Gözetleme Uzmanlığı | — | — | — |
-| 24 | Gelişmiş Köy Organizasyonu | Kaynak Güvenliği Ustalığı | — | — | — |
-| 25 | Büyük Köy Planlaması | Köy Refahı Uzmanlığı | Yerleşim Hâkimiyeti | — | — |
-| 26 | Kalkan Süresi Geliştirmesi III | Saldırı Öncesi Hazırlık | — | — | — |
-| 27 | Köy Güvenlik Ağı | Gelişmiş Nöbet Organizasyonu | — | — | — |
-| 28 | Kalkan Yönetimi IV | Kaynak Koruma Ustalığı | — | — | — |
-| 29 | Efsanevi Köy Organizasyonu | Büyük Yerleşim Düzeni | — | — | — |
-| 30 | Köy Gelişim Mirası | Mutlak Köy Güvenliği | Kadim Yerleşim | — | — |
+| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 |
+|---|---|---|---|
+| 1 | Hızlı İnşaat I [BuildTime:25] | Köylü Evi I [VillagerHouseSlot:1] | — |
+| 2 | Hızlı Eğitim I [TrainTime:25] | — | — |
+| 3 | Hızlı İnşaat II [BuildTime:25] | Köylü Evi II [VillagerHouseSlot:1] | — |
+| 4 | Hızlı Eğitim II [TrainTime:25] | — | — |
+| 5 | Hızlı İnşaat III [BuildTime:25] | — | Yol Hakkı I [RoadSlot:2] |
+| 6 | Hızlı Eğitim III [TrainTime:25] | — | — |
+| 7 | Hızlı İnşaat IV [BuildTime:25] | — | — |
+| 8 | Hızlı Eğitim IV [TrainTime:25] | Kışla II [BarracksSlot:1] | — |
+| 9 | Hızlı İnşaat V [BuildTime:25] | — | — |
+| 10 | Hızlı Eğitim V [TrainTime:25] | — | Yol Hakkı II [RoadSlot:2] |
+| 11 | Hızlı İnşaat VI [BuildTime:25] | — | — |
+| 12 | Hızlı Eğitim VI [TrainTime:25] | Akademi II [AcademySlot:1] | — |
+| 13 | Hızlı İnşaat VII [BuildTime:25] | — | — |
+| 14 | Hızlı Eğitim VII [TrainTime:25] | — | — |
+| 15 | Hızlı İnşaat VIII [BuildTime:25] | — | — |
+| 16 | Hızlı Eğitim VIII [TrainTime:25] | — | Yol Hakkı III [RoadSlot:2] |
+| 17 | Hızlı İnşaat IX [BuildTime:25] | — | — |
+| 18 | Hızlı Eğitim IX [TrainTime:25] | Kışla III [BarracksSlot:1] | — |
+| 19 | Hızlı İnşaat X [BuildTime:25] | — | — |
+| 20 | Hızlı Eğitim X [TrainTime:25] | — | — |
+| 21 | Hızlı İnşaat XI [BuildTime:25] | — | — |
+| 22 | Hızlı Eğitim XI [TrainTime:25] | — | — |
+| 23 | Hızlı İnşaat XII [BuildTime:25] | — | — |
+| 24 | Hızlı Eğitim XII [TrainTime:25] | — | Yol Hakkı IV [RoadSlot:2] |
+| 25 | Hızlı İnşaat XIII [BuildTime:25] | — | — |
+| 26 | Hızlı Eğitim XIII [TrainTime:25] | — | — |
+| 27 | Hızlı İnşaat XIV [BuildTime:25] | — | — |
+| 28 | Hızlı Eğitim XIV [TrainTime:25] | — | — |
+| 29 | Hızlı İnşaat XV [BuildTime:25] | — | — |
+| 30 | Hızlı Eğitim XV [TrainTime:25] | — | — |
 
-### Yapı Hakkı Araştırmaları (kullanıcı kararları 25.11.2026)
-
-Eski "Akademi görevleri" yerine 4. ve 5. sütunda araştırmalar (diğer araştırmalar gibi kaynak ve süre harcar).
-Ön koşul: aynı sütunda aynı adlı bir önceki araştırma (Köylü Evi II → Köylü Evi I; Kışla III → Kışla II; Kule Hakkı II → Kule Hakkı I ...).
-
-4. sütun (yapı hakkı):
-1. Köylü Evi I (Sv1): +1 Köylü Evi hakkı (1 → 2).
-2. Köylü Evi II (Sv3): +1 Köylü Evi hakkı (2 → 3).
-3. Kışla II (Sv8): 2. Kışla hakkı.
-4. Akademi II (Sv12): 2. Akademi hakkı (kurulunca +1 araştırma yuvası).
-5. Kışla III (Sv18): 3. Kışla hakkı.
-
-5. sütun (kule hakkı): başta 3 kule; Kule Hakkı I-V (Sv3, Sv6, Sv10, Sv15, Sv20) her biri +1 → en çok 8. Oyuncu seviyesi kule hakkı vermez.
-
-### Köy Organizasyonu – Özel ve Değiştirilemez İşleyiş
-
-1. Köy Organizasyonu I: +1 Çiftçi.
-2. İşçi Eğitimi I: İlk çiftçiyi normal Köylü'ye dönüştürür.
-3. Köy Organizasyonu II: +1 Çiftçi.
-4. İşçi Eğitimi II: İkinci çiftçiyi normal Köylü'ye dönüştürür.
-
-Çiftçi, normal köylüden %50 daha uzun sürede işini tamamlar.
-
-Çiftçi normal Köylü'ye dönüştürüldüğünde yeni işçi kazanılmaz. Mevcut işçinin çalışma hızı normale döner.
-
-Dört araştırma tamamlandığında toplam işçi kapasitesi 2 artmış olur ve iki yeni işçi de normal Köylü olarak çalışır.
-
-### Harita Genişletme
-
-| Araştırma | Açılan harita |
-|---|---|
-| Harita Genişletme I | 12×12 |
-| Harita Genişletme II | 13×13 |
-| Harita Genişletme III | 14×14 |
-| Harita Genişletme IV | 15×15 |
-
-### Korunaklı Kaynaklar
-
-Korunaklı Kaynaklar araştırmaları yağmalanma sırasında kaybedilmeyecek kaynak miktarını artırır.
-
-Dört aşamalı araştırma sistemi bulunur.
-
-Önerilen bonus: Her kademe +%5 korunan kaynak miktarı. Nihai değer daha sonra belirlenecektir.
-
-### Kalkan Sistemi
-
-Kalkan süresini artıran araştırmalar bulunacaktır.
-
-Toplam kalkan süresi bonusu için önceki öneri +%20'dir. Nihai bonuslar ayrıca dengelenecektir.
-
----
+- Köylü evi: 1 başta + Köylü Evi I-II → 3. Kışla: 1. Sv3, + Kışla II-III → 3. Akademi: 1. Sv5, + Akademi II → 2 (2. Akademi +1 araştırma yuvası).
+- Yol Hakkı I-IV: her biri +2 yol (toplam +8).
 
 # 6. BİLİM AĞACI
 
-Amaç: Araştırma maliyetlerini ve sürelerini azaltmak, bilimsel verimliliği artırmak ve ikinci araştırma yuvasını açmak.
+Amaç: Araştırma süresi ve maliyeti; saldıran askerler ve kuleler için zırh ve ekipman.
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
+| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 |
 |---|---|---|---|
-| 1 | Bilimsel Temeller | Araştırma Metodolojisi | — |
-| 2 | Bilgi Arşivleme | Deneysel Gözlem | — |
-| 3 | Hızlı Öğrenme | Bilimsel Disiplin | — |
-| 4 | Araştırma Planlaması | Kaynak Analizi | — |
-| 5 | Bilimsel Organizasyon | Deney Laboratuvarı | Bilgi Yönetimi |
-| 6 | Gelişmiş Araştırma Teknikleri | Veri İşleme | — |
-| 7 | Akademik Uzmanlık | Deneysel Yöntemler | — |
-| 8 | Araştırma Hızı I | Bilimsel Tasarruf I | — |
-| 9 | Laboratuvar Geliştirmesi | Araştırma Verimliliği | — |
-| 10 | Bilimsel İlerleme | Bilgi Birikimi | Araştırma Mühendisliği |
-| 11 | Araştırma Hızı II | Bilimsel Tasarruf II | — |
-| 12 | Gelişmiş Veri Analizi | Deney Tasarımı | — |
-| 13 | Akademik Gelişim | Bilimsel Keşif | — |
-| 14 | Araştırma Otomasyonu | Laboratuvar Optimizasyonu | — |
-| 15 | Teknolojik Atılım | Bilgi Ustalığı | Bilimsel Uzmanlık |
-| 16 | Araştırma Hızı III | Bilimsel Tasarruf III | — |
-| 17 | İleri Deney Teknolojisi | Bilimsel Hassasiyet | — |
-| 18 | Akademik Mükemmellik | Gelişmiş Araştırma Ağı | — |
-| 19 | Bilimsel Verimlilik | Laboratuvar Otomasyonu | — |
-| 20 | Araştırma Hızı IV | Bilimsel Tasarruf IV | Bilimsel Ustalık |
-| 21 | Kadim Bilgi | İleri Teknoloji Analizi | — |
-| 22 | Araştırma Süreç Yönetimi | Deneysel Mükemmellik | — |
-| 23 | Büyük Bilimsel Keşif | Gelişmiş Bilgi İşleme | — |
-| 24 | Araştırma Hızı V | Bilimsel Tasarruf V | — |
-| 25 | Teknoloji Devrimi | Akademik Hâkimiyet | Bilimsel Miras |
-| 26 | Araştırma Hızı VI | Bilimsel Tasarruf VI | — |
-| 27 | Evrensel Bilgi | İleri Laboratuvar Teknolojisi | — |
-| 28 | Bilimsel Deha | Araştırma Mükemmelliği | — |
-| 29 | Kadim Teknoloji | Büyük Bilimsel Atılım | — |
-| 30 | Paralel Araştırma | Efsanevi Bilim Ustalığı | Bilimsel Zirve |
+| 1 | Hızlı Araştırma I [ResearchTime:20] | — | — |
+| 2 | Ucuz Araştırma I [ResearchCost:15] | — | — |
+| 3 | Hızlı Araştırma II [ResearchTime:20] | — | — |
+| 4 | Ucuz Araştırma II [ResearchCost:15] | — | — |
+| 5 | Hızlı Araştırma III [ResearchTime:20] | — | — |
+| 6 | Ucuz Araştırma III [ResearchCost:15] | Asker Zırhı I [SoldierArmor:3] | — |
+| 7 | Hızlı Araştırma IV [ResearchTime:20] | — | — |
+| 8 | Ucuz Araştırma IV [ResearchCost:15] | — | — |
+| 9 | Hızlı Araştırma V [ResearchTime:20] | — | Kule Zırhı I [TowerArmor:5] |
+| 10 | Ucuz Araştırma V [ResearchCost:15] | — | — |
+| 11 | Hızlı Araştırma VI [ResearchTime:20] | — | — |
+| 12 | Ucuz Araştırma VI [ResearchCost:15] | — | — |
+| 13 | Hızlı Araştırma VII [ResearchTime:20] | — | — |
+| 14 | Ucuz Araştırma VII [ResearchCost:15] | — | — |
+| 15 | Hızlı Araştırma VIII [ResearchTime:20] | Asker Zırhı II [SoldierArmor:3] | — |
+| 16 | Ucuz Araştırma VIII [ResearchCost:15] | — | — |
+| 17 | Hızlı Araştırma IX [ResearchTime:20] | — | — |
+| 18 | Ucuz Araştırma IX [ResearchCost:15] | — | Kule Zırhı II [TowerArmor:5] |
+| 19 | Hızlı Araştırma X [ResearchTime:20] | — | — |
+| 20 | Ucuz Araştırma X [ResearchCost:15] | — | — |
+| 21 | Hızlı Araştırma XI [ResearchTime:20] | — | — |
+| 22 | Ucuz Araştırma XI [ResearchCost:15] | — | — |
+| 23 | Hızlı Araştırma XII [ResearchTime:20] | — | — |
+| 24 | Ucuz Araştırma XII [ResearchCost:15] | — | — |
+| 25 | Hızlı Araştırma XIII [ResearchTime:20] | Asker Zırhı III [SoldierArmor:3] | — |
+| 26 | Ucuz Araştırma XIII [ResearchCost:15] | — | — |
+| 27 | Hızlı Araştırma XIV [ResearchTime:20] | — | — |
+| 28 | Ucuz Araştırma XIV [ResearchCost:15] | — | Kule Zırhı III [TowerArmor:5] |
+| 29 | Hızlı Araştırma XV [ResearchTime:20] | — | — |
+| 30 | Paralel Araştırma [ResearchTime:20] | — | — |
 
-### Bilim ağacı özel kuralları
-
-- Oyuncu başlangıçta 1 araştırma yuvasına sahiptir.
-- Bilim ağacının en sonunda Paralel Araştırma tamamlanınca kalıcı ikinci araştırma yuvası açılır.
-- Maksimum araştırma yuvası 2'dir.
-- Üçüncü araştırma yuvası açılamaz.
-- Toplam araştırma süresi indirimi en fazla %30 olabilir.
-- Toplam araştırma maliyeti indirimi en fazla %20 olabilir.
-- Bu sınırlar bütün bonusların toplamı üzerinden hesaplanmalıdır.
-
----
+- Asker Zırhı I-III: saldıran tüm askerlere +3 zırh (her biri). Kule Zırhı I-III: kuleler askerlerden %5 daha az hasar alır (her biri).
+- Paralel Araştırma (Sv30): 2. araştırma yuvası.
 
 # 7. ELEMENT AĞACI
 
-Amaç: Ateş, Buz ve Zehir elementlerinin saldırı, savunma ve özel etkilerini geliştirmek.
+Amaç: Kule saldırı ve savunma elementleri, asker saldırı ve savunma elementleri, element ustalığı.
 
-Element ağacı diğer altı araştırma ağacını da etkileyen özel bir ön koşul sistemine sahiptir.
+| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 | Araştırma 6 |
+|---|---|---|---|---|
+| 1 | Element Ustalığı 1 [ElementMastery:8] | Ok [TowerAttackElement:1] | — | — |
+| 2 | Element Ustalığı 2 [ElementMastery:8] | — | — | — |
+| 3 | Element Ustalığı 3 [ElementMastery:8] | Ateş [TowerAttackElement:2] | — | — |
+| 4 | Element Ustalığı 4 [ElementMastery:8] | — | — | — |
+| 5 | Element Ustalığı 5 [ElementMastery:8] | — | Ateş Kalkanı [TowerDefenseElement:2] | — |
+| 6 | Element Ustalığı 6 [ElementMastery:8] | Buz [TowerAttackElement:3] | — | — |
+| 7 | Element Ustalığı 7 [ElementMastery:8] | — | — | Ateş Silahları [SoldierAttackElement:2] |
+| 8 | Element Ustalığı 8 [ElementMastery:8] | — | — | — |
+| 9 | Element Ustalığı 9 [ElementMastery:8] | Zehir [TowerAttackElement:4] | — | — |
+| 10 | Element Ustalığı 10 [ElementMastery:8] | — | — | Ateş Zırhı [SoldierDefenseElement:2] |
+| 11 | Element Ustalığı 11 [ElementMastery:8] | — | Buz Kalkanı [TowerDefenseElement:3] | — |
+| 12 | Element Ustalığı 12 [ElementMastery:8] | — | — | — |
+| 13 | Element Ustalığı 13 [ElementMastery:8] | Büyü [TowerAttackElement:5] | — | — |
+| 14 | Element Ustalığı 14 [ElementMastery:8] | — | — | Buz Silahları [SoldierAttackElement:3] |
+| 15 | Element Ustalığı 15 [ElementMastery:8] | — | — | — |
+| 16 | Element Ustalığı 16 [ElementMastery:8] | — | Zehir Kalkanı [TowerDefenseElement:4] | — |
+| 17 | Element Ustalığı 17 [ElementMastery:8] | Şimşek [TowerAttackElement:6] | — | — |
+| 18 | Element Ustalığı 18 [ElementMastery:8] | — | — | — |
+| 19 | Element Ustalığı 19 [ElementMastery:8] | — | — | Buz Zırhı [SoldierDefenseElement:3] |
+| 20 | Element Ustalığı 20 [ElementMastery:8] | — | — | Zehir Silahları [SoldierAttackElement:4] |
+| 21 | Element Ustalığı 21 [ElementMastery:8] | — | — | — |
+| 22 | Element Ustalığı 22 [ElementMastery:8] | — | — | — |
+| 23 | Element Ustalığı 23 [ElementMastery:8] | — | — | — |
+| 24 | Element Ustalığı 24 [ElementMastery:8] | — | — | — |
+| 25 | Element Ustalığı 25 [ElementMastery:8] | — | — | Zehir Zırhı [SoldierDefenseElement:4] |
+| 26 | Element Ustalığı 26 [ElementMastery:8] | — | — | — |
+| 27 | Element Ustalığı 27 [ElementMastery:8] | — | — | — |
+| 28 | Element Ustalığı 28 [ElementMastery:8] | — | — | — |
+| 29 | Element Ustalığı 29 [ElementMastery:8] | — | — | — |
+| 30 | Element Ustalığı 30 [ElementMastery:8] | — | — | — |
 
-## Seviye 1 – Temel Element Bilgisi
-
-| Araştırma | Görevi |
-|---|---|
-| Ateş | Ateş elementinin temel kilidini açar. |
-| Buz | Buz elementinin temel kilidini açar. |
-| Zehir | Zehir elementinin temel kilidini açar. |
-| Ok | Okçu Kulesi için Ok elementinin kilidini açar (yüksek hasar, kritik vuruş, hızlı atış). |
-| Büyü | Okçu Kulesi için Büyü elementinin kilidini açar (uçanlara büyük bonus). |
-| Şimşek | Okçu Kulesi için Şimşek elementinin kilidini açar (2 askere sıçrar). |
-
-Kule elementleri (kullanıcı kararı 25.11.2026): Okçu Kulesine Ateş, Buz, Zehir, Ok, Büyü veya Şimşek elementi uygulanabilir. Element önce bu seviyede araştırılır; sonra kuleye tıklanıp 1-2 dk ve biraz kaynakla uygulanır. Ateş: alan + yanma, çok yavaş atış. Buz: yavaşlatma + üst üste vurdukça donma hasarı. Zehir: askerin hasarını düşürür + zamanla hasar. Ok: yüksek hasar, kritik vuruş, hızlı atış. Büyü: uçanlara büyük bonus. Şimşek: 2 askere sıçrar.
-
-## Seviye 2 – Element Saldırısı
-
-| Araştırma | Görevi |
-|---|---|
-| Ateş Saldırısı | Ateş hasarı geliştirmelerinin kilidini açar. |
-| Buz Saldırısı | Buz hasarı geliştirmelerinin kilidini açar. |
-| Zehir Saldırısı | Zehir hasarı geliştirmelerinin kilidini açar. |
-
-## Seviye 3 – Elementlerin Temel Etkileri
-
-| Araştırma | Görevi |
-|---|---|
-| Yanma Etkisi | Ateşin zamanla verdiği yanma hasarını geliştirir. |
-| Yavaşlatma Etkisi | Buzun düşmanları yavaşlatma gücünü geliştirir. |
-| Zehirlenme Etkisi | Zehrin zamanla verdiği hasarı geliştirir. |
-
-Ön koşullar:
-- Yanma Etkisi: Ateş + Ateş Saldırısı.
-- Yavaşlatma Etkisi: Buz + Buz Saldırısı.
-- Zehirlenme Etkisi: Zehir + Zehir Saldırısı.
-
-## Seviye 4 – Element Savunması
-
-| Araştırma | Görevi |
-|---|---|
-| Ateş Savunması | Ateş savunması geliştirmelerinin kilidini açar. |
-| Buz Savunması | Buz savunması geliştirmelerinin kilidini açar. |
-| Zehir Savunması | Zehir savunması geliştirmelerinin kilidini açar. |
-
-## Seviye 5–16 – Element Ustalığı
-
-Bu bölümde her üniversite seviyesinde üç elementin de kendine özgü bir saldırı, savunma veya özel etki araştırması bulunur.
-
-Araştırma isimleri tekrarlanmayacaktır.
-
-| Seviye | Ateş | Buz | Zehir |
-|---|---|---|---|
-| 5 | Alev Kudreti | Buzul Gücü | Zehirin Özü |
-| 6 | Kor Zırhı | Kristal Muhafaza | Panzehir Doktrini |
-| 7 | Kızıl Hâkimiyet | Mutlak Donuş | Ölümcül Sızıntı |
-| 8 | Ejderha Alevi | Kutup Fırtınası | Kara Özüt |
-| 9 | Kül Muhafızlığı | Buzul Bariyeri | Zehir Perdesi |
-| 10 | Kor Hâkimiyeti | Donmuş Hâkimiyet | Toksin Hâkimiyeti |
-| 11 | Cehennem Kudreti | Kadim Buz Gücü | Ölümcül Toksin |
-| 12 | Alev Kalkanı | Sonsuz Buz Zırhı | Kara Panzehir |
-| 13 | Güneşin Öfkesi | Mutlak Sıfır | Veba Hâkimiyeti |
-| 14 | Lav Çekirdeği | Buzul Çekirdeği | Zehir Çekirdeği |
-| 15 | Kızıl Ejder Muhafazası | Kutup Muhafazası | Akrep Muhafazası |
-| 16 | Ateşin Efendisi | Buzulun Efendisi | Zehrin Efendisi |
-
-Araştırmaların işlevleri:
-
-- Saldırı araştırmaları ilgili elementin verdiği hasarı artırır.
-- Savunma araştırmaları ilgili elementten alınan hasarı azaltır.
-- Özel etki araştırmaları yanma, yavaşlatma ve zehirlenme etkilerini geliştirir.
-
-Bu araştırmaların kesin bonus değerleri ayrıca belirlenecektir.
-
-## Seviye 17–20 – İleri Element Teknolojileri
-
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 17 | Element Etki Süresi | Element Direnci Kırma | — |
-| 18 | Element Alan Etkisi | Gelişmiş Yanma | — |
-| 19 | Gelişmiş Yavaşlatma | Gelişmiş Zehirlenme | — |
-| 20 | Element Kontrolü III | Element Patlaması | Element Etki Ustalığı |
-
-## Seviye 21–25 – Element Uzmanlığı
-
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 21 | Ateş Patlaması | Buz Patlaması | — |
-| 22 | Zehir Patlaması | Ateş Etki Alanı | — |
-| 23 | Buz Etki Alanı | Zehir Etki Alanı | — |
-| 24 | Element Zinciri | Element Direnci Delme | — |
-| 25 | Element Kontrolü IV | Element Zincirleme Ustalığı | Element Etki Uzmanlığı |
-
-## Seviye 26–30 – Efsanevi Element Teknolojileri
-
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 |
-|---|---|---|---|
-| 26 | Ateş Zinciri | Buz Zinciri | — |
-| 27 | Zehir Zinciri | Element Kombinasyonu I | — |
-| 28 | Element Kombinasyonu II | Element Etki Ustalığı II | — |
-| 29 | Element Patlaması II | Efsanevi Element Kontrolü | — |
-| 30 | Efsanevi Element Ustalığı | Kadim Element Gücü | Efsanevi Element Hâkimiyeti |
-
-Element Kombinasyonu araştırmaları taslaktır. Örnek olarak:
-- Buz etkisindeki düşmana ateş saldırısı geldiğinde ilave hasar.
-- Zehirlenmiş düşmana ateş saldırısı geldiğinde yanma etkisinin güçlenmesi.
-- Farklı element etkilerinin birbirini tamamlaması.
-
-Kombinasyonların kesin çalışma şekli ve bonusları daha sonra belirlenecektir.
-
----
-
-# ELEMENT AĞACININ DİĞER AĞAÇLARLA ORTAK ÖN KOŞULLARI
-
-Bu sistem zorunludur.
-
-| İlgili yetenek | Gerekli Element araştırması |
-|---|---|
-| Ateş hasarı | Ateş Saldırısı |
-| Ateş yanma etkisi | Ateş Saldırısı |
-| Ateş saldırı ustalığı | Ateş Saldırısı |
-| Ateş direnci | Ateş Savunması |
-| Ateş hasarı azaltma | Ateş Savunması |
-| Buz hasarı | Buz Saldırısı |
-| Buz yavaşlatma | Buz Saldırısı |
-| Buz saldırı ustalığı | Buz Saldırısı |
-| Buz direnci | Buz Savunması |
-| Buz etkisi azaltma | Buz Savunması |
-| Zehir hasarı | Zehir Saldırısı |
-| Zehirlenme etkisi | Zehir Saldırısı |
-| Zehir saldırı ustalığı | Zehir Saldırısı |
-| Zehir direnci | Zehir Savunması |
-| Zehir hasarı azaltma | Zehir Savunması |
-
-Örnek:
-- Oyuncu Ateş Savunması araştırmasını tamamlamadıysa Askerî ağacındaki Ateş Direnci araştırmasını yapamaz.
-- Oyuncu Buz Saldırısı araştırmasını tamamlamadıysa Savunma ağacındaki Buz hasarı geliştirmelerini yapamaz.
-- Oyuncu Zehir Saldırısı araştırmasını tamamlamadıysa Zehir Patlaması gibi saldırı geliştirmelerini yapamaz.
-
-Bir elementin araştırmaları diğer elementleri engellemez.
-
----
-
-# UYGULAMA VE TEKNİK KURALLAR
-
-Claude ve Codex bu araştırma sistemini uygularken aşağıdaki kurallara uymalıdır:
-
-1. Öncelikle mevcut proje mimarisi, veri yapıları ve araştırma sistemi incelenmelidir.
-2. Mevcut kod ve sistemler incelenmeden doğrudan değişiklik yapılmamalıdır.
-3. Araştırmalar merkezi bir veri kataloğunda tutulmalıdır.
-4. Her araştırmaya benzersiz bir ID verilmelidir.
-5. Her araştırmada şu bilgiler bulunmalıdır:
-   - ID
-   - Araştırma adı
-   - Araştırma ağacı
-   - Üniversite seviyesi
-   - Araştırma rank seviyesi
-   - Maksimum rank
-   - Ön koşullar
-   - Kaynak maliyeti
-   - Araştırma süresi
-   - Bonus türü
-   - Bonus miktarı
-   - Açıklama
-6. Ön koşullar yalnızca arayüzde değil, sunucu tarafında da doğrulanmalıdır.
-7. Araştırma tamamlandığında bonuslar sunucu tarafından uygulanmalıdır.
-8. Oyuncu araştırma ekranında kilitli araştırmaların neden kilitli olduğunu görebilmelidir.
-9. Element araştırmaları diğer araştırma ağaçlarının ön koşul sistemiyle bağlantılı olmalıdır.
-10. Araştırma süreleri çevrimdışı ilerlemeye uygun olmalıdır.
-11. Üniversite yükseltmesi devam eden araştırmayı durdurmamalıdır.
-12. Üniversite yıkılırsa araştırmaların durması ve tamirden sonra devam etmesi önerilmektedir; bu davranış henüz kesinleştirilmelidir.
-13. Araştırma iptalinde kaynak iadesi konusu ayrıca kararlaştırılmalıdır.
-14. Bonusların toplam sınırları merkezi olarak kontrol edilmelidir.
-15. Aynı bonusun farklı araştırmalardan alınması hâlinde toplam bonus hesaplaması tutarlı olmalıdır.
-
----
-
-# SON DURUM VE ONAY BEKLEYEN KONULAR
-
-Bu belge, araştırma ağaçlarının isimlerini ve genel dağılımını tanımlar. Henüz tamamlanmamış konular:
-
-- Her araştırmanın kesin bonus yüzdesi.
-- Araştırma başına kaynak maliyeti.
-- Araştırma süreleri.
-- Her araştırmanın maksimum rank sayısı.
-- Araştırmaların üniversite seviyesiyle açılma koşulları.
-- Bazı ileri araştırmaların ayrıntılı mekanikleri.
-- Element kombinasyonlarının kesin savaş etkileri.
-- Araştırma iptalinde kaynak iadesi.
-- Üniversite yıkıldığında araştırma davranışı.
-- Ekonomi ağacındaki kaynak açılma koşullarının tüm araştırmalara uygulanması.
-
-Bu maddeler kullanıcı onayı olmadan kesin oyun kuralı olarak uygulanmamalıdır.
-
-**ÖNEMLİ:** Bu belge tasarım referansıdır. Kod değişikliğine başlamadan önce kullanıcıya mevcut projeyle uyumluluk raporu sunulmalı ve önemli uygulama aşamaları için onay alınmalıdır.
+- Kule saldırı elementleri (Okçu Kulesine uygulanır): Ok, Ateş, Buz, Zehir, Büyü, Şimşek.
+- Kule savunma elementleri ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
+- Döngü: Ateş > Zehir > Buz > Ateş. Zayıf elementle saldıran %40 az hasar verir (üstün olana ek hasar yok). Direnç: bir elemente karşı güçlendirilmiş (aynı savunma elementli) hedef o elementten %35 az hasar alır. Ok, Büyü, Şimşek nötrdür.

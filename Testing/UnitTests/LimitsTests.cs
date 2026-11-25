@@ -31,7 +31,7 @@ namespace GameCore.Tests
         [Test]
         public void ProductionAndDepots_AreLimitedToOne()
         {
-            var g = Rich(12); // 2. orman/depo Sv13, 2. taş ocağı Sv17
+            var g = Rich(12); // 2. kopyalar Ekonomi araştırmasıyla
             string err;
             Assert.IsFalse(g.TryPlaceBuilding(P(6, 1), BuildingType.Forest, out err), "Başlangıçta zaten 1 orman var");
             StringAssert.Contains("sınırı 1", err);
@@ -53,9 +53,9 @@ namespace GameCore.Tests
             Assert.AreEqual(1, g.PendingLevelUps.Count);
         }
 
-        private static readonly string House1 = ResearchCatalog.MakeId(4, 1, 4), House2 = ResearchCatalog.MakeId(4, 3, 4),
-            Barracks2 = ResearchCatalog.MakeId(4, 8, 4), Academy2 = ResearchCatalog.MakeId(4, 12, 4), Barracks3 = ResearchCatalog.MakeId(4, 18, 4);
-        private static readonly string[] TowerR = { ResearchCatalog.MakeId(4, 3, 5), ResearchCatalog.MakeId(4, 6, 5), ResearchCatalog.MakeId(4, 10, 5), ResearchCatalog.MakeId(4, 15, 5), ResearchCatalog.MakeId(4, 20, 5) };
+        private static readonly string House1 = ResearchCatalog.MakeId(4, 1, 2), House2 = ResearchCatalog.MakeId(4, 3, 2),
+            Barracks2 = ResearchCatalog.MakeId(4, 8, 2), Academy2 = ResearchCatalog.MakeId(4, 12, 2), Barracks3 = ResearchCatalog.MakeId(4, 18, 2);
+        private static readonly string[] TowerR = { ResearchCatalog.MakeId(1, 3, 2), ResearchCatalog.MakeId(1, 6, 2), ResearchCatalog.MakeId(1, 10, 2), ResearchCatalog.MakeId(1, 15, 2), ResearchCatalog.MakeId(1, 20, 2) };
         private static string Tower1 => TowerR[0];
 
         [Test]
@@ -138,17 +138,27 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void ProductionBuildings_SecondCopyByLevel()
+        public void ResourceBuildings_SecondCopyByEconomyResearch_MaxTwo()
         {
-            Assert.AreEqual(1, Rich(12).MaxCountOf(BuildingType.Forest));
-            Assert.AreEqual(2, Rich(13).MaxCountOf(BuildingType.Forest));
-            Assert.AreEqual(2, Rich(13).MaxCountOf(BuildingType.LumberDepot));
-            Assert.AreEqual(1, Rich(16).MaxCountOf(BuildingType.StoneQuarry));
-            Assert.AreEqual(2, Rich(17).MaxCountOf(BuildingType.StoneDepot));
-            Assert.AreEqual(1, Rich(27).MaxCountOf(BuildingType.GoldMine));
-            Assert.AreEqual(2, Rich(28).MaxCountOf(BuildingType.Bank));
-            Assert.AreEqual(1, Rich(30).MaxCountOf(BuildingType.IronMine));
-            Assert.AreEqual(1, Rich(30).MaxCountOf(BuildingType.IronDepot));
+            var g = Rich(30);
+            Assert.AreEqual(1, g.MaxCountOf(BuildingType.Forest), "seviye 2. kopya vermez");
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.WoodSlot, 1).Id);
+            Assert.AreEqual(2, g.MaxCountOf(BuildingType.Forest));
+            Assert.AreEqual(2, g.MaxCountOf(BuildingType.LumberDepot));
+            Assert.AreEqual(1, g.MaxCountOf(BuildingType.StoneQuarry));
+            foreach (var st in new[] { ResearchStat.StoneSlot, ResearchStat.GoldSlot, ResearchStat.IronSlot }) g.Research.ForceComplete(ResearchCatalog.FindSpecial(st, 1).Id);
+            Assert.AreEqual(2, g.MaxCountOf(BuildingType.IronDepot));
+            Assert.AreEqual(2, g.MaxCountOf(BuildingType.Bank));
+        }
+
+        [Test]
+        public void RoadResearch_AddsEightRoads()
+        {
+            var g = Rich(10);
+            int before = g.Layout.RoadLimit;
+            foreach (var d in ResearchCatalog.All) if (d.Stat == ResearchStat.RoadSlot) g.Research.ForceActive(d.Id, 1);
+            g.Advance(5, 0); // araştırmalar biter → yol hakkı eklenir
+            Assert.AreEqual(before + 8, g.Layout.RoadLimit);
         }
 
         [Test]
@@ -240,7 +250,7 @@ namespace GameCore.Tests
             var old = GameSave.Load(text + "aq a_house2\naq a_tower1\nrdone 4-15-4\n", ResourceConfig.CreateDefault(), out _);
             Assert.IsTrue(old.Research.IsDone(House2));
             Assert.IsTrue(old.Research.IsDone(TowerR[1]), "a_tower1 → Kule Hakkı II (Sv6)");
-            Assert.IsTrue(old.Research.IsDone(TowerR[3]), "eski 4-15-4 → 4-15-5");
+            Assert.IsTrue(old.Research.IsDone(TowerR[3]), "eski 4-15-4 → Savunma Kule Hakkı IV");
             Assert.AreEqual(3, old.MaxVillagerHouses);
         }
     }

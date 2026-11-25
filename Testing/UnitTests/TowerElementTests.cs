@@ -126,7 +126,7 @@ namespace GameCore.Tests
             Assert.IsTrue(g.TryPlaceTower(P(4, 1), TowerType.Archer, out err), err);
             Assert.IsFalse(g.TryApplyElement(P(4, 1), TowerElement.Fire, out err));
             StringAssert.Contains("araştırması", err);
-            g.Research.ForceComplete(ResearchCatalog.MakeId((int)ResearchTree.Element, 1, ContentCatalog.ElementResearchColumn(TowerElement.Fire)));
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.TowerAttackElement, (int)TowerElement.Fire).Id);
             Assert.IsTrue(g.TryApplyElement(P(4, 1), TowerElement.Fire, out err), err);
             Assert.AreEqual(TowerElement.None, g.Towers[P(4, 1)].Element, "iş bitmeden değişmez");
             g.Advance(GameRules.ElementApplySeconds + 1, 0);

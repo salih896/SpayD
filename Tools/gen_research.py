@@ -13,10 +13,12 @@ for l in src:
     if not l.startswith('|') or l.startswith('|---'): continue
     cells=[c.strip() for c in l.strip().strip('|').split('|')]
     if tree<6 or tree==6:
-        if cells[0].isdigit() and len(cells) in (4,5,6):
+        if cells[0].isdigit() and 3 <= len(cells) <= 8:
             lv=int(cells[0])
             for i,c in enumerate(cells[1:]):
-                if c and c!='—': rows.append((tree,lv,i+1,c))
+                if c and c!='—':
+                    m=re.match(r'^(.*?)\s*\[(\w+):(-?\d+)\]$',c)
+                    rows.append((tree,lv,i+1,(m.group(1)+'|'+m.group(2)+'|'+m.group(3)) if m else c))
         elif tree==6 and sec in (1,2,3,4) and len(cells)==2 and cells[0] not in ('Araştırma','---'):
             # temel element bilgisi: Ateş/Buz/Zehir sütun sırası = satır sırası
             idx=sum(1 for r in rows if r[0]==6 and r[1]==sec)+1
@@ -25,7 +27,7 @@ cnt={}
 for r in rows: cnt[r[0]]=cnt.get(r[0],0)+1
 print(cnt,sum(cnt.values()),file=sys.stderr)
 out=['// ÜRETİLMİŞ DOSYA: Tools/gen_research.py ile GameDesign/TechTrees.md\'den oluşturuldu. Elle düzenleme.',
-'namespace GameCore.Progression','{','    internal static class ResearchData','    {','        // ağaç|seviye|sütun|ad  (ağaç: 0 Ekonomi,1 Savunma,2 Askerî,3 Mimarlık,4 Köy Gelişimi,5 Bilim,6 Element)',
+'namespace GameCore.Progression','{','    internal static class ResearchData','    {','        // ağaç|seviye|sütun|ad|etki|değer  (ağaç: 0 Ekonomi,1 Savunma,2 Askerî,3 Mimarlık,4 Köy Gelişimi,5 Bilim,6 Element; etki = ResearchStat)',
 '        public static readonly string[] Rows =','        {']
 for t,lv,c,n in rows: out.append('            "%d|%d|%d|%s",'%(t,lv,c,n))
 out+=['        };','    }','}']
