@@ -375,6 +375,11 @@ Element ağacı diğer altı araştırma ağacını da etkileyen özel bir ön k
 | Ateş | Ateş elementinin temel kilidini açar. |
 | Buz | Buz elementinin temel kilidini açar. |
 | Zehir | Zehir elementinin temel kilidini açar. |
+| Ok | Okçu Kulesi için Ok elementinin kilidini açar (yüksek hasar, kritik vuruş, hızlı atış). |
+| Büyü | Okçu Kulesi için Büyü elementinin kilidini açar (uçanlara büyük bonus). |
+| Şimşek | Okçu Kulesi için Şimşek elementinin kilidini açar (2 askere sıçrar). |
+
+Kule elementleri (kullanıcı kararı 25.11.2026): Okçu Kulesine Ateş, Buz, Zehir, Ok, Büyü veya Şimşek elementi uygulanabilir. Element önce bu seviyede araştırılır; sonra kuleye tıklanıp 1-2 dk ve biraz kaynakla uygulanır. Ateş: alan + yanma, çok yavaş atış. Buz: yavaşlatma + üst üste vurdukça donma hasarı. Zehir: askerin hasarını düşürür + zamanla hasar. Ok: yüksek hasar, kritik vuruş, hızlı atış. Büyü: uçanlara büyük bonus. Şimşek: 2 askere sıçrar.
 
 ## Seviye 2 – Element Saldırısı
 

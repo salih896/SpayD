@@ -45,18 +45,29 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer; Mancınık'ta gövdeye levha ve bayrak eklenir.
 
-## 2. Kuleler (7)
-Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta canı (yüzde) en az olan. Hakkı (toplam): başta 3; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8. Kuleler de yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt; çapraz sayılmaz).
+## 2. Kuleler (2 tür + 6 element) — kullanıcı kararı 25.11.2026
+Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta canı (yüzde) en az olan. Hakkı: başta 3, Akademi "Kule Hakkı I-V" (Sv3/6/10/15/20) ile en çok 8. Kuleler yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt).
 
-| Kule | Açılış | Can | Hasar | Aralık | Menzil | Havayı vurur | Özellik | Kurulum |
-|---|---|---|---|---|---|---|---|---|
-| Okçu Kulesi | Sv2 | 1000 | 20 | 5 | 2,5 | Evet | Hızlı atış | 120 odun |
-| Duvar | Sv4 | 3200 | — | — | — | — | Saldırmaz; 2,5 hücredeki yer askerlerini üstüne çeker | 160 odun |
-| Büyücü Kulesi | Sv6 | 800 | 20 | 14 | 2,5 | Evet | Alan 1,2, zırh delme %30 | 200 odun, 80 taş |
-| Elf Kulesi | Sv8 | 750 | 20 | 3 | 3,0 | Evet | Uçanlara +%100 | 180 odun, 120 taş |
-| Top Kulesi | Sv10 | 1100 | 20 | 22 | 3,0 | Hayır | Alan 1,2 | 300 odun, 150 taş |
-| Buz Kulesi | Sv12 | 900 | 20 | 7 | 2,5 | Evet | Vurduğunu 2,5 sn yavaşlatır | 250 odun, 200 taş |
-| Şimşek Kulesi | Sv16 | 850 | 20 | 13 | 2,5 | Evet | 2 askere daha zincirleme sıçrar (%70) | 300 odun, 200 taş, 120 altın |
+| Kule | Açılış | Can | Hasar | Aralık | Menzil | Özellik | Kurulum |
+|---|---|---|---|---|---|---|---|
+| Okçu Kulesi | Sv2 | 1000 | 20 | 5 | 2,5 | Havayı da vurur; element alabilir | 120 odun |
+| Duvar | Sv4 | 3200 | — | — | — | Saldırmaz; 2,5 hücredeki yer askerlerini üstüne çeker | 160 odun |
+
+**Okçu Kulesi elementleri** (önce Akademi > Element ağacı Sv1'de araştırılır; sonra kuleye tıklanıp 90 sn + biraz kaynakla uygulanır, istenince değiştirilir). Değerler GEÇİCİ:
+
+| Element | Hasar | Aralık | Etki |
+|---|---|---|---|
+| Yok | 20 | 5 | Temel okçu |
+| Ok | 26 | 4 | %20 kritik vuruş (×2) |
+| Ateş | 52 | 25 | Alan 1,2 (yarım hasar) + 3 sn yanma; çok yavaş |
+| Buz | 18 | 7 | 2,5 sn yavaşlatma; 3 sn içinde tekrar vurdukça +%15 donma hasarı (en çok 5 yığın) |
+| Zehir | 14 | 8 | 4 sn zehir (zamanla hasar) + askerin hasarı -%30 |
+| Büyü | 26 | 9 | Uçanlara +%100, zırh delme %30 |
+| Şimşek | 24 | 12 | 2 askere daha sıçrar (%70) |
+
+**Kule geliştirme (kuleye tıkla):** her yükseltme seviye +1 ve seçilen dal +1. Okçu: Saldırı hızı (aralık -%3/puan, en az %40) veya Saldırı hasarı (+%4/puan); can seviyeyle artar. Duvar: Can (+%5/puan) veya Zırh (askerin duvara verdiği hasar -%2/puan, en çok %60).
+
+Eski Büyücü/Elf/Top/Buz/Şimşek kuleleri kayıtta Okçu Kulesi + Büyü/Ok/Ateş/Buz/Şimşek elementine çevrilir.
 
 **Geliştirme:** İşçi + kaynak + süre; hedef seviye oyuncu seviyesini aşamaz. Hasar alan kulede kalıcı aşınma oluşur (en çok %70), onarılması gerekir.
 
@@ -113,16 +124,18 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 - **Ev yapısı:** Sv5'te taş alt kat, Sv10'da 2. kat
 - **Tüm binalara eklenenler:** taş temel (Sv5), fener (Sv10), altın süs (Sv15), sancak (Sv20)
 
-## 6. Akademi yapı hakkı araştırmaları (Köy Gelişimi, 4. sütun)
+## 6. Akademi yapı ve kule hakkı araştırmaları (Köy Gelişimi 4. ve 5. sütun)
 | Araştırma | Sv | Ödül |
 |---|---|---|
-| Köylü Evi I | 1 | +1 köylü evi |
-| Köylü Evi II | 3 | +1 köylü evi |
-| Kule Hakkı I | 6 | +1 kule |
-| Kule Hakkı II | 15 | +1 kule |
+| Köylü Evi I / II | 1 / 3 | +1 köylü evi (her biri) |
+| Kışla II / III | 8 / 18 | +1 kışla (her biri; 1. kışla Sv3) |
+| Akademi II | 12 | +1 Akademi (kurulunca +1 araştırma yuvası) |
+| Kule Hakkı I-V | 3 / 6 / 10 / 15 / 20 | +1 kule (her biri; başta 3, en çok 8) |
+
+**Seviyeyle açılan bina sayısı:** Orman ve Kereste Deposu Sv13'te 2; Taş Ocağı/Deposu Sv5 + Sv17; Altın Madeni/Banka Sv15 + Sv28; Demir Madeni/Deposu 1 (Sv25).
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
-- **Araştırma:** 7 ağaç, 478 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
+- **XP eğrisi:** seviye başına 100 + 105l + 22l² (Sv1→30 toplam ≈ 215 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
+- **Araştırma:** 7 ağaç, 487 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

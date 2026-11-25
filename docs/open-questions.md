@@ -76,3 +76,5 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Sv3-10 rastgele savaşlarda zafer oranı %33-68 (tamsayı kule seviyesi yüzünden basamaklı). İnce ayar için kule seviyesi yerine kule can/hasar yüzdesiyle ölçekleme önerilebilir.
 - Bot Normal hedeflere karşı artık ≈ %57 kazanıyor (eski %16 sorunu yeni dengeyle çözüldü; ayrıca karar gerekmiyor).
 - Kule hasarı düşürülünce oyuncunun köyü günlük baskınlara karşı neredeyse hiç dayanamıyor (sim: 2 saatte bir giren bot 90 baskının 4'ünü savundu). Öneri: baskıncı ordusunu küçültmek. Karar gerekiyor.
+- 2. Akademi kurulunca +1 araştırma yuvası verir (#89, benim önerim); başka bir işlevi olsun mu?
+- Kule element değerleri ve geliştirme dalı etkileri (#90) geçicidir; oynadıktan sonra ayarlanmalı.

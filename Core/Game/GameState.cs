@@ -9,15 +9,16 @@ using GameCore.Village;
 
 namespace GameCore.Game
 {
-    public enum JobKind { Building, Tower, Soldier, Road }
+    public enum JobKind { Building, Tower, Soldier, Road, TowerElement }
 
     public sealed class UpgradeJob
     {
         public JobKind Kind;
         public GridPos Pos;
         public SoldierType Soldier;
-        public int TargetLevel;
+        public int TargetLevel;       // TowerElement işinde: uygulanacak element
         public int RemainingSeconds;
+        public int Branch;            // Kule yükseltmesi: 1 = A dalı (Okçu hız / Duvar can), 2 = B dalı (Okçu hasar / Duvar zırh)
     }
 
     public sealed class LevelUpInfo
@@ -285,7 +286,7 @@ namespace GameCore.Game
             foreach (var kv in Towers)
             {
                 int perm = Wears.TryGetValue(kv.Key, out var w) ? w.PermanentDamagePct : 0;
-                d.Towers[kv.Key] = new TowerSpec(kv.Value.Type, kv.Value.Level, perm);
+                d.Towers[kv.Key] = kv.Value.With(perm);
             }
             foreach (var kv in Buildings) d.Buildings[kv.Key] = kv.Value;
             foreach (var kv in Traps) d.Traps[kv.Key] = kv.Value;
@@ -407,8 +408,16 @@ namespace GameCore.Game
                     if (Buildings.TryGetValue(j.Pos, out var b)) { b.Level = j.TargetLevel; return ContentCatalog.Building(b.Type).Name + " Sv " + j.TargetLevel; }
                     return "Yapı yükseltildi";
                 case JobKind.Tower:
-                    if (Towers.TryGetValue(j.Pos, out var t)) { t.Level = j.TargetLevel; return ContentCatalog.Tower(t.Type).Name + " Sv " + j.TargetLevel; }
+                    if (Towers.TryGetValue(j.Pos, out var t))
+                    {
+                        t.Level = j.TargetLevel;
+                        if (j.Branch == 1) t.BranchA++; else if (j.Branch == 2) t.BranchB++;
+                        return ContentCatalog.Tower(t.Type).Name + " Sv " + j.TargetLevel + (j.Branch > 0 ? " (" + BranchName(t.Type, j.Branch) + ")" : "");
+                    }
                     return "Kule yükseltildi";
+                case JobKind.TowerElement:
+                    if (Towers.TryGetValue(j.Pos, out var te)) { te.Element = (TowerElement)j.TargetLevel; return "Kule elementi: " + ContentCatalog.ElementName(te.Element); }
+                    return "Element uygulandı";
                 case JobKind.Road:
                     Layout.SetRoadTier(j.Pos, (RoadTier)j.TargetLevel);
                     return "Yol: " + RoadRules.Name((RoadTier)j.TargetLevel);
@@ -467,7 +476,7 @@ namespace GameCore.Game
         public bool TryRemove(GridPos p, out string error)
         {
             error = null;
-            foreach (var j in Jobs) if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.Road) && j.Pos.Equals(p)) { error = "Yükseltme sürerken silinemez"; return false; }
+            foreach (var j in Jobs) if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.Road || j.Kind == JobKind.TowerElement) && j.Pos.Equals(p)) { error = "Yükseltme sürerken silinemez"; return false; }
             int lvl = Level;
             ResourceCost refund = default;
             if (Buildings.TryGetValue(p, out var b)) refund = GameRules.Scale(GameRules.BuildCostOf(b.Type), Config, lvl, GameRules.SellRefundPct);
@@ -526,7 +535,7 @@ namespace GameCore.Game
             foreach (var it in d.Sold)
                 if (it.Kind != DraftKind.Trap)
                     foreach (var j in Jobs)
-                        if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && j.Pos.Equals(it.Origin)) { error = "Yükseltme sürerken satılamaz"; return false; }
+                        if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.TowerElement) && j.Pos.Equals(it.Origin)) { error = "Yükseltme sürerken satılamaz"; return false; }
 
             var newLayout = d.BuildLayout();
             var nb = new Dictionary<GridPos, BuildingSpec>();
@@ -561,7 +570,7 @@ namespace GameCore.Game
             foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
                 if (refund.Get(rt) > 0) Wallet.TryAdd(rt, refund.Get(rt), lvl, out _, out _);
             foreach (var j in Jobs)
-                if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && move.TryGetValue(j.Pos, out var np)) j.Pos = np;
+                if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.TowerElement) && move.TryGetValue(j.Pos, out var np)) j.Pos = np;
             Layout = newLayout; Buildings = nb; Towers = nt; Wears = nw; Traps = ntr;
 
             for (int i = 0; i < newBuildings; i++) PendingLevelUps.AddRange(AddXp(PlacementXpBuilding));
@@ -606,6 +615,7 @@ namespace GameCore.Game
             else if (kind == JobKind.Soldier && BarracksMaxLevel() < info.TargetLevel) info.Block = "Kışla Sv " + info.TargetLevel + " gerekli";
             else if (kind == JobKind.Soldier && lvl < ContentCatalog.Soldier(soldier).UnlockLevel) info.Block = "Asker henüz açılmadı";
             else if (IsUpgrading(kind, pos, soldier)) info.Block = "Yükseltme sürüyor";
+            else if (kind == JobKind.Tower && IsUpgrading(JobKind.TowerElement, pos, soldier)) info.Block = "Element uygulanıyor";
             else if (FreeBuilders <= 0) info.Block = "Boş işçi yok (Köylü Evi ekle)";
             return info;
         }
@@ -631,6 +641,51 @@ namespace GameCore.Game
             if (error != null) return false;
             if (!Wallet.TrySpend(info.Cost, Level, SpendArea.Upgrade, out error)) return false;
             Jobs.Add(new UpgradeJob { Kind = kind, Pos = pos, Soldier = soldier, TargetLevel = info.TargetLevel, RemainingSeconds = info.Seconds });
+            return true;
+        }
+
+        // ---------- Kule geliştirme dalları ve element (kullanıcı kararı 25.11.2026) ----------
+        public static string BranchName(TowerType t, int branch) => t == TowerType.Wall ? (branch == 1 ? "Can" : "Zırh") : (branch == 1 ? "Saldırı hızı" : "Saldırı hasarı");
+
+        /// <summary>Kuleye tıklayarak yükseltme: seviye +1 ve seçilen dal (1 veya 2) +1.</summary>
+        public bool TryStartTowerUpgrade(GridPos pos, int branch, out string error)
+        {
+            if (branch != 1 && branch != 2) { error = "Dal seç"; return false; }
+            var info = PreviewUpgrade(JobKind.Tower, pos, SoldierType.Swordsman);
+            error = info.Block;
+            if (error != null) return false;
+            if (!Wallet.TrySpend(info.Cost, Level, SpendArea.Upgrade, out error)) return false;
+            Jobs.Add(new UpgradeJob { Kind = JobKind.Tower, Pos = pos, TargetLevel = info.TargetLevel, RemainingSeconds = info.Seconds, Branch = branch });
+            return true;
+        }
+
+        public bool ElementUnlocked(TowerElement e)
+        {
+            int col = ContentCatalog.ElementResearchColumn(e);
+            return col > 0 && Research.IsDone(ResearchCatalog.MakeId((int)ResearchTree.Element, 1, col));
+        }
+
+        /// <summary>Element uygulama önizlemesi: null = uygulanabilir, aksi halde sebep.</summary>
+        public string ElementBlock(GridPos pos, TowerElement e, out ResourceCost cost)
+        {
+            cost = default;
+            if (!Towers.TryGetValue(pos, out var t)) return "Kule yok";
+            if (t.Type != TowerType.Archer) return "Yalnızca Okçu Kulesi";
+            cost = GameRules.ElementCost(t.Level, Config, Level);
+            if (e == TowerElement.None) return "Element seç";
+            if (t.Element == e) return "Zaten " + ContentCatalog.ElementName(e);
+            if (!ElementUnlocked(e)) return "Akademi: Element ağacında " + ContentCatalog.ElementName(e) + " araştırması gerekli";
+            if (IsUpgrading(JobKind.Tower, pos, SoldierType.Swordsman) || IsUpgrading(JobKind.TowerElement, pos, SoldierType.Swordsman)) return "Kulede iş sürüyor";
+            if (FreeBuilders <= 0) return "Boş işçi yok (Köylü Evi ekle)";
+            return null;
+        }
+
+        public bool TryApplyElement(GridPos pos, TowerElement e, out string error)
+        {
+            error = ElementBlock(pos, e, out var cost);
+            if (error != null) return false;
+            if (!Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error)) return false;
+            Jobs.Add(new UpgradeJob { Kind = JobKind.TowerElement, Pos = pos, TargetLevel = (int)e, RemainingSeconds = GameRules.ElementApplySeconds });
             return true;
         }
 

@@ -26,7 +26,7 @@ namespace GameCore.Progression
     }
 
     /// <summary>
-    /// 484 araştırmanın kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
+    /// 487 araştırmanın kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
     /// Ön koşul: aynı sütundaki bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu gerektirir (öneri, onay bekler).
     /// Element ağacının diğer ağaçlarla ortak kilitleri henüz uygulanmadı (docs/open-questions.md).
     /// </summary>

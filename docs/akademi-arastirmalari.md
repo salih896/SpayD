@@ -1,9 +1,9 @@
 # Akademi Araştırmaları (tam liste)
 
 Üretilmiş görünüm: `Core/Progression/ResearchData.cs` + `Research.cs`. Kaynak tasarım: `GameDesign/TechTrees.md`.
-Araştırma seviyesi = gereken Akademi seviyesi. Ön koşul: aynı sütunda bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu ister. Bonus değerleri GEÇİCİDİR.
+Araştırma seviyesi = gereken Akademi seviyesi. Ön koşul: aynı sütunda bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu ister; 4. ve sonraki sütunlar aynı adlı bir öncekini ister. Bonus değerleri GEÇİCİDİR.
 
-Toplam: 478 araştırma, 7 ağaç.
+Toplam: 487 araştırma, 7 ağaç.
 
 ## 1. Ekonomi (65)
 
@@ -288,7 +288,7 @@ Toplam: 478 araştırma, 7 ağaç.
 | 30 | 2 | Aşılmaz Köy Yapıları | Yükseltme maliyeti -%1 |
 | 30 | 3 | Kadim Yapı Gücü | Bina canı +%2 |
 
-## 5. Köy Gelişimi (70)
+## 5. Köy Gelişimi (76)
 
 | Sv | Sütun | Araştırma | Bonus |
 |---|---|---|---|
@@ -300,6 +300,7 @@ Toplam: 478 araştırma, 7 ağaç.
 | 3 | 1 | İşçi Eğitimi I | İnşa süresi -%1 |
 | 3 | 2 | Yerleşim Düzeni | Eğitim süresi -%1 |
 | 3 | 4 | Köylü Evi II | +1 Köylü Evi hakkı |
+| 3 | 5 | Kule Hakkı I | +1 Kule hakkı |
 | 4 | 1 | Korunaklı Kaynaklar I | İnşa süresi -%1 |
 | 4 | 2 | Köy Güvenliği | Eğitim süresi -%1 |
 | 5 | 1 | Harita Genişletme I | İnşa süresi -%1 |
@@ -307,20 +308,23 @@ Toplam: 478 araştırma, 7 ağaç.
 | 5 | 3 | Köy Planlaması | İnşa süresi -%1,5 |
 | 6 | 1 | Kaynak Koruma Sistemi | İnşa süresi -%1 |
 | 6 | 2 | Köy Nöbetçileri | Eğitim süresi -%1 |
-| 6 | 4 | Kule Hakkı I | +1 Kule hakkı |
+| 6 | 5 | Kule Hakkı II | +1 Kule hakkı |
 | 7 | 1 | Köy Organizasyonu II | İnşa süresi -%1 |
 | 7 | 2 | Acil Durum Hazırlığı | Eğitim süresi -%1 |
 | 8 | 1 | İşçi Eğitimi II | İnşa süresi -%1 |
 | 8 | 2 | Gelişmiş İş Bölümü | Eğitim süresi -%1 |
+| 8 | 4 | Kışla II | +1 Kışla hakkı |
 | 9 | 1 | Korunaklı Kaynaklar II | İnşa süresi -%1 |
 | 9 | 2 | Köy Savunma Düzeni | Eğitim süresi -%1 |
 | 10 | 1 | Harita Genişletme II | İnşa süresi -%1 |
 | 10 | 2 | Kalkan Yönetimi I | Eğitim süresi -%1 |
 | 10 | 3 | Yerleşim Uzmanlığı | İnşa süresi -%1,5 |
+| 10 | 5 | Kule Hakkı III | +1 Kule hakkı |
 | 11 | 1 | Köy İdaresi | İnşa süresi -%1 |
 | 11 | 2 | Gelişmiş Köy Güvenliği | Eğitim süresi -%1 |
 | 12 | 1 | Kalkan Süresi Geliştirmesi I | İnşa süresi -%1 |
 | 12 | 2 | Kaynak Muhafazası | Eğitim süresi -%1 |
+| 12 | 4 | Akademi II | +1 Akademi hakkı (+1 yuva) |
 | 13 | 1 | Korunaklı Kaynaklar III | İnşa süresi -%1 |
 | 13 | 2 | Genişletilmiş Yerleşim | Eğitim süresi -%1 |
 | 14 | 1 | İşçi Organizasyonu | İnşa süresi -%1 |
@@ -328,18 +332,20 @@ Toplam: 478 araştırma, 7 ağaç.
 | 15 | 1 | Harita Genişletme III | İnşa süresi -%1 |
 | 15 | 2 | Kalkan Yönetimi II | Eğitim süresi -%1 |
 | 15 | 3 | Köy Gelişim Planı | İnşa süresi -%1,5 |
-| 15 | 4 | Kule Hakkı II | +1 Kule hakkı |
+| 15 | 5 | Kule Hakkı IV | +1 Kule hakkı |
 | 16 | 1 | Köy Refahı | İnşa süresi -%1 |
 | 16 | 2 | Gelişmiş Yönetim | Eğitim süresi -%1 |
 | 17 | 1 | Kaynak Güvenliği | İnşa süresi -%1 |
 | 17 | 2 | Saldırı Sonrası Toparlanma | Eğitim süresi -%1 |
 | 18 | 1 | Korunaklı Kaynaklar IV | İnşa süresi -%1 |
 | 18 | 2 | Köy Gözetleme Sistemi | Eğitim süresi -%1 |
+| 18 | 4 | Kışla III | +1 Kışla hakkı |
 | 19 | 1 | Kalkan Süresi Geliştirmesi II | İnşa süresi -%1 |
 | 19 | 2 | Gelişmiş Nöbet Sistemi | Eğitim süresi -%1 |
 | 20 | 1 | Harita Genişletme IV | İnşa süresi -%1 |
 | 20 | 2 | Büyük Yerleşim Planı | Eğitim süresi -%1 |
 | 20 | 3 | Köy Organizasyonu Ustalığı | İnşa süresi -%1,5 |
+| 20 | 5 | Kule Hakkı V | +1 Kule hakkı |
 | 21 | 1 | Köy Yönetim Merkezi | İnşa süresi -%1 |
 | 21 | 2 | Gelişmiş Kaynak Muhafazası | Eğitim süresi -%1 |
 | 22 | 1 | Acil Savunma Hazırlığı | İnşa süresi -%1 |
@@ -434,13 +440,16 @@ Toplam: 478 araştırma, 7 ağaç.
 | 30 | 2 | Efsanevi Bilim Ustalığı | Araştırma maliyeti -%1 |
 | 30 | 3 | Bilimsel Zirve | Araştırma süresi -%2 |
 
-## 7. Element (79)
+## 7. Element (82)
 
 | Sv | Sütun | Araştırma | Bonus |
 |---|---|---|---|
-| 1 | 1 | Ateş | Element ustalığı +%0,3 |
-| 1 | 2 | Buz | Element ustalığı +%0,3 |
-| 1 | 3 | Zehir | Element ustalığı +%0,3 |
+| 1 | 1 | Ateş | Okçu Kulesi için Ateş elementinin kilidi + Element ustalığı +%0,3 |
+| 1 | 2 | Buz | Okçu Kulesi için Buz elementinin kilidi + Element ustalığı +%0,3 |
+| 1 | 3 | Zehir | Okçu Kulesi için Zehir elementinin kilidi + Element ustalığı +%0,3 |
+| 1 | 4 | Ok | Okçu Kulesi için Ok elementinin kilidi + Element ustalığı +%0,3 |
+| 1 | 5 | Büyü | Okçu Kulesi için Büyü elementinin kilidi + Element ustalığı +%0,3 |
+| 1 | 6 | Şimşek | Okçu Kulesi için Şimşek elementinin kilidi + Element ustalığı +%0,3 |
 | 2 | 1 | Ateş Saldırısı | Element ustalığı +%0,3 |
 | 2 | 2 | Buz Saldırısı | Element ustalığı +%0,3 |
 | 2 | 3 | Zehir Saldırısı | Element ustalığı +%0,3 |

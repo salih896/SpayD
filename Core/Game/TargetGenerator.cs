@@ -120,7 +120,7 @@ namespace GameCore.Game
                 if (towers < towerTarget && AdjacentRoad(layout, p))
                 {
                     var tt = towerTypes[ti++ % towerTypes.Count];
-                    if (layout.TryPlace(p, CellKind.Tower, out e)) { setup.Towers[p] = new TowerSpec(tt, structLevel, 0); towers++; }
+                    if (layout.TryPlace(p, CellKind.Tower, out e)) { setup.Towers[p] = TargetTower(tt, structLevel, level, towers); towers++; }
                 }
             }
             foreach (var kv in keyed)
@@ -168,6 +168,25 @@ namespace GameCore.Game
         }
 
         /// <summary>Yola bağlı mı (sağ/sol/üst/alt; oyuncu köyüyle aynı kural).</summary>
+        /// <summary>
+        /// Hedef köy kulesi: tipik oyuncu gibi geliştirme dalları eşit, Okçu kulelerine seviyeyle açılan elementler sırayla
+        /// (Sv6 Ok/Ateş, Sv9 Buz, Sv12 Zehir, Sv15 Büyü, Sv18 Şimşek; ilk kule elementsiz kalabilir).
+        /// </summary>
+        private static TowerSpec TargetTower(TowerType t, int structLevel, int playerLevel, int index)
+        {
+            var spec = new TowerSpec(t, structLevel, 0) { BranchA = (structLevel - 1) / 2 };
+            spec.BranchB = structLevel - 1 - spec.BranchA;
+            if (t != TowerType.Archer || playerLevel < 6) return spec;
+            var avail = new List<TowerElement> { TowerElement.None, TowerElement.Arrow, TowerElement.Fire };
+            if (playerLevel >= 9) avail.Add(TowerElement.Ice);
+            if (playerLevel >= 12) avail.Add(TowerElement.Poison);
+            if (playerLevel >= 15) avail.Add(TowerElement.Magic);
+            if (playerLevel >= 18) avail.Add(TowerElement.Lightning);
+            if (playerLevel >= 12) avail.Remove(TowerElement.None);
+            spec.Element = avail[index % avail.Count];
+            return spec;
+        }
+
         private static bool AdjacentRoad(VillageLayout l, GridPos p) => l.HasAdjacentRoad(p);
     }
 }

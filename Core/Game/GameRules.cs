@@ -113,6 +113,11 @@ namespace GameCore.Game
 
         public static ResourceCost BuildCostOf(TowerType t) => ContentCatalog.Tower(t).BuildCost;
 
+        /// <summary>Kuleye element uygulama (kullanıcı kararı 25.11.2026: 1-2 dk, biraz kaynak). GEÇİCİ: 90 sn; kule seviyesiyle artan küçük maliyet.</summary>
+        public const int ElementApplySeconds = 90;
+        public static ResourceCost ElementCost(int towerLevel, ResourceConfig cfg, int playerLevel) =>
+            Scale(new ResourceCost(150, 75, 40, 20), cfg, playerLevel, 100 + 15 * Math.Max(0, towerLevel - 1));
+
         /// <summary>Hedef seviyeye (2..) yükseltme maliyeti.</summary>
         public static ResourceCost UpgradeCost(ResourceCost baseCost, int targetLevel, ResourceConfig cfg, int playerLevel, int upgradeCostReductionPermille)
         {

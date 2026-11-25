@@ -254,19 +254,6 @@ namespace GameClient
             return "Saldırı " + sec.ToString("0.0") + " sn (" + (1f / sec).ToString("0.#") + "/sn)";
         }
 
-        private static string TowerRole(TowerType t)
-        {
-            switch (t)
-            {
-                case TowerType.Archer: return "Hızlı, havayı da vurur";
-                case TowerType.Mage: return "Alan hasarı, zırh deler";
-                case TowerType.Wall: return "Saldırmaz; askerleri üstüne çeker";
-                case TowerType.Elf: return "Uçanlara çok güçlü";
-                case TowerType.Cannon: return "Büyük alan hasarı, hava yok";
-                case TowerType.Ice: return "Vurduğunu yavaşlatır";
-                default: return "Zincirleme şimşek (3 hedef)";
-            }
-        }
 
         // ---------- Seçili yapı (alt orta kart) ----------
         private void DrawSelectPanel(float w, float h)
@@ -295,22 +282,33 @@ namespace GameClient
             }
             else if (g.Towers.TryGetValue(p, out var t))
             {
-                var d = ContentCatalog.Tower(t.Type);
-                GUI.Label(new Rect(x, y, iw, 26), d.Name + "  <size=14>Sv " + t.Level + "</size>", UiTheme.Header); y += 28;
+                var d = ContentCatalog.TowerFor(t.Type, t.Element);
+                bool wall = t.Type == TowerType.Wall;
+                GUI.Label(new Rect(x, y, iw - 150, 26), ContentCatalog.Tower(t.Type).Name + "  <size=14>Sv " + t.Level + (wall ? "" : "   Element: " + ContentCatalog.ElementName(t.Element)) + "</size>", UiTheme.Header);
+                if (!wall)
+                {
+                    var eb = new Rect(r.xMax - 150, r.y + 8, 100, 30);
+                    uiRects.Add(eb);
+                    if (GUI.Button(eb, towerElemMenu ? "Geri" : "Element", towerElemMenu ? GUI.skin.button : UiTheme.BtnGreen)) towerElemMenu = !towerElemMenu;
+                }
+                y += 28;
+                if (towerElemMenu && !wall) { DrawElementMenu(x, y, iw, p); return; }
                 var m = g.Research.Mods();
-                int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level), m.TowerHp);
-                int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage);
-                string info = d.Attack <= 0 ? "Can " + hp + "   " + TowerRole(t.Type) : "Can " + hp + "   Hasar " + atk + "   " + AtkSpeed(d.IntervalTicks) + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0") + "   " + TowerRole(t.Type);
+                int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level) * (wall ? t.WallHpPct : 100) / 100, m.TowerHp);
+                int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage) * t.DamagePct / 100;
+                string info = wall ? "Can " + hp + "   Zırh %" + t.WallArmorPct + "   (can " + t.BranchA + ", zırh " + t.BranchB + " puan)   Saldırmaz; askerleri üstüne çeker"
+                    : "Can " + hp + "   Hasar " + atk + "   " + AtkSpeed(System.Math.Max(1, d.IntervalTicks * t.IntervalPct / 100)) + "   Menzil " + (d.RangeMilli / 1000f).ToString("0.0")
+                      + "   (hız " + t.BranchA + ", hasar " + t.BranchB + " puan)\n" + ContentCatalog.ElementEffect(t.Element);
                 if (g.Wears.TryGetValue(p, out var wr) && wr.PermanentDamagePct > 0)
                 {
                     info += "   <color=#ffb070>Hasar %" + wr.PermanentDamagePct + (wr.IsDisabled ? " (DEVRE DIŞI)" : "") + "</color>";
                     string e;
-                    var rb = new Rect(r.xMax - 190, r.y + 8, 136, 30);
+                    var rb = new Rect(r.xMax - 260, r.y + 8, 100, 30);
                     uiRects.Add(rb);
                     if (GUI.Button(rb, "Onar", UiTheme.BtnRed)) { if (g.TryRepair(p, out e)) { Toast("Onarıldı"); dirty = true; } else Toast(e); }
                 }
-                GUI.Label(new Rect(x, y, iw, 22), "<size=13>" + info + "</size>"); y += 26;
-                DrawUpgradeRow(x, y, iw, JobKind.Tower, p, SoldierType.Swordsman);
+                GUI.Label(new Rect(x, y, iw, 40), "<size=12>" + info + "</size>"); y += 40;
+                DrawTowerUpgrade(x, y, iw, p, t.Type);
             }
             else if (layout.Get(p) == CellKind.Road)
             {
@@ -331,6 +329,47 @@ namespace GameClient
                 if (GUI.Button(ub, "Geliştir", UiTheme.BtnGreen)) { if (g.TryUpgradeRoad(p, out err)) { Toast("Yol geliştirme başladı"); dirty = true; } else Toast(err); }
             }
             else GUI.Label(new Rect(x, y, iw, 48), "Boş alan — yapı kurmak için KÖY DÜZENİ'ne gir");
+        }
+
+        private bool towerElemMenu;
+
+        /// <summary>Kule yükseltmesi iki dal: Okçu (saldırı hızı / hasar), Duvar (can / zırh). Her yükseltme seviye +1.</summary>
+        private void DrawTowerUpgrade(float x, float y, float iw, GridPos p, TowerType type)
+        {
+            var info = g.PreviewUpgrade(JobKind.Tower, p, SoldierType.Swordsman);
+            if (info.Block != null && info.TargetLevel == 0) { GUI.Label(new Rect(x, y, iw, 24), info.Block); return; }
+            GUI.Label(new Rect(x, y, iw - 230, 60), "<size=12>Sv " + info.TargetLevel + ": " + info.Cost + "\n" + Dur(info.Seconds) + (info.Block != null ? "\n<color=#ffb070>" + info.Block + "</color>" : "") + "</size>");
+            for (int b = 1; b <= 2; b++)
+            {
+                var rb = new Rect(x + iw - 230 + (b - 1) * 116, y + 4, 110, 44);
+                uiRects.Add(rb);
+                GUI.enabled = info.Block == null;
+                string err;
+                if (GUI.Button(rb, "<size=12>+ " + GameState.BranchName(type, b) + "</size>", UiTheme.BtnGreen))
+                { if (g.TryStartTowerUpgrade(p, b, out err)) Toast("Yükseltme başladı: " + GameState.BranchName(type, b)); else Toast(err); }
+                GUI.enabled = true;
+            }
+        }
+
+        /// <summary>Element menüsü: araştırılmış elementler kuleye uygulanır (90 sn + biraz kaynak).</summary>
+        private void DrawElementMenu(float x, float y, float iw, GridPos p)
+        {
+            var els = new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning };
+            g.ElementBlock(p, TowerElement.Arrow, out var cost);
+            GUI.Label(new Rect(x, y, iw, 20), "<size=12>Uygulama: " + cost + "  " + Dur(GameRules.ElementApplySeconds) + "   (önce Akademi > Element ağacı Sv1'de araştır)</size>");
+            y += 22;
+            float bw = (iw - 10) / 3f;
+            for (int i = 0; i < els.Length; i++)
+            {
+                var e = els[i];
+                string block = g.ElementBlock(p, e, out _);
+                bool locked = !g.ElementUnlocked(e);
+                var rb = new Rect(x + (i % 3) * (bw + 5), y + (i / 3) * 46, bw, 42);
+                uiRects.Add(rb);
+                string label = "<size=12><b>" + ContentCatalog.ElementName(e) + "</b>" + (locked ? " (kilitli)" : "") + "\n<size=10>" + ContentCatalog.ElementEffect(e) + "</size></size>";
+                if (GUI.Button(rb, label, block == null ? UiTheme.BtnGreen : GUI.skin.button))
+                { string err; if (g.TryApplyElement(p, e, out err)) { Toast(ContentCatalog.ElementName(e) + " uygulanıyor"); towerElemMenu = false; } else Toast(err); }
+            }
         }
 
         private float DrawUpgradeRow(float x, float y, float iw, JobKind kind, GridPos p, SoldierType s)

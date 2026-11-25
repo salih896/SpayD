@@ -37,19 +37,22 @@ namespace GameCore.Combat
         };
 
         // Kule hakkı 5-10 (GDD Bölüm 9): az ama güçlü kuleler. Can/hasar denge turu 2'de ×2,5 (13.11.2026).
+        /// <summary>Kaldırılmış kule türü: kurulamaz (eski kayıtlar Okçu + element olur; savaş kodu eski türü yine çalıştırabilir).</summary>
+        public const int Removed = 999;
+
         private static readonly TowerDef[] Towers =
         {
             new TowerDef { Type = TowerType.Archer, Name = "Okçu Kulesi", Hp = 1000, Attack = 20, IntervalTicks = 5, RangeMilli = 2500, CanHitAir = true, UnlockLevel = 2, BuildCost = new ResourceCost(120) },
-            new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 20, IntervalTicks = 14, RangeMilli = 2500, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = 6, BuildCost = new ResourceCost(200, 80) },
+            new TowerDef { Type = TowerType.Mage, Name = "Büyücü Kulesi", Hp = 800, Attack = 20, IntervalTicks = 14, RangeMilli = 2500, SplashMilli = 1200, ArmorPiercePct = 30, CanHitAir = true, UnlockLevel = Removed, BuildCost = new ResourceCost(200, 80) },
             // Duvar (kullanıcı kararı 14.11.2026: Mızrak Kulesi → Duvar): saldırmaz, çok dayanıklı, yakındaki yer askerlerini üstüne çeker
             new TowerDef { Type = TowerType.Wall, Name = "Duvar", Hp = 3200, Attack = 0, IntervalTicks = 10, RangeMilli = 0, CanHitAir = false, TauntMilli = 2500, UnlockLevel = 4, BuildCost = new ResourceCost(160) },
-            new TowerDef { Type = TowerType.Elf, Name = "Elf Kulesi", Hp = 750, Attack = 20, IntervalTicks = 3, RangeMilli = 3000, CanHitAir = true, BonusVsAirPct = 100, UnlockLevel = 8, BuildCost = new ResourceCost(180, 120) },
+            new TowerDef { Type = TowerType.Elf, Name = "Elf Kulesi", Hp = 750, Attack = 20, IntervalTicks = 3, RangeMilli = 3000, CanHitAir = true, BonusVsAirPct = 100, UnlockLevel = Removed, BuildCost = new ResourceCost(180, 120) },
             // Top: yavaş, yüksek alan hasarı, havayı vuramaz
-            new TowerDef { Type = TowerType.Cannon, Name = "Top Kulesi", Hp = 1100, Attack = 20, IntervalTicks = 22, RangeMilli = 3000, SplashMilli = 1200, CanHitAir = false, UnlockLevel = 10, BuildCost = new ResourceCost(300, 150) },
+            new TowerDef { Type = TowerType.Cannon, Name = "Top Kulesi", Hp = 1100, Attack = 20, IntervalTicks = 22, RangeMilli = 3000, SplashMilli = 1200, CanHitAir = false, UnlockLevel = Removed, BuildCost = new ResourceCost(300, 150) },
             // Buz: düşük hasar, vurduğunu yavaşlatır
-            new TowerDef { Type = TowerType.Ice, Name = "Buz Kulesi", Hp = 900, Attack = 20, IntervalTicks = 7, RangeMilli = 2500, SlowTicks = 25, CanHitAir = true, UnlockLevel = 12, BuildCost = new ResourceCost(250, 200) },
+            new TowerDef { Type = TowerType.Ice, Name = "Buz Kulesi", Hp = 900, Attack = 20, IntervalTicks = 7, RangeMilli = 2500, SlowTicks = 25, CanHitAir = true, UnlockLevel = Removed, BuildCost = new ResourceCost(250, 200) },
             // Şimşek: hedeften 2 askere daha sıçrar
-            new TowerDef { Type = TowerType.Lightning, Name = "Şimşek Kulesi", Hp = 850, Attack = 20, IntervalTicks = 13, RangeMilli = 2500, ChainCount = 2, CanHitAir = true, UnlockLevel = 16, BuildCost = new ResourceCost(300, 200, 120) },
+            new TowerDef { Type = TowerType.Lightning, Name = "Şimşek Kulesi", Hp = 850, Attack = 20, IntervalTicks = 13, RangeMilli = 2500, ChainCount = 2, CanHitAir = true, UnlockLevel = Removed, BuildCost = new ResourceCost(300, 200, 120) },
         };
 
         private static readonly BuildingDef[] Buildings =
@@ -66,6 +69,91 @@ namespace GameCore.Combat
             new BuildingDef { Type = BuildingType.University, Name = "Akademi", Hp = 600, UnlockLevel = 5 },
             new BuildingDef { Type = BuildingType.VillagerHouse, Name = "Köylü Evi", Hp = 300, UnlockLevel = 1 },
         };
+
+        // ---------- Kule elementleri (kullanıcı kararı 25.11.2026; sayılar GEÇİCİ) ----------
+        private static readonly TowerDef[] elementDefs = BuildElementDefs();
+
+        private static TowerDef[] BuildElementDefs()
+        {
+            var a = Towers[(int)TowerType.Archer];
+            TowerDef E(TowerElement e, string name, int atkPct, int interval) => new TowerDef
+            {
+                Type = TowerType.Archer, Name = name, Hp = a.Hp, Attack = a.Attack * atkPct / 100, IntervalTicks = interval, RangeMilli = a.RangeMilli,
+                CanHitAir = true, UnlockLevel = a.UnlockLevel, BuildCost = a.BuildCost
+            };
+            var d = new TowerDef[7];
+            d[0] = a;
+            d[1] = E(TowerElement.Arrow, "Okçu Kulesi (Ok)", 130, 4); d[1].CritPct = 20; d[1].CritMultPct = 200;               // yüksek hasar, kritik, hızlı
+            d[2] = E(TowerElement.Fire, "Okçu Kulesi (Ateş)", 260, 25); d[2].SplashMilli = 1200; d[2].BurnTicks = 30; d[2].BurnPermille = 40; // alan + yanma, çok yavaş
+            d[3] = E(TowerElement.Ice, "Okçu Kulesi (Buz)", 90, 7); d[3].SlowTicks = 25; d[3].FreezeStackPct = 15; d[3].FreezeMaxStacks = 5;  // yavaşlatma + birikerek donma
+            d[4] = E(TowerElement.Poison, "Okçu Kulesi (Zehir)", 70, 8); d[4].PoisonTicks = 40; d[4].PoisonPermille = 30; d[4].WeakenPct = 30; // zayıflatma + zamanla hasar
+            d[5] = E(TowerElement.Magic, "Okçu Kulesi (Büyü)", 130, 9); d[5].BonusVsAirPct = 100; d[5].ArmorPiercePct = 30;      // uçanlara büyük bonus
+            d[6] = E(TowerElement.Lightning, "Okçu Kulesi (Şimşek)", 120, 12); d[6].ChainCount = 2;                             // 2 askere sıçrar
+            return d;
+        }
+
+        /// <summary>Kulenin savaş tanımı: Okçu Kulesi + element; elementsiz veya eski tür → katalogdaki tanım.</summary>
+        public static TowerDef TowerFor(TowerType t, TowerElement e) => t == TowerType.Archer && e != TowerElement.None ? elementDefs[(int)e] : Towers[(int)t];
+
+        public static string ElementName(TowerElement e)
+        {
+            switch (e)
+            {
+                case TowerElement.Arrow: return "Ok"; case TowerElement.Fire: return "Ateş"; case TowerElement.Ice: return "Buz";
+                case TowerElement.Poison: return "Zehir"; case TowerElement.Magic: return "Büyü"; case TowerElement.Lightning: return "Şimşek";
+                default: return "Yok";
+            }
+        }
+
+        public static string ElementEffect(TowerElement e)
+        {
+            switch (e)
+            {
+                case TowerElement.Arrow: return "Yüksek hasar, %20 kritik (x2), hızlı atış";
+                case TowerElement.Fire: return "Alan hasarı + yanma; çok yavaş atış";
+                case TowerElement.Ice: return "Yavaşlatır; üst üste vurdukça donma hasarı artar";
+                case TowerElement.Poison: return "Zehirler (zamanla hasar), askerin hasarını %30 düşürür";
+                case TowerElement.Magic: return "Uçanlara +%100 hasar, zırhı kısmen deler";
+                case TowerElement.Lightning: return "Vurduğu askerin yanındaki 2 askere sıçrar";
+                default: return "Elementsiz okçu";
+            }
+        }
+
+        /// <summary>Elementin kilit araştırması: Element ağacı Sv1, sütun (Ateş 1, Buz 2, Zehir 3, Ok 4, Büyü 5, Şimşek 6).</summary>
+        public static int ElementResearchColumn(TowerElement e)
+        {
+            switch (e)
+            {
+                case TowerElement.Fire: return 1; case TowerElement.Ice: return 2; case TowerElement.Poison: return 3;
+                case TowerElement.Arrow: return 4; case TowerElement.Magic: return 5; case TowerElement.Lightning: return 6;
+                default: return 0;
+            }
+        }
+
+        /// <summary>Eski kule türü → Okçu Kulesi elementi (kayıt dönüşümü).</summary>
+        public static TowerElement LegacyElement(TowerType t)
+        {
+            switch (t)
+            {
+                case TowerType.Mage: return TowerElement.Magic; case TowerType.Elf: return TowerElement.Arrow; case TowerType.Cannon: return TowerElement.Fire;
+                case TowerType.Ice: return TowerElement.Ice; case TowerType.Lightning: return TowerElement.Lightning;
+                default: return TowerElement.None;
+            }
+        }
+
+        /// <summary>Görsel: element → çizilecek eski kule görünümü (model) ve mermi.</summary>
+        public static TowerType ModelLook(TowerType t, TowerElement e)
+        {
+            if (t != TowerType.Archer) return t;
+            switch (e)
+            {
+                case TowerElement.Arrow: return TowerType.Elf; case TowerElement.Fire: return TowerType.Cannon; case TowerElement.Ice: return TowerType.Ice;
+                case TowerElement.Magic: return TowerType.Mage; case TowerElement.Lightning: return TowerType.Lightning;
+                default: return TowerType.Archer;
+            }
+        }
+
+        public static TowerType ProjectileLook(TowerType t, TowerElement e) => e == TowerElement.Poison ? TowerType.Elf : e == TowerElement.Arrow ? TowerType.Archer : ModelLook(t, e);
 
         public static SoldierDef Soldier(SoldierType t) => Soldiers[(int)t];
         public static TowerDef Tower(TowerType t) => Towers[(int)t];

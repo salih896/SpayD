@@ -429,7 +429,7 @@ namespace GameClient
         {
             var best = sim.TowerTargetOf(tower); // simülasyonla aynı hedef kuralı
             if (best == null) return;
-            var t = VillageArt.Projectile(DynRoot(), tower.TowerType);
+            var t = VillageArt.Projectile(DynRoot(), ContentCatalog.ProjectileLook(tower.TowerType, tower.Element));
             var a = new Vector3(tower.Pos.X, 1.25f, tower.Pos.Y);
             var b = new Vector3(best.X / 1000f, best.Flying ? 1.0f : 0.25f, best.Y / 1000f);
             shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = 0.25f / Mathf.Max(1, speed) });

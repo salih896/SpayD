@@ -7,7 +7,17 @@ namespace GameCore.Combat
     public sealed class TowerSpec
     {
         public TowerType Type; public int Level = 1; public int PermanentDamagePct;
+        public TowerElement Element;
+        /// <summary>Geliştirme dalları (kuleye tıklayarak): Okçu A = saldırı hızı, B = hasar; Duvar A = can, B = zırh. Her yükseltme seviye +1 ve seçilen dal +1.</summary>
+        public int BranchA, BranchB;
         public TowerSpec(TowerType type, int level = 1, int permanentDamagePct = 0) { Type = type; Level = level; PermanentDamagePct = permanentDamagePct; }
+        public TowerSpec With(int permanentDamagePct) => new TowerSpec(Type, Level, permanentDamagePct) { Element = Element, BranchA = BranchA, BranchB = BranchB };
+
+        // Dal etkileri (GEÇİCİ): Okçu hız %3/puan (en az %40 aralık), hasar +%4/puan; Duvar can +%5/puan, zırh %2/puan (en çok %60).
+        public int IntervalPct => System.Math.Max(40, 100 - 3 * BranchA);
+        public int DamagePct => 100 + 4 * BranchB;
+        public int WallHpPct => 100 + 5 * BranchA;
+        public int WallArmorPct => System.Math.Min(60, 2 * BranchB);
     }
 
     public sealed class BuildingSpec

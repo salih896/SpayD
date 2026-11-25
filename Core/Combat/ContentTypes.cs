@@ -4,7 +4,11 @@ namespace GameCore.Combat
 {
     public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6, Giant = 7, Catapult = 8, DragonRider = 9 }
     /// <summary>Kule türleri. 2 = Duvar (eski Mızrak Kulesi; kayıt uyumu için değer korunur).</summary>
+    /// <summary>Kurulabilen kuleler (kullanıcı kararı 25.11.2026): yalnızca Okçu Kulesi ve Duvar. Mage/Elf/Cannon/Ice/Lightning eski kayıtlar için kalır (Okçu + element'e çevrilir).</summary>
     public enum TowerType { Archer = 0, Mage = 1, Wall = 2, Elf = 3, Cannon = 4, Ice = 5, Lightning = 6 }
+
+    /// <summary>Okçu Kulesi elementi: önce Akademi Element ağacı Sv1'de araştırılır, sonra kuleye kısa süre + az kaynakla uygulanır.</summary>
+    public enum TowerElement { None = 0, Arrow = 1, Fire = 2, Ice = 3, Poison = 4, Magic = 5, Lightning = 6 }
     public enum BuildingType
     {
         Forest = 0, LumberDepot = 1, StoneQuarry = 2, StoneDepot = 3, GoldMine = 4, Bank = 5,
@@ -33,6 +37,10 @@ namespace GameCore.Combat
         public int SlowTicks;     // Buz: vurduğu askeri bu kadar tick yavaşlatır (hız yarıya)
         public int ChainCount;    // Şimşek: hedeften sonra sıçradığı ek asker sayısı (%70 hasar)
         public int TauntMilli;    // Duvar: bu mesafedeki yer askerleri hedef seçerken duvarı önceler
+        public int CritPct, CritMultPct;          // Ok: kritik vuruş şansı ve çarpanı
+        public int BurnTicks, BurnPermille;       // Ateş: yanma süresi ve tick başına hasar (vuruşun ‰'i)
+        public int FreezeStackPct, FreezeMaxStacks; // Buz: aynı askere üst üste vurdukça her yığın +% hasar
+        public int PoisonTicks, PoisonPermille, WeakenPct; // Zehir: zamanla hasar + askerin saldırısını % düşürür
         public int UnlockLevel;
         public ResourceCost BuildCost;
     }

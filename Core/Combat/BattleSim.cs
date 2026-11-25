@@ -16,7 +16,9 @@ namespace GameCore.Combat
         public int Level, Hp, MaxHp, StartHp;
         public bool Alive = true, Disabled, IsResource, IsDepot;
         public ResourceType Stores;
-        public int Cooldown;
+        public int Cooldown;   // mili-tick (1000 = 1 adım); ateş edince artar (istemci atış görseli bunu izler)
+        public TowerElement Element;
+        public int IntervalPct = 100, DamagePct = 100, ArmorPct; // kule geliştirme dalları (Duvar: zırh)
         public int CenterX => Pos.X * 1000;
         public int CenterY => Pos.Y * 1000;
     }
@@ -33,6 +35,8 @@ namespace GameCore.Combat
         public List<GridPos> Path; public int PathIndex;
         public int Cooldown, SlowUntil, BurnUntil, BurnPerTick;
         public int RootUntil, AttackCount, NextHealTick;
+        public int FreezeStacks, FreezeUntil;              // Buz kulesi yığını
+        public int PoisonUntil, PoisonPerTick, WeakUntil, WeakPct; // Zehir kulesi
         public SoldierPerks Perks = new SoldierPerks();
         /// <summary>Yolda kapladığı şerit (Dev/Mancınık 2, diğerleri 1; yol 3 şerit). Cell: tuttuğu yol karesi.</summary>
         public int Slots = 1, Lane = -1, Stagger;
@@ -91,13 +95,15 @@ namespace GameCore.Combat
             foreach (var p in defense.Layout.CellsOf(CellKind.Tower))
             {
                 if (!defense.Towers.TryGetValue(p, out var spec)) spec = new TowerSpec(TowerType.Archer);
-                var def = ContentCatalog.Tower(spec.Type);
-                int max = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, spec.Level), defense.Mods.TowerHp);
+                var def = ContentCatalog.TowerFor(spec.Type, spec.Element);
+                bool wall = spec.Type == TowerType.Wall;
+                int max = CombatMods.Apply(ContentCatalog.Scaled(def.Hp, spec.Level) * (wall ? spec.WallHpPct : 100) / 100, defense.Mods.TowerHp);
                 int perm = Math.Max(0, Math.Min(100, spec.PermanentDamagePct));
                 int start = Math.Max(1, max * (100 - perm) / 100);
                 structures.Add(new SimStructure
                 {
-                    Id = structures.Count, Pos = p, Kind = StructKind.Tower, TowerType = spec.Type, Level = spec.Level,
+                    Id = structures.Count, Pos = p, Kind = StructKind.Tower, TowerType = spec.Type, Level = spec.Level, Element = spec.Element,
+                    IntervalPct = wall ? 100 : spec.IntervalPct, DamagePct = wall ? 100 : spec.DamagePct, ArmorPct = wall ? spec.WallArmorPct : 0,
                     MaxHp = max, Hp = start, StartHp = start, Disabled = perm >= 70
                 });
             }
@@ -217,7 +223,7 @@ namespace GameCore.Combat
         public SimSoldier TowerTargetOf(SimStructure t)
         {
             if (t == null || t.Kind != StructKind.Tower) return null;
-            return PickTowerTarget(t, ContentCatalog.Tower(t.TowerType));
+            return PickTowerTarget(t, ContentCatalog.TowerFor(t.TowerType, t.Element));
         }
 
         private void StepTowers()
@@ -226,14 +232,25 @@ namespace GameCore.Combat
             {
                 var t = structures[i];
                 if (!t.Alive || t.Kind != StructKind.Tower || t.Disabled) continue;
-                if (t.Cooldown > 0) { t.Cooldown--; continue; }
-                var def = ContentCatalog.Tower(t.TowerType);
+                if (t.Cooldown > 0) { t.Cooldown -= 1000; continue; }
+                var def = ContentCatalog.TowerFor(t.TowerType, t.Element);
                 if (def.Attack <= 0) continue; // Duvar ateş etmez
                 var best = PickTowerTarget(t, def);
                 if (best == null) continue;
-                int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage);
+                int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage) * t.DamagePct / 100;
+                if (t.Element == TowerElement.Fire) dmg = dmg * (100 - best.FireResistPct) / 100;
+                // Ok: kritik (deterministik: adım/kule/asker kimliğinden)
+                if (def.CritPct > 0 && (Tick * 31 + t.Id * 17 + best.Id * 7) % 100 < def.CritPct) dmg = dmg * def.CritMultPct / 100;
+                // Buz: aynı askere 3 sn içinde tekrar vurdukça yığın artar, her yığın +% hasar
+                if (def.FreezeStackPct > 0)
+                {
+                    best.FreezeStacks = Tick < best.FreezeUntil ? Math.Min(def.FreezeMaxStacks, best.FreezeStacks + 1) : 1;
+                    best.FreezeUntil = Tick + 30;
+                    dmg = dmg * (100 + def.FreezeStackPct * (best.FreezeStacks - 1)) / 100;
+                }
+                dmg = Math.Max(1, dmg);
                 Hit(best, dmg);
-                if (def.SlowTicks > 0 && best.Alive) best.SlowUntil = Math.Max(best.SlowUntil, Tick + def.SlowTicks);
+                ApplyOnHit(best, def, dmg);
                 if (def.ChainCount > 0) Chain(best, def, dmg * 70 / 100);
                 if (def.SplashMilli > 0)
                 {
@@ -243,10 +260,32 @@ namespace GameCore.Combat
                         var o = soldiers[j];
                         if (o == best || !o.Alive) continue;
                         if (o.Flying && !def.CanHitAir) continue;
-                        if (CombatMath.DistSq(best.X, best.Y, o.X, o.Y) <= sr2) Hit(o, Math.Max(1, dmg / 2));
+                        if (CombatMath.DistSq(best.X, best.Y, o.X, o.Y) <= sr2) { Hit(o, Math.Max(1, dmg / 2)); ApplyOnHit(o, def, dmg / 2); }
                     }
                 }
-                t.Cooldown = Math.Max(0, def.IntervalTicks - 1);
+                // aralık mili-tick; artık süre bir sonraki atışa taşınır (geliştirme dalı aralığı kısaltır)
+                int interval = Math.Max(1100, def.IntervalTicks * 1000 * t.IntervalPct / 100);
+                t.Cooldown += interval - 1000;
+            }
+        }
+
+        /// <summary>Vuruş sonrası element etkileri: yavaşlatma, yanma, zehir + zayıflatma.</summary>
+        private void ApplyOnHit(SimSoldier s, TowerDef def, int dmg)
+        {
+            if (!s.Alive) return;
+            if (def.SlowTicks > 0) s.SlowUntil = Math.Max(s.SlowUntil, Tick + def.SlowTicks);
+            if (def.BurnTicks > 0)
+            {
+                int per = Math.Max(1, dmg * def.BurnPermille / 1000 * (100 - s.FireResistPct) / 100);
+                if (Tick >= s.BurnUntil || per > s.BurnPerTick) s.BurnPerTick = per;
+                s.BurnUntil = Math.Max(s.BurnUntil, Tick + def.BurnTicks);
+            }
+            if (def.PoisonTicks > 0)
+            {
+                int per = Math.Max(1, dmg * def.PoisonPermille / 1000);
+                if (Tick >= s.PoisonUntil || per > s.PoisonPerTick) s.PoisonPerTick = per;
+                s.PoisonUntil = Tick + def.PoisonTicks;
+                s.WeakUntil = Tick + def.PoisonTicks; s.WeakPct = def.WeakenPct;
             }
         }
 
@@ -283,6 +322,7 @@ namespace GameCore.Combat
         {
             if (!s.Alive) return;
             if (Tick < s.BurnUntil) { Hit(s, s.BurnPerTick); if (!s.Alive) return; }
+            if (Tick < s.PoisonUntil) { Hit(s, s.PoisonPerTick); if (!s.Alive) return; }
             // Yetenekler: yenilenme ve şifa (otomatik)
             if (s.Perks.RegenPermille > 0 && Tick % 10 == 0) s.Hp = Math.Min(s.MaxHp, s.Hp + Math.Max(1, s.MaxHp * s.Perks.RegenPermille / 1000));
             if (s.Perks.HealPermille > 0 && Tick >= s.NextHealTick)
@@ -324,7 +364,9 @@ namespace GameCore.Combat
             if (target.Kind == StructKind.Tower) pct += pk.VsTowerPct;
             if (target.IsResource) pct += pk.VsResourcePct;
             if (s.Hp * 2 < s.MaxHp) pct += pk.LowHpAtkPct;
-            int dmg = s.Attack * pct / 100;
+            if (Tick < s.WeakUntil) pct -= s.WeakPct; // zehir: zayıflatma
+            int dmg = s.Attack * Math.Max(10, pct) / 100;
+            if (target.ArmorPct > 0) dmg = Math.Max(1, dmg * (100 - target.ArmorPct) / 100); // duvar zırhı
             s.AttackCount++;
             if (pk.FirstHitMultPct > 0 && s.AttackCount == 1) dmg = dmg * pk.FirstHitMultPct / 100;
             if (pk.EveryN > 0 && s.AttackCount % pk.EveryN == 0) dmg = dmg * pk.EveryMultPct / 100;
@@ -524,7 +566,7 @@ namespace GameCore.Combat
                 if (taunt > 0 && CombatMath.DistSq(s.X, s.Y, st.CenterX, st.CenterY) <= (long)taunt * taunt) return -1;
             }
             // Uçanlar Duvar'ı yok sayar (approved #42): yalnızca başka yapı kalmazsa
-            if (s.Flying && st.Kind == StructKind.Tower && ContentCatalog.Tower(st.TowerType).Attack <= 0) return 9;
+            if (s.Flying && st.Kind == StructKind.Tower && ContentCatalog.TowerFor(st.TowerType, st.Element).Attack <= 0) return 9;
             // Hedef öncelikleri (kullanıcı kararı 15.11.2026): Goblin önce kaynak depoları, Atlı önce kuleler, diğer herkes en yakın yapı
             switch (s.Type)
             {

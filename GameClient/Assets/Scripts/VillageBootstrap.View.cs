@@ -110,7 +110,7 @@ namespace GameClient
                         case CellKind.Tower:
                             if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
-                                var tt = view.Towers.TryGetValue(p, out var ts) ? ts.Type : TowerType.Archer;
+                                var tt = view.Towers.TryGetValue(p, out var ts) ? ContentCatalog.ModelLook(ts.Type, ts.Element) : TowerType.Archer;
                                 VillageArt.BuildTower(viewRoot, tt, ts != null ? ts.Level : 1, ts != null && ts.PermanentDamagePct > 0, c);
                             }
                             break;

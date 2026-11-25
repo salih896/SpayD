@@ -32,7 +32,7 @@ namespace GameCore.Game
             sb.AppendLine("layout " + g.Layout.Size + " " + g.Layout.RoadLimit + " " + g.Layout.EntranceLimit);
             foreach (var p in g.Layout.CellsOf(CellKind.Road)) sb.AppendLine("road " + p.X + " " + p.Y + " " + (int)g.Layout.GetRoadTier(p));
             foreach (var p in g.Layout.EntrancePositions()) sb.AppendLine("ent " + p.X + " " + p.Y);
-            foreach (var kv in g.Towers) sb.AppendLine("tower " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level);
+            foreach (var kv in g.Towers) sb.AppendLine("tower " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level + " " + (int)kv.Value.Element + " " + kv.Value.BranchA + " " + kv.Value.BranchB);
             foreach (var kv in g.Buildings) sb.AppendLine("build " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level);
             foreach (var kv in g.Traps) sb.AppendLine("trap " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value);
             foreach (var kv in g.Wears) sb.AppendLine("wear " + kv.Key.X + " " + kv.Key.Y + " " + kv.Value.PermanentDamagePct + " " + kv.Value.AttackCount);
@@ -56,7 +56,7 @@ namespace GameCore.Game
             }
             sb.AppendLine("rr " + (g.RoadResearchDone ? 1 : 0) + " " + g.RoadResearchRemaining);
             sb.AppendLine("trr " + (g.TrapResearchDone ? 1 : 0) + " " + g.TrapResearchRemaining);
-            foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds);
+            foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds + " " + j.Branch);
             return sb.ToString();
         }
 
@@ -96,7 +96,7 @@ namespace GameCore.Game
                         case "layout": layout = new VillageLayout(int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3])); break;
                         case "road": roadRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]) }); break;
                         case "ent": entRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]) }); break;
-                        case "tower": towerRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]) }); break;
+                        case "tower": towerRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]), p.Length > 5 ? int.Parse(p[5]) : 0, p.Length > 6 ? int.Parse(p[6]) : 0, p.Length > 7 ? int.Parse(p[7]) : 0 }); break;
                         case "build": buildRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]) }); break;
                         case "trap": g.Traps[new GridPos(int.Parse(p[1]), int.Parse(p[2]))] = (TrapType)int.Parse(p[3]); break;
                         case "wear": g.Wears[new GridPos(int.Parse(p[1]), int.Parse(p[2]))] = new TowerWear(int.Parse(p[3]), int.Parse(p[4])); break;
@@ -128,7 +128,7 @@ namespace GameCore.Game
                         case "rr": g.RoadResearchDone = p[1] == "1"; g.RoadResearchRemaining = int.Parse(p[2]); break;
                         case "trr": g.TrapResearchDone = p[1] == "1"; g.TrapResearchRemaining = int.Parse(p[2]); break;
                         case "job":
-                            g.Jobs.Add(new UpgradeJob { Kind = (JobKind)int.Parse(p[1]), Pos = new GridPos(int.Parse(p[2]), int.Parse(p[3])), Soldier = (SoldierType)int.Parse(p[4]), TargetLevel = int.Parse(p[5]), RemainingSeconds = int.Parse(p[6]) });
+                            g.Jobs.Add(new UpgradeJob { Kind = (JobKind)int.Parse(p[1]), Pos = new GridPos(int.Parse(p[2]), int.Parse(p[3])), Soldier = (SoldierType)int.Parse(p[4]), TargetLevel = int.Parse(p[5]), RemainingSeconds = int.Parse(p[6]), Branch = p.Length > 7 ? int.Parse(p[7]) : 0 });
                             break;
                     }
                 }
@@ -136,7 +136,16 @@ namespace GameCore.Game
                 string e;
                 foreach (var r in roadRows) layout.TryPlace(new GridPos(r[0], r[1]), CellKind.Road, out e, (RoadTier)r[2]);
                 foreach (var r in entRows) layout.ToggleEntrance(new GridPos(r[0], r[1]), out e);
-                foreach (var r in towerRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Tower, out e, RoadTier.Wood, false)) g.Towers[pos] = new TowerSpec((TowerType)r[2], r[3], 0); }
+                foreach (var r in towerRows)
+                {
+                    var pos = new GridPos(r[0], r[1]);
+                    if (!layout.TryPlace(pos, CellKind.Tower, out e, RoadTier.Wood, false)) continue;
+                    var type = (TowerType)r[2];
+                    var elem = (TowerElement)r[4];
+                    // 25.11.2026: kaldırılan kule türleri → Okçu Kulesi + karşılık gelen element
+                    if (type != TowerType.Archer && type != TowerType.Wall) { elem = ContentCatalog.LegacyElement(type); type = TowerType.Archer; }
+                    g.Towers[pos] = new TowerSpec(type, r[3], 0) { Element = elem, BranchA = r[5], BranchB = r[6] };
+                }
                 foreach (var r in buildRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Building, out e)) g.Buildings[pos] = new BuildingSpec((BuildingType)r[2], r[3]); }
                 g.Layout = layout;
                 foreach (var kv in new List<GridPos>(g.Towers.Keys)) if (!g.Wears.ContainsKey(kv)) g.Wears[kv] = new TowerWear();
