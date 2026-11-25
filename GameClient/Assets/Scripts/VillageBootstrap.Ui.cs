@@ -787,8 +787,17 @@ namespace GameClient
             sb.Append("• Direnç: hedefin savunma elementi saldırı elementiyle aynıysa <b>%35 az</b> hasar (ör. Ateş Zırhlı asker Ateş kulesinden).\n");
             sb.Append("• Ok, Büyü ve Şimşek nötrdür (döngüye girmez).\n");
             sb.Append("• Ayrıca: Ateş yakar, Buz yavaşlatır ve üst üste donma hasarı verir, Zehir zamanla hasar verir ve askerin hasarını %30 düşürür.</size>");
-            GUI.Label(r, sb.ToString());
+            uiRects.Add(r);
+            GUILayout.BeginArea(r);
+            elemInfoScroll = GUILayout.BeginScrollView(elemInfoScroll); // pencereye sığmazsa kaydırılır
+            var st = new GUIStyle(GUI.skin.label) { wordWrap = true, richText = true };
+            st.normal.textColor = new Color(0.96f, 0.92f, 0.82f);
+            GUILayout.Label(sb.ToString(), st, GUILayout.Width(r.width - 24));
+            GUILayout.EndScrollView();
+            GUILayout.EndArea();
         }
+
+        private Vector2 elemInfoScroll;
 
         // ---------- Savaş arayüzü ----------
         private void DrawBattleGui(float w, float h)
