@@ -193,6 +193,16 @@ namespace GameClient
                     return new Look { Model = "Barbarian", Right = "axe_2handed", Attack = "Melee_2H_Attack_Chop,Melee_2H_Attack_Slice,Melee_2H_Attack_Chop,Melee_2H_Attack_Spin", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 1.1f, Tint = new Color(1f, 0.9f, 0.85f) };
                 case SoldierType.Fairy:
                     return new Look { Model = "Mage", Right = "wand", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Idle_B", Height = 0.42f, Tint = new Color(1f, 0.8f, 0.95f) };
+                case SoldierType.Shieldbearer:
+                    return new Look { Model = "Knight", Right = "axe_1handed", Left = "shield_square_color", Attack = "Melee_Block_Attack,Melee_1H_Attack_Chop", Idle = "Melee_Blocking", Walk = "Walking_A", Height = 0.78f, Tint = new Color(0.82f, 0.9f, 1f) };
+                case SoldierType.Assassin:
+                    return new Look { Model = "Rogue_Hooded", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice", Idle = "Idle_A", Walk = "Walking_C", Height = 0.66f, Tint = new Color(0.45f, 0.4f, 0.55f) };
+                case SoldierType.Healer:
+                    return new Look { Model = "Mage", Right = "staff", Left = "spellbook_open", Attack = "Ranged_Magic_Spellcasting", Idle = "Idle_B", Walk = "Walking_A", Height = 0.7f, Tint = new Color(1f, 1f, 0.82f) };
+                case SoldierType.Crossbowman:
+                    return new Look { Model = "Ranger", Right = "crossbow_2handed", Attack = "Ranged_2H_Shoot", Idle = "Ranged_2H_Aiming", Walk = "Walking_B", Height = 0.7f, Tint = new Color(0.95f, 0.85f, 0.7f) };
+                case SoldierType.Bomber:
+                    return new Look { Model = "Barbarian", Right = "smokebomb", Attack = "Throw", Idle = "Idle_A", Walk = "Walking_C", Height = 0.68f, Tint = new Color(0.9f, 0.62f, 0.5f) };
                 default:
                     return new Look { Model = null };
             }
@@ -216,7 +226,7 @@ namespace GameClient
             var look = LookOf(t, L);
             if (look.Model == null) return null;
             var root = VillageArt.Group(parent, t.ToString(), Vector3.zero);
-            var body = Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy ? 0.3f : 0.45f);
+            var body = Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Crossbowman || t == SoldierType.Healer ? 0.3f : 0.45f);
             if (body == null) { Object.Destroy(root.gameObject); return null; }
             if (t == SoldierType.Goblin) Goblinize(root, body, look.Height);
             if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);

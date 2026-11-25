@@ -211,7 +211,7 @@ namespace GameCore.Combat
                 if (s.Flying && !def.CanHitAir) continue;
                 long d = CombatMath.DistSq(t.CenterX, t.CenterY, s.X, s.Y);
                 if (d > r2) continue;
-                int cls = IsMelee(s) ? 0 : 1;
+                int cls = s.Type == SoldierType.Shieldbearer ? -1 : IsMelee(s) ? 0 : 1; // Kalkanlı kule ateşini üstüne çeker
                 long pct = (long)s.Hp * 1000 / Math.Max(1, s.MaxHp);
                 bool better = cls < bestCls || (cls == bestCls && (pct < bestPct || (pct == bestPct && (d < bestD || (d == bestD && best != null && s.Id < best.Id)))));
                 if (best == null || better) { best = s; bestCls = cls; bestPct = pct; bestD = d; }
@@ -370,6 +370,7 @@ namespace GameCore.Combat
             s.AttackCount++;
             if (pk.FirstHitMultPct > 0 && s.AttackCount == 1) dmg = dmg * pk.FirstHitMultPct / 100;
             if (pk.EveryN > 0 && s.AttackCount % pk.EveryN == 0) dmg = dmg * pk.EveryMultPct / 100;
+            if (dmg <= 0) return; // Şifacı saldırmaz
             Damage(target, dmg);
             if (s.SplashMilli > 0)
             {
@@ -382,6 +383,7 @@ namespace GameCore.Combat
                         Damage(o, Math.Max(1, dmg / 2));
                 }
             }
+            if (s.Type == SoldierType.Bomber) { s.Hp = 0; s.Alive = false; ReleaseCell(s); } // patladı
         }
 
         private static void Damage(SimStructure st, int dmg)
@@ -534,7 +536,8 @@ namespace GameCore.Combat
         }
 
         /// <summary>Yakın dövüşçü (menzil ≤ 2 hücre, uçmayan): yalnızca yapının sağ/sol/üst/alt yanındaki yoldan saldırır (kullanıcı kararı 15.11.2026).</summary>
-        private static bool IsMelee(SimSoldier s) => !s.Flying && s.Type != SoldierType.Archer && s.Type != SoldierType.Mage && s.Type != SoldierType.Catapult; // Okçu/Büyücü/Mancınık uzaktan saldırır (menzil kısa olsa da en yakını vurur)
+        private static bool IsMelee(SimSoldier s) => !s.Flying && s.Type != SoldierType.Archer && s.Type != SoldierType.Mage && s.Type != SoldierType.Catapult
+            && s.Type != SoldierType.Crossbowman && s.Type != SoldierType.Healer; // uzaktan: Okçu/Büyücü/Mancınık/Arbaletli; Şifacı geride durur
 
         /// <summary>Yakın dövüş vuruş mesafesi: yan kare (1 hücre) evet, çapraz (1,41) hayır.</summary>
         private const int MeleeReachMilli = 1050;
@@ -571,7 +574,7 @@ namespace GameCore.Combat
             switch (s.Type)
             {
                 case SoldierType.Goblin: return st.IsDepot ? 0 : 1;
-                case SoldierType.Cavalry: return st.Kind == StructKind.Tower ? 0 : 1;
+                case SoldierType.Cavalry: case SoldierType.Assassin: return st.Kind == StructKind.Tower ? 0 : 1;
                 default: return 0;
             }
         }

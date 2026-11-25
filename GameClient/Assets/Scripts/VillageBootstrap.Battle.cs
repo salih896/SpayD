@@ -252,6 +252,13 @@ namespace GameClient
         /// </summary>
         private void OnSoldierAttack(SimSoldier s, Vector3 from, float impact)
         {
+            if (s.Type == SoldierType.Healer) // iyileştirme: şifacının çevresinde yükselen yeşil ışıklar
+            {
+                for (int k = 0; k < 5; k++)
+                    SpawnSpark(from + new Vector3(Random.Range(-0.5f, 0.5f), 0.2f, Random.Range(-0.5f, 0.5f)), new Color(0.55f, 1f, 0.5f), 0.12f, impact + k * 0.05f, new Vector3(0f, 0.6f, 0f), 0.6f);
+                return;
+            }
+            if (s.Type == SoldierType.Bomber) return; // patlama ölüm anında çizilir
             if (s.TargetId < 0 || s.TargetId >= sim.Structures.Count) return;
             var tg = sim.Structures[s.TargetId];
             bool tower = tg.Kind == StructKind.Tower;
@@ -265,6 +272,7 @@ namespace GameClient
                 switch (s.Type)
                 {
                     case SoldierType.Archer: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 4.5f; arc = 0.35f; hit = new Color(1f, 0.85f, 0.5f); hitSize = 0.12f; h = 0.45f; break;
+                    case SoldierType.Crossbowman: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 8f; arc = 0.08f; hit = new Color(1f, 0.8f, 0.4f); hitSize = 0.2f; h = 0.45f; break; // arbalet oku: düz, hızlı
                     case SoldierType.Mage: t = VillageArt.Fireball(DynRoot(), 0.2f); cellsPerSec = 3f; arc = 0.12f; hit = new Color(1f, 0.55f, 0.12f); hitSize = 0.42f; h = 0.55f; trail = new Color(1f, 0.5f, 0.1f); break; // normal boy alev topu
                     case SoldierType.Fairy: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.85f), 0.14f); cellsPerSec = 3.2f; arc = 0.05f; hit = new Color(1f, 0.6f, 0.9f); hitSize = 0.25f; break;
                     case SoldierType.DragonRider: t = VillageArt.Fireball(DynRoot(), 0.42f); cellsPerSec = 2.6f; arc = 0.05f; hit = new Color(1f, 0.45f, 0.1f); hitSize = 0.85f; h = 0.75f; trail = new Color(1f, 0.4f, 0.05f); break; // büyük ateş topu
@@ -288,7 +296,7 @@ namespace GameClient
         }
 
         private static bool IsRangedView(SoldierType t) =>
-            t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Catapult || t == SoldierType.DragonRider;
+            t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Catapult || t == SoldierType.DragonRider || t == SoldierType.Crossbowman;
 
         private void SpawnSpark(Vector3 pos, Color c, float size, float delay = 0f, Vector3 vel = default, float dur = 0.28f)
         {
@@ -340,6 +348,8 @@ namespace GameClient
             {
                 var s = sim.Soldiers[i];
                 var t = soldierViews[i];
+                if (t.gameObject.activeSelf && !s.Alive && s.Type == SoldierType.Bomber && s.AttackCount > 0)
+                    Burst(t.position + new Vector3(0f, 0.25f, 0f), new Color(1f, 0.5f, 0.1f), 1.1f, 10, 0.9f); // bombacı patladı
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
                 if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
                 if (!s.Alive) { Show(soldierStatus[i][4], false); continue; }

@@ -74,6 +74,26 @@ namespace GameCore.Combat
                 Set(A("Ateş Nefesi", "Alan hasarı genişler", 2), x => x.SplashAdd = 600),
                 Set(A("Pul Zırh", "Gelen hasar -%20", 3), x => x.DmgTakenPermille = 200),
                 Set(A("Ejder Öfkesi", "Canı yarının altındayken hasar +%40", 8), x => x.LowHpAtkPct = 40) } },
+            { SoldierType.Shieldbearer, new[] {
+                Set(A("Kalkan Duvarı", "Gelen hasar -%15", 2), x => x.DmgTakenPermille = 150),
+                Set(A("Sarsılmaz", "Yavaşlama ve kapan işlemez", 3), x => x.ImmuneSlow = true),
+                Set(A("Kale", "Zırh +10", 8), x => x.ArmorAdd = 10) } },
+            { SoldierType.Assassin, new[] {
+                Set(A("Gölge Adım", "Hız +%15", 2), x => x.SpeedPct = 15),
+                Set(A("Sinsi Darbe", "İlk vuruş 3 kat", 3), x => x.FirstHitMultPct = 300),
+                Set(A("Kule Avcısı", "Kulelere +%50", 8), x => x.VsTowerPct = 50) } },
+            { SoldierType.Healer, new[] {
+                Set(A("Şifalı Eller", "İyileştirme +%3", 2), x => x.HealPermille = 30),
+                Set(A("Kutsal Kalkan", "Gelen hasar -%15", 3), x => x.DmgTakenPermille = 150),
+                Set(A("Toplu Şifa", "İyileştirme +%4", 8), x => x.HealPermille = 40) } },
+            { SoldierType.Crossbowman, new[] {
+                Set(A("Delici Ok", "Kulelere +%30", 2), x => x.VsTowerPct = 30),
+                Set(A("Uzun Menzil", "Menzil +%15", 3), x => x.RangePct = 15),
+                Set(A("Çift Atış", "Her 3. atış 2 kat", 8), x => { x.EveryN = 3; x.EveryMultPct = 200; }) } },
+            { SoldierType.Bomber, new[] {
+                Set(A("Büyük Fitil", "Patlama alanı büyür", 2), x => x.SplashAdd = 500),
+                Set(A("Hızlı Koşu", "Hız +%15", 3), x => x.SpeedPct = 15),
+                Set(A("Yıkım", "Kulelere +%50", 8), x => x.VsTowerPct = 50) } },
         };
 
         private static AbilityDef Set(AbilityDef a, System.Action<AbilityDef> f) { f(a); return a; }
@@ -84,6 +104,9 @@ namespace GameCore.Combat
         public static SoldierPerks PerksFor(SoldierType t, int level)
         {
             var p = new SoldierPerks();
+            // taban özellikler (yetenek değil): Şifacı iyileştirir, Arbaletli kulelere +%40
+            if (t == SoldierType.Healer) p.HealPermille = 50;
+            if (t == SoldierType.Crossbowman) p.VsTowerPct = 40;
             foreach (var a in Table[t])
             {
                 if (level < a.Level) continue;

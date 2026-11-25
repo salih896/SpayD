@@ -46,8 +46,8 @@ namespace GameCore.Game
         {
             switch (t)
             {
-                case SoldierType.Spearman: case SoldierType.Fairy: return 2;
-                case SoldierType.Mage: case SoldierType.Cavalry: return 3;
+                case SoldierType.Spearman: case SoldierType.Fairy: case SoldierType.Assassin: case SoldierType.Crossbowman: case SoldierType.Bomber: return 2;
+                case SoldierType.Mage: case SoldierType.Cavalry: case SoldierType.Shieldbearer: case SoldierType.Healer: return 3;
                 case SoldierType.Giant: return 5;
                 case SoldierType.Catapult: return 6;
                 case SoldierType.DragonRider: return 10;

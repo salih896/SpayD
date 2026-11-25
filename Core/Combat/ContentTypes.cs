@@ -2,7 +2,9 @@ using GameCore.Economy;
 
 namespace GameCore.Combat
 {
-    public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6, Giant = 7, Catapult = 8, DragonRider = 9 }
+    /// <summary>10-14: Askerî ağaç araştırmasıyla açılan askerler (kullanıcı kararı 25.11.2026).</summary>
+    public enum SoldierType { Swordsman = 0, Archer = 1, Mage = 2, Goblin = 3, Cavalry = 4, Spearman = 5, Fairy = 6, Giant = 7, Catapult = 8, DragonRider = 9,
+        Shieldbearer = 10, Assassin = 11, Healer = 12, Crossbowman = 13, Bomber = 14 }
     /// <summary>Kule türleri. 2 = Duvar (eski Mızrak Kulesi; kayıt uyumu için değer korunur).</summary>
     /// <summary>Kurulabilen kuleler (kullanıcı kararı 25.11.2026): yalnızca Okçu Kulesi ve Duvar. Mage/Elf/Cannon/Ice/Lightning eski kayıtlar için kalır (Okçu + element'e çevrilir).</summary>
     public enum TowerType { Archer = 0, Mage = 1, Wall = 2, Elf = 3, Cannon = 4, Ice = 5, Lightning = 6 }

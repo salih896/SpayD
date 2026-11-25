@@ -34,6 +34,17 @@ namespace GameCore.Combat
             new SoldierDef { Type = SoldierType.Catapult, Name = "Mancınık", Hp = 140, Attack = 70, IntervalTicks = 35, RangeMilli = 2000, SpeedMilli = 30, SplashMilli = 1500, TrainSeconds = 600, UnlockLevel = 17, Cost = new ResourceCost(220, 140, 60) },
             // Uçan ağır birlik: ateşe dirençli, alan hasarı; elf kulesine zayıf
             new SoldierDef { Type = SoldierType.DragonRider, Name = "Ejderha Binicisi", Hp = 420, Attack = 34, IntervalTicks = 12, RangeMilli = 2000, SpeedMilli = 90, FireResistPct = 50, SplashMilli = 1000, Flying = true, TrainSeconds = 600, UnlockLevel = 21, Cost = new ResourceCost(260, 200, 110) },
+            // Askerî araştırmayla açılanlar (kullanıcı kararı 25.11.2026; değerler GEÇİCİ)
+            // Kalkanlı: çok zırhlı, yavaş; kuleler önce onu hedefler
+            new SoldierDef { Type = SoldierType.Shieldbearer, Name = "Kalkanlı", Hp = 380, Attack = 8, IntervalTicks = 10, RangeMilli = 1500, SpeedMilli = 50, ArmorPct = 40, TrainSeconds = 300, UnlockLevel = 4, Cost = new ResourceCost(80) },
+            // Suikastçı: çok hızlı, yüksek hasar, az can; önce kulelere gider
+            new SoldierDef { Type = SoldierType.Assassin, Name = "Suikastçı", Hp = 80, Attack = 34, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 140, TrainSeconds = 300, UnlockLevel = 9, Cost = new ResourceCost(90, 40) },
+            // Şifacı: saldırmaz, 2 hücredeki askerleri iyileştirir (uzaktan durur)
+            new SoldierDef { Type = SoldierType.Healer, Name = "Şifacı", Hp = 140, Attack = 0, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 420, UnlockLevel = 14, Cost = new ResourceCost(120, 80) },
+            // Arbaletli: uzun menzil, kulelere bonus
+            new SoldierDef { Type = SoldierType.Crossbowman, Name = "Arbaletli", Hp = 90, Attack = 26, IntervalTicks = 12, RangeMilli = 3000, SpeedMilli = 60, TrainSeconds = 360, UnlockLevel = 19, Cost = new ResourceCost(150, 90, 40) },
+            // Bombacı: yapıya ulaşınca patlar (büyük alan hasarı), kendisi ölür
+            new SoldierDef { Type = SoldierType.Bomber, Name = "Bombacı", Hp = 110, Attack = 260, IntervalTicks = 10, RangeMilli = 1500, SpeedMilli = 110, SplashMilli = 1500, TrainSeconds = 360, UnlockLevel = 24, Cost = new ResourceCost(160, 100, 50) },
         };
 
         // Kule hakkı 5-10 (GDD Bölüm 9): az ama güçlü kuleler. Can/hasar denge turu 2'de ×2,5 (13.11.2026).

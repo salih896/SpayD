@@ -326,7 +326,7 @@ namespace GameCore.Game
                 Layout = Layout.WithLimits(RoadRules.RoadLimitForLevel(l) + Research.Total(ResearchStat.RoadSlot), RoadRules.MaxEntrances);
                 info.Unlocks.Add("Yol hakkı " + (RoadRules.RoadLimitForLevel(l) + Research.Total(ResearchStat.RoadSlot)));
                 foreach (ResourceType t in Enum.GetValues(typeof(ResourceType))) if (Config.Get(t).UnlockLevel == l) info.Unlocks.Add("Kaynak: " + ResName(t));
-                for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) { var d = ContentCatalog.Soldier((SoldierType)i); if (d.UnlockLevel == l) info.Unlocks.Add("Asker: " + d.Name); }
+                for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) { var d = ContentCatalog.Soldier((SoldierType)i); if (d.UnlockLevel == l && ResearchCatalog.FindSpecial(ResearchStat.SoldierUnlock, i) == null) info.Unlocks.Add("Asker: " + d.Name); }
                 foreach (TowerType t in Enum.GetValues(typeof(TowerType))) { var d = ContentCatalog.Tower(t); if (d.UnlockLevel == l) info.Unlocks.Add("Kule: " + d.Name); }
                 foreach (BuildingType t in Enum.GetValues(typeof(BuildingType))) { var d = ContentCatalog.Building(t); if (d.UnlockLevel == l && l > 1) info.Unlocks.Add("Bina: " + d.Name); }
                 if (l == ResearchState.UniversityUnlockLevel) info.Unlocks.Add("Araştırma ağaçları");
@@ -625,7 +625,7 @@ namespace GameCore.Game
             if (kind == JobKind.Soldier) info.Seconds = (int)Math.Max(5, (long)info.Seconds * Math.Max(120, ContentCatalog.Soldier(soldier).TrainSeconds) / 180);
             if (info.TargetLevel > GameRules.MaxStructureLevel(lvl)) info.Block = info.TargetLevel > GameRules.MaxLevel ? "En üst seviye" : "Oyuncu seviyesi " + info.TargetLevel + " gerekli";
             else if (kind == JobKind.Soldier && BarracksMaxLevel() < info.TargetLevel) info.Block = "Kışla Sv " + info.TargetLevel + " gerekli";
-            else if (kind == JobKind.Soldier && lvl < ContentCatalog.Soldier(soldier).UnlockLevel) info.Block = "Asker henüz açılmadı";
+            else if (kind == JobKind.Soldier && !SoldierUnlocked(soldier)) info.Block = SoldierLockReason(soldier);
             else if (IsUpgrading(kind, pos, soldier)) info.Block = "Yükseltme sürüyor";
             else if (kind == JobKind.Tower && IsUpgrading(JobKind.TowerElement, pos, soldier)) info.Block = "Element uygulanıyor";
             else if (FreeBuilders <= 0) info.Block = "Boş işçi yok (Köylü Evi ekle)";
@@ -738,11 +738,28 @@ namespace GameCore.Game
         public bool TryTrain(SoldierType t, out string error)
         {
             if (BarracksLevelSum() <= 0) { error = "Önce Kışla kur"; return false; }
+            if (!SoldierUnlocked(t)) { error = SoldierLockReason(t); return false; }
             if (ArmySize + GameRules.Housing(t) > ArmyCapacity) { error = "Ordu kapasitesi dolu (" + ArmySize + "/" + ArmyCapacity + "; " + ContentCatalog.Soldier(t).Name + " " + GameRules.Housing(t) + " yer kaplar)"; return false; }
             if (!Queue.TryEnqueue(t, Wallet, Level, out error)) return false;
             var it = Queue.Items[Queue.Items.Count - 1];
             it.RemainingSeconds = Math.Max(5, (int)((long)it.RemainingSeconds * (1000 - Research.Total(ResearchStat.TrainTime)) / 1000));
             return true;
+        }
+
+        /// <summary>Asker açık mı: oyuncu seviyesi ve (araştırmayla açılanlar için) Askerî ağaç araştırması.</summary>
+        public bool SoldierUnlocked(SoldierType t)
+        {
+            if (Level < ContentCatalog.Soldier(t).UnlockLevel) return false;
+            var r = ResearchCatalog.FindSpecial(ResearchStat.SoldierUnlock, (int)t);
+            return r == null || Research.IsDone(r.Id);
+        }
+
+        public string SoldierLockReason(SoldierType t)
+        {
+            var d = ContentCatalog.Soldier(t);
+            var r = ResearchCatalog.FindSpecial(ResearchStat.SoldierUnlock, (int)t);
+            if (r != null && !Research.IsDone(r.Id)) return d.Name + ": Akademi > Askerî ağacında araştırma gerekli (Sv" + r.Level + ")";
+            return d.Name + " Sv " + d.UnlockLevel + "'de açılır";
         }
 
         public bool TryCancelTrain(int index, out string error) => Queue.Cancel(index, Wallet, Level, out error);
