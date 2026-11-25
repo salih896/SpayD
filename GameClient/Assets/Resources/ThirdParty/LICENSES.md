@@ -11,3 +11,10 @@
 
 Not: KayKit yazarının isteği — değiştirilmemiş kopyalar yeniden satılmamalı, kendi eserimiz gibi sunulmamalı.
 İndirme tarihi: 16.11.2026. Kenney lisans metinleri: Kenney/Castle/License.txt, Kenney/Town/License.txt.
+
+
+## Piksel efektler (MIT)
+
+| Paket | Yazar | Kaynak | Kullanım |
+|---|---|---|---|
+| pixelfx | Patch, Hugo Duprez | patch-gg/pixelfx (MIT) | Resources/PixelFx: mermiler (ok, ateş topu, buz mızrağı, zehir, büyü küresi), isabet ve durum efektleri (yanma, donma, zehir, yavaşlama, lanet). Lisans metni: Resources/PixelFx/LICENSE-pixelfx.txt |

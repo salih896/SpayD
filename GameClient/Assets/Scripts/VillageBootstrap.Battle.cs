@@ -172,7 +172,7 @@ namespace GameClient
             towerPrevCd = null; structPrevAlive = null;
         }
 
-        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; public System.Action<Vector3> OnHit; }
+        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; public System.Action<Vector3> OnHit; public PixelFxPlayer Px; }
         private sealed class Fx { public Transform T; public float T0, Dur, Size; public Vector3 Vel; public bool Fixed; }
 
         // asker durum görselleri: can çubuğunun üstünde simgeler (yanma, donma, zehir, zayıflama) + ayakta buz halkası
@@ -181,7 +181,7 @@ namespace GameClient
 
         private Transform[] MakeStatusIcons(Transform bar, Transform root)
         {
-            var icons = new Transform[5];
+            var icons = new Transform[9]; // 0-4 ilkel simgeler, 5-8 piksel katmanlar (gerektiğinde oluşur)
             var holder = VillageArt.Group(bar, "status", new Vector3(0f, 0.13f, 0f), 0f, 1.6f); // okunabilir boy
             icons[0] = VillageArt.Group(holder, "burn", new Vector3(-0.15f, 0f, 0f));
             VillageArt.Part(icons[0], VillageArt.Shape.Cone, Vector3.zero, new Vector3(0.06f, 0.09f, 0.06f), VillageArt.Mat(new Color(1f, 0.45f, 0.08f), 0.9f, 2.5f));
@@ -194,7 +194,7 @@ namespace GameClient
             VillageArt.Part(icons[3], VillageArt.Shape.Cone, Vector3.zero, new Vector3(0.07f, 0.08f, 0.07f), VillageArt.Mat(new Color(0.95f, 0.2f, 0.2f), 0.6f, 1.5f), new Vector3(180, 0, 0));
             icons[4] = VillageArt.Group(root, "frostRing", Vector3.zero);
             VillageArt.Part(icons[4], VillageArt.Shape.Cyl, Vector3.zero, new Vector3(0.42f, 0.01f, 0.42f), VillageArt.Mat(new Color(0.6f, 0.9f, 1f), 0.9f, 1.4f));
-            foreach (var ic in icons) ic.gameObject.SetActive(false);
+            for (int k = 0; k < 5; k++) icons[k].gameObject.SetActive(false);
             return icons;
         }
 
@@ -205,10 +205,20 @@ namespace GameClient
             int tick = sim.Tick;
             bool burn = tick < s.BurnUntil, poison = tick < s.PoisonUntil, weak = tick < s.WeakUntil, slow = tick < s.SlowUntil;
             int stacks = tick < s.FreezeUntil ? s.FreezeStacks : 0;
-            Show(ic[0], burn); Show(ic[1], slow || stacks > 0); Show(ic[2], poison); Show(ic[3], weak);
+            bool px = PixelFxSheet.Get("burning") != null; // piksel efektler varsa ilkel simge/kıvılcım yerine onlar
+            Show(ic[0], burn && !px); Show(ic[1], (slow || stacks > 0) && !px); Show(ic[2], poison && !px); Show(ic[3], weak && !px);
             if (stacks > 0) ic[1].localScale = Vector3.one * (0.8f + 0.15f * stacks); // donma yığını büyüdükçe simge büyür
             Show(ic[4], slow);
             if (slow) ic[4].position = new Vector3(pos.x, (s.Flying ? pos.y - 0.05f : 0.03f), pos.z);
+            if (px)
+            {
+                float h = soldierBarH[i];
+                StatusPx(ic, 5, "burning", burn, pos + new Vector3(0f, h * 0.35f, 0f), 110f);
+                StatusPx(ic, 6, stacks > 0 ? "frozen" : "slowed", stacks > 0 || slow, pos + new Vector3(0f, h * 0.3f, 0f), stacks > 0 ? 125f - 6f * stacks : 135f);
+                StatusPx(ic, 7, "poisoned", poison, pos + new Vector3(0f, h * 0.3f, 0f), 120f);
+                StatusPx(ic, 8, "cursed", weak, pos + new Vector3(0.12f, h + 0.05f, 0f), 180f);
+                return;
+            }
             if ((burn || poison) && Time.time >= soldierNextFx[i])
             {
                 soldierNextFx[i] = Time.time + (burn ? 0.12f : 0.22f);
@@ -218,7 +228,57 @@ namespace GameClient
             }
         }
 
-        private static void Show(Transform t, bool on) { if (t.gameObject.activeSelf != on) t.gameObject.SetActive(on); }
+        private static void Show(Transform t, bool on) { if (t != null && t.gameObject.activeSelf != on) t.gameObject.SetActive(on); }
+
+        /// <summary>Asker üstündeki döngülü piksel durum efekti; sayfa ya da boy değişirse yeniden kurulur.</summary>
+        private void StatusPx(Transform[] ic, int k, string sheet, bool on, Vector3 p, float ppu)
+        {
+            if (!on) { Show(ic[k], false); return; }
+            string key = "fx_" + sheet + "_" + (int)ppu;
+            if (ic[k] == null || ic[k].name != key)
+            {
+                if (ic[k] != null) Destroy(ic[k].gameObject);
+                var pl = PixelFxPlayer.Create(sheet, DynRoot(), p, ppu);
+                if (pl == null) return;
+                pl.name = key;
+                ic[k] = pl.transform;
+            }
+            Show(ic[k], true);
+            ic[k].position = p;
+        }
+
+        // ---------- PixelFx (patch-gg/pixelfx, MIT): piksel mermiler ve isabetler; sayfa yoksa eski ilkel efekt ----------
+        private Transform PxShot(string sheet, float ppu, System.Func<Transform> fallback, Color? tint = null)
+        {
+            var pl = PixelFxPlayer.Create(sheet, DynRoot(), Vector3.zero, ppu, false, tint);
+            return pl != null ? pl.transform : fallback();
+        }
+
+        /// <summary>Tek seferlik piksel isabet efekti (delay sn sonra başlar; rate oynatma hızı).</summary>
+        private void PxHit(string sheet, Vector3 p, float ppu, float delay = 0f, float rate = 1f)
+        {
+            var pl = PixelFxPlayer.Create(sheet, DynRoot(), p, ppu, true);
+            if (pl == null) return;
+            var sh = PixelFxSheet.Get(sheet);
+            float r = rate * Mathf.Max(1f, speed);
+            pl.SetSpeed(r);
+            fxs.Add(new Fx { T = pl.transform, T0 = Time.time + delay, Dur = sh.Frames / (float)sh.Fps / r + 0.05f, Size = 1f, Fixed = true });
+            if (delay > 0f) pl.gameObject.SetActive(false);
+        }
+
+        /// <summary>Element isabeti: Ateş yanma, Buz donma, Zehir zehir efekti.</summary>
+        private void ElementHit(TowerElement e, Vector3 p, float ppu, float delay = 0f)
+        {
+            string sheet = e == TowerElement.Fire ? "burning" : e == TowerElement.Ice ? "frozen" : e == TowerElement.Poison ? "poisoned" : null;
+            if (sheet != null) PxHit(sheet, p, ppu, delay, 1.6f);
+        }
+
+        /// <summary>Mermi yönünün ekrandaki açısı (piksel sprite kameraya bakar; burnu uçuş yönüne döner).</summary>
+        private float ScreenAngle(Vector3 p, Vector3 v)
+        {
+            var a = cam.WorldToScreenPoint(p); var b = cam.WorldToScreenPoint(p + v.normalized * 0.3f);
+            return Mathf.Atan2(b.y - a.y, b.x - a.x) * Mathf.Rad2Deg;
+        }
 
         /// <summary>Yıldırım: iki nokta arasında zikzak parlak çizgi (kısa süre).</summary>
         private void Bolt(Vector3 a, Vector3 b, Color c)
@@ -279,18 +339,30 @@ namespace GameClient
             {
                 Transform t; float cellsPerSec, arc; Color hit; float hitSize; bool spin = false; Color trail = Color.clear;
                 float h = s.Flying ? 0.95f : 0.42f;
+                var ae = s.AtkElement;
+                Color? atint = ae == TowerElement.None ? (Color?)null : Color.Lerp(Color.white, VillageArt.ElementColor(ae), 0.6f);
+                string mageSheet = ae == TowerElement.Ice ? "ice-lance" : ae == TowerElement.Poison ? "poison-shot" : "fireball";
                 switch (s.Type)
                 {
-                    case SoldierType.Archer: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 4.5f; arc = 0.35f; hit = new Color(1f, 0.85f, 0.5f); hitSize = 0.12f; h = 0.45f; break;
-                    case SoldierType.Crossbowman: t = VillageArt.Arrow(DynRoot()); cellsPerSec = 8f; arc = 0.08f; hit = new Color(1f, 0.8f, 0.4f); hitSize = 0.2f; h = 0.45f; break; // arbalet oku: düz, hızlı
-                    case SoldierType.Mage: t = VillageArt.Fireball(DynRoot(), 0.2f); cellsPerSec = 3f; arc = 0.12f; hit = new Color(1f, 0.55f, 0.12f); hitSize = 0.42f; h = 0.55f; trail = new Color(1f, 0.5f, 0.1f); break; // normal boy alev topu
-                    case SoldierType.Fairy: t = VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.85f), 0.14f); cellsPerSec = 3.2f; arc = 0.05f; hit = new Color(1f, 0.6f, 0.9f); hitSize = 0.25f; break;
-                    case SoldierType.DragonRider: t = VillageArt.Fireball(DynRoot(), 0.42f); cellsPerSec = 2.6f; arc = 0.05f; hit = new Color(1f, 0.45f, 0.1f); hitSize = 0.85f; h = 0.75f; trail = new Color(1f, 0.4f, 0.05f); break; // büyük ateş topu
+                    case SoldierType.Archer: t = PxShot("arrow", 95f, () => VillageArt.Arrow(DynRoot()), atint); cellsPerSec = 4.5f; arc = 0.35f; hit = new Color(1f, 0.85f, 0.5f); hitSize = 0.12f; h = 0.45f; break;
+                    case SoldierType.Crossbowman: t = PxShot("arrow", 85f, () => VillageArt.Arrow(DynRoot()), atint); cellsPerSec = 8f; arc = 0.08f; hit = new Color(1f, 0.8f, 0.4f); hitSize = 0.2f; h = 0.45f; break; // arbalet oku: düz, hızlı
+                    case SoldierType.Mage: t = PxShot(mageSheet, 120f, () => VillageArt.Fireball(DynRoot(), 0.2f)); cellsPerSec = 3f; arc = 0.12f; hit = new Color(1f, 0.55f, 0.12f); hitSize = 0.42f; h = 0.55f; trail = new Color(1f, 0.5f, 0.1f); break; // normal boy alev topu
+                    case SoldierType.Fairy: t = PxShot("arcane-orb", 190f, () => VillageArt.MagicOrb(DynRoot(), new Color(1f, 0.5f, 0.85f), 0.14f), new Color(1f, 0.65f, 0.95f)); cellsPerSec = 3.2f; arc = 0.05f; hit = new Color(1f, 0.6f, 0.9f); hitSize = 0.25f; break;
+                    case SoldierType.DragonRider: t = PxShot("fireball", 62f, () => VillageArt.Fireball(DynRoot(), 0.42f)); cellsPerSec = 2.6f; arc = 0.05f; hit = new Color(1f, 0.45f, 0.1f); hitSize = 0.85f; h = 0.75f; trail = new Color(1f, 0.4f, 0.05f); break; // büyük ateş topu
                     default: t = VillageArt.Projectile(DynRoot(), TowerType.Cannon); cellsPerSec = 3.5f; arc = 0.9f; hit = new Color(0.65f, 0.55f, 0.45f); hitSize = 0.45f; spin = true; h = 0.4f; break; // mancınık taşı
                 }
                 var a = from + new Vector3(0f, h, 0f);
                 float dist = Vector3.Distance(new Vector3(a.x, 0f, a.z), new Vector3(center.x, 0f, center.z));
-                shots.Add(new Shot { T = t, A = a, B = center, T0 = Time.time + delay, Dur = Mathf.Max(0.32f, dist / cellsPerSec) / spd, Arc = arc, HitColor = hit, HitSize = hitSize, Spin = spin, Trail = trail, TrailSize = hitSize * 0.35f });
+                // isabet: Büyücü/Ejderha alev patlaması, elementli askerde element efekti
+                System.Action<Vector3> onHit = null;
+                var he = s.Type == SoldierType.Mage || s.Type == SoldierType.DragonRider ? (ae == TowerElement.None ? TowerElement.Fire : ae) : ae;
+                if (he != TowerElement.None)
+                {
+                    float ppu = s.Type == SoldierType.DragonRider ? 50f : s.Type == SoldierType.Mage ? 80f : 115f;
+                    var hc = hit; float hs = hitSize;
+                    onHit = q => { SpawnSpark(q, hc, hs); ElementHit(he, q, ppu); };
+                }
+                shots.Add(new Shot { T = t, A = a, B = center, T0 = Time.time + delay, Dur = Mathf.Max(0.32f, dist / cellsPerSec) / spd, Arc = arc, HitColor = hit, HitSize = hitSize, Spin = spin, Trail = trail, TrailSize = hitSize * 0.35f, OnHit = onHit, Px = t.GetComponent<PixelFxPlayer>() });
                 t.position = a;
                 t.gameObject.SetActive(false);
             }
@@ -302,6 +374,7 @@ namespace GameClient
                 p.y = s.Type == SoldierType.Giant ? 0.5f : 0.32f;
                 var col = s.Type == SoldierType.Giant ? new Color(1f, 0.75f, 0.35f) : new Color(1f, 0.95f, 0.65f);
                 SpawnSpark(p, col, s.Type == SoldierType.Giant ? 0.38f : 0.2f, delay);
+                if (s.AtkElement != TowerElement.None) ElementHit(s.AtkElement, p, 120f, delay); // elementli silah
             }
         }
 
@@ -362,7 +435,7 @@ namespace GameClient
                     Burst(t.position + new Vector3(0f, 0.25f, 0f), new Color(1f, 0.5f, 0.1f), 1.1f, 10, 0.9f); // bombacı patladı
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
                 if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
-                if (!s.Alive) { Show(soldierStatus[i][4], false); continue; }
+                if (!s.Alive) { for (int k = 4; k < 9; k++) Show(soldierStatus[i][k], false); continue; }
                 // ara konum: önceki adım → şimdiki adım, kalan süre oranında
                 float alpha = sim.Finished ? 1f : Mathf.Clamp01(tickAcc / SimTickSeconds);
                 var prevSim = i < simPrevPos.Count ? simPrevPos[i] : new Vector2(s.X, s.Y);
@@ -476,7 +549,8 @@ namespace GameClient
                 var vel = (sh.B - sh.A) + new Vector3(0f, Mathf.Cos(a * Mathf.PI) * Mathf.PI * arc, 0f);
                 sh.T.position = pos;
                 if (vel.sqrMagnitude > 0.0001f) sh.T.rotation = Quaternion.LookRotation(vel.normalized, Vector3.up);
-                if (sh.Spin) sh.T.Rotate(0f, 0f, Time.time * 720f % 360f, Space.Self);
+                if (sh.Px != null) sh.Px.SetScreenAngle(ScreenAngle(pos, vel));
+                else if (sh.Spin) sh.T.Rotate(0f, 0f, Time.time * 720f % 360f, Space.Self);
                 if (sh.Trail.a > 0f)
                 {
                     sh.T.localScale = Vector3.one * (1f + Mathf.Sin(Time.time * 40f + i) * 0.08f); // alev titremesi
@@ -570,21 +644,21 @@ namespace GameClient
             switch (e)
             {
                 case TowerElement.Fire:
-                    t = VillageArt.Fireball(DynRoot(), 0.22f); cellsPerSec = 3.5f; arc = 0.35f; trail = new Color(1f, 0.45f, 0.08f);
-                    onHit = p => Burst(p, col, 0.75f, 8, 0.6f); break; // alan 1,2 hücre
+                    t = PxShot("fireball", 105f, () => VillageArt.Fireball(DynRoot(), 0.22f)); cellsPerSec = 3.5f; arc = 0.35f; trail = new Color(1f, 0.45f, 0.08f);
+                    onHit = p => { Burst(p, col, 0.75f, 8, 0.6f); PxHit("burning", p, 60f, 0f, 1.4f); }; break; // alan 1,2 hücre
                 case TowerElement.Ice:
-                    t = VillageArt.Projectile(DynRoot(), TowerType.Ice); cellsPerSec = 8f; arc = 0.1f;
-                    onHit = p => Burst(p, col, 0.35f, 5, 0.25f); break;
+                    t = PxShot("ice-lance", 140f, () => VillageArt.Projectile(DynRoot(), TowerType.Ice)); cellsPerSec = 8f; arc = 0.1f;
+                    onHit = p => { Burst(p, col, 0.35f, 5, 0.25f); PxHit("ice-crystal", p + new Vector3(0f, -0.2f, 0f), 130f, 0f, 2.5f); }; break;
                 case TowerElement.Poison:
-                    t = VillageArt.MagicOrb(DynRoot(), col, 0.12f); cellsPerSec = 5f; arc = 0.25f; trail = new Color(0.4f, 0.85f, 0.2f);
-                    onHit = p => { for (int k = 0; k < 4; k++) SpawnSpark(p + new Vector3(Random.Range(-0.15f, 0.15f), 0.05f, Random.Range(-0.15f, 0.15f)), col, 0.25f, k * 0.05f, new Vector3(0f, 0.25f, 0f), 0.7f); };
+                    t = PxShot("poison-shot", 125f, () => VillageArt.MagicOrb(DynRoot(), col, 0.12f)); cellsPerSec = 5f; arc = 0.25f; trail = new Color(0.4f, 0.85f, 0.2f);
+                    onHit = p => { PxHit("toxic-puddle", new Vector3(p.x, 0.04f, p.z), 150f, 0f, 3f); for (int k = 0; k < 4; k++) SpawnSpark(p + new Vector3(Random.Range(-0.15f, 0.15f), 0.05f, Random.Range(-0.15f, 0.15f)), col, 0.25f, k * 0.05f, new Vector3(0f, 0.25f, 0f), 0.7f); };
                     break;
                 case TowerElement.Magic:
-                    t = VillageArt.MagicOrb(DynRoot(), col, 0.15f); cellsPerSec = 5.5f; arc = 0.15f; trail = new Color(0.7f, 0.35f, 1f);
+                    t = PxShot("arcane-orb", 160f, () => VillageArt.MagicOrb(DynRoot(), col, 0.15f)); cellsPerSec = 5.5f; arc = 0.15f; trail = new Color(0.7f, 0.35f, 1f);
                     onHit = p => Burst(p, col, 0.4f, 4, 0.2f); break;
                 default: // elementsiz ve Ok
                 {
-                    t = VillageArt.Arrow(DynRoot()); cellsPerSec = 9f; arc = 0.25f;
+                    t = PxShot("arrow", 95f, () => VillageArt.Arrow(DynRoot()), e == TowerElement.Arrow ? new Color(1f, 0.95f, 0.7f) : (Color?)null); cellsPerSec = 9f; arc = 0.25f;
                     // kritik: simülasyondaki deterministik formülün aynısı (atış bir önceki adımda oldu)
                     var def = ContentCatalog.TowerFor(tower.TowerType, e);
                     bool crit = def.CritPct > 0 && ((sim.Tick - 1) * 31 + tower.Id * 17 + best.Id * 7) % 100 < def.CritPct;
@@ -593,7 +667,7 @@ namespace GameClient
                     break;
                 }
             }
-            shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = Mathf.Max(0.12f, dist / cellsPerSec) / spd, Arc = arc, Trail = trail, TrailSize = 0.08f, OnHit = onHit });
+            shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = Mathf.Max(0.12f, dist / cellsPerSec) / spd, Arc = arc, Trail = trail, TrailSize = 0.08f, OnHit = onHit, Px = t.GetComponent<PixelFxPlayer>() });
             t.position = a;
         }
 
