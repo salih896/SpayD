@@ -70,6 +70,47 @@ namespace GameCore.Tests
             Assert.Greater(giant.Hp, giant.MaxHp / 2, "şifacı iyileştirir");
         }
 
+        private static GameState Rich30()
+        {
+            var g = GameState.NewGame();
+            long xp = 0;
+            for (int l = 1; l < 30; l++) xp += ProgressionRules.XpToNextLevel(l);
+            g.TotalXp = xp;
+            foreach (ResourceType t in System.Enum.GetValues(typeof(ResourceType))) { g.Wallet.SetCapacity(t, 100000000); g.Wallet.SetAmount(t, 1000000); }
+            return g;
+        }
+
+        [Test]
+        public void JobQueue_LetsEachVillagerQueueMoreJobs_ThatRunInOrder()
+        {
+            var g = Rich30();
+            g.AddBuildingDirect(P(6, 2), BuildingType.Barracks, 20);
+            var types = new[] { SoldierType.Swordsman, SoldierType.Archer, SoldierType.Mage, SoldierType.Goblin, SoldierType.Cavalry, SoldierType.Spearman, SoldierType.Fairy, SoldierType.Giant, SoldierType.Catapult, SoldierType.DragonRider };
+            int b = g.Builders, next = 0;
+            string err;
+            for (int i = 0; i < b; i++) Assert.IsTrue(g.TryStartUpgrade(JobKind.Soldier, new GridPos(0, 0), types[next++], out err), err);
+            Assert.IsFalse(g.TryStartUpgrade(JobKind.Soldier, new GridPos(0, 0), types[next], out err), "sıra yokken işçi dolu");
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.JobQueue, 1).Id);
+            Assert.AreEqual(2, g.JobQueueDepth);
+            for (int i = 0; i < b && next < types.Length; i++) Assert.IsTrue(g.TryStartUpgrade(JobKind.Soldier, new GridPos(0, 0), types[next++], out err), err);
+            int queued = g.Jobs.Count;
+            g.Advance(10000000, 0);
+            Assert.AreEqual(0, g.Jobs.Count, "sıradakiler de tek ilerlemede biter");
+            Assert.Greater(queued, b);
+        }
+
+        [Test]
+        public void AutoRepair_ClearsTowerWearAfterRaid()
+        {
+            var g = Rich30();
+            string err;
+            Assert.IsTrue(g.TryPlaceTower(P(4, 1), TowerType.Archer, out err), err);
+            g.Wears[P(4, 1)] = new TowerWear(30, 1);
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.AutoRepair, 1).Id);
+            g.Advance(10, 5); // yeni gün: baskın olur, sonra otomatik tamir
+            if (g.LastRaid != null) Assert.AreEqual(0, g.Wears[P(4, 1)].PermanentDamagePct);
+        }
+
         [Test]
         public void NewSoldiers_NeedMilitaryResearch()
         {

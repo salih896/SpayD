@@ -260,7 +260,9 @@ namespace GameCore.Game
             }
         }
         public int Builders => GameRules.Builders(CountBuildings(BuildingType.VillagerHouse));
-        public int FreeBuilders => Math.Max(0, Builders - Jobs.Count);
+        /// <summary>Köylü başına sıralı iş (Mimarlık İş Sırası I-II): 1 → 2 → 3. Aynı anda köylü sayısı kadar iş ilerler, gerisi sırada bekler.</summary>
+        public int JobQueueDepth => Math.Min(3, 1 + Research.Total(ResearchStat.JobQueue));
+        public int FreeBuilders => Math.Max(0, Builders * JobQueueDepth - Jobs.Count);
         public int SoldierLevel(SoldierType t) => SoldierLevels.TryGetValue(t, out var l) ? Math.Max(1, l) : 1;
 
         public int PerHour(ResourceType t)
@@ -390,15 +392,26 @@ namespace GameCore.Game
             }
             RecomputeCapacity();
 
-            for (int i = Jobs.Count - 1; i >= 0; i--)
+            // İşler: listedeki ilk "köylü sayısı" kadarı ilerler; biten işin yerine sıradaki başlar (çevrimdışı sürede de sırayla)
+            int left = seconds;
+            while (Jobs.Count > 0)
             {
-                var j = Jobs[i];
-                j.RemainingSeconds -= seconds;
-                if (j.RemainingSeconds > 0) continue;
-                Jobs.RemoveAt(i);
-                events.Add(CompleteJob(j));
-                PendingLevelUps.AddRange(AddXp(UpgradeXpPerLevel * (j.Kind == JobKind.Road ? RoadRules.Rank((RoadTier)j.TargetLevel) : j.TargetLevel)));
-                Quests.Report(QuestEvent.BuildingsUpgraded, 1, lvl);
+                int active = Math.Min(Builders, Jobs.Count);
+                int step = left;
+                for (int i = 0; i < active; i++) step = Math.Min(step, Math.Max(0, Jobs[i].RemainingSeconds));
+                for (int i = 0; i < active; i++) Jobs[i].RemainingSeconds -= step;
+                left -= step;
+                bool done = false;
+                for (int i = active - 1; i >= 0; i--)
+                {
+                    var j = Jobs[i];
+                    if (j.RemainingSeconds > 0) continue;
+                    Jobs.RemoveAt(i); done = true;
+                    events.Add(CompleteJob(j));
+                    PendingLevelUps.AddRange(AddXp(UpgradeXpPerLevel * (j.Kind == JobKind.Road ? RoadRules.Rank((RoadTier)j.TargetLevel) : j.TargetLevel)));
+                    Quests.Report(QuestEvent.BuildingsUpgraded, 1, lvl);
+                }
+                if (!done) break;
             }
             RecomputeCapacity();
 
@@ -408,6 +421,12 @@ namespace GameCore.Game
                 LastRaidDay = dayIndex;
                 var rep = RaidSimulator.TryRaid(this, dayIndex);
                 if (rep != null) { LastRaid = rep; events.Add("Köyüne saldırıldı! %" + rep.Result.OverallDamagePct + " hasar" + (rep.Result.Victory ? " (saldırgan kazandı)" : " (savundun)")); }
+                // Mimarlık "Otomatik Tamir": kalıcı aşınma kendiliğinden (ücretsiz) onarılır
+                if (rep != null && Research.Total(ResearchStat.AutoRepair) > 0 && DamagedTowerCount() > 0)
+                {
+                    foreach (var k in new List<GridPos>(Wears.Keys)) Wears[k] = new TowerWear();
+                    events.Add("Otomatik tamir: kuleler onarıldı");
+                }
             }
             return events;
         }

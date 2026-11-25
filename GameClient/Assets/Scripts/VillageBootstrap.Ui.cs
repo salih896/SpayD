@@ -489,9 +489,11 @@ namespace GameClient
             }
             if (cancelIdx >= 0) { if (g.TryCancelTrain(cancelIdx, out err)) Toast("İptal edildi"); else Toast(err); }
             GUILayout.Space(8);
-            GUILayout.Label("YÜKSELTMELER (" + g.Jobs.Count + "/" + g.Builders + " işçi)", UiTheme.Header);
-            foreach (var j in g.Jobs)
+            GUILayout.Label("YÜKSELTMELER (" + g.Jobs.Count + "/" + g.Builders * g.JobQueueDepth + "; " + g.Builders + " işçi" + (g.JobQueueDepth > 1 ? ", köylü başına " + g.JobQueueDepth + " iş" : "") + ")", UiTheme.Header);
+            for (int ji = 0; ji < g.Jobs.Count; ji++)
             {
+                var j = g.Jobs[ji];
+                if (ji >= g.Builders) GUILayout.Label("<size=12><color=#b0a090>(sırada)</color></size>");
                 if (j.Kind == JobKind.TowerElement) { GUILayout.Label("Kule " + (j.TargetLevel >= GameState.DefElementJobOffset ? "savunma elementi: " + ContentCatalog.ElementName((TowerElement)(j.TargetLevel - GameState.DefElementJobOffset)) : "elementi: " + ContentCatalog.ElementName((TowerElement)j.TargetLevel)) + "  kalan " + Dur(j.RemainingSeconds)); continue; }
                 string nm = j.Kind == JobKind.Soldier ? ContentCatalog.Soldier(j.Soldier).Name : (j.Kind == JobKind.Building && g.Buildings.TryGetValue(j.Pos, out var bs) ? ContentCatalog.Building(bs.Type).Name : (g.Towers.TryGetValue(j.Pos, out var ts2) ? ContentCatalog.Tower(ts2.Type).Name : "Yapı"));
                 GUILayout.Label(nm + " → Sv " + j.TargetLevel + "  kalan " + Dur(j.RemainingSeconds));
