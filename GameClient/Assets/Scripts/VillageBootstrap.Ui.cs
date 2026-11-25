@@ -745,7 +745,20 @@ namespace GameClient
             y += 42;
             if (Btn(new Rect(x, y, 300, 34), "Kendi köyüne saldır (test)")) { if (TestArmyCount() == 0) FillTestArmy(); tab = Tab.TestArmy; scrollPos = Vector2.zero; }
             GUI.Label(new Rect(x + 310, y + 6, r.width - 340, 24), "<size=12><color=#d8c9a8>Kurduğun savunmayı dene: askerleri sen seç, ödül yok, ordun harcanmaz</color></size>");
-            y += 50;
+            y += 42;
+            // Elementler (kullanıcı isteği 25.11.2026): test düğmeleri + bilgi bölümü
+            if (Btn(new Rect(x, y, 220, 34), "Tüm elementleri aç (test)"))
+            {
+                int n = 0;
+                foreach (var d in ResearchCatalog.All)
+                    if ((d.Stat == ResearchStat.TowerAttackElement || d.Stat == ResearchStat.TowerDefenseElement || d.Stat == ResearchStat.SoldierAttackElement || d.Stat == ResearchStat.SoldierDefenseElement) && !g.Research.IsDone(d.Id))
+                    { g.Research.ForceComplete(d.Id); n++; }
+                LastSave(); Toast(n + " element araştırması açıldı (test)");
+            }
+            if (Btn(new Rect(x + 226, y, 290, 34), (testTowerElements ? "[x]" : "[ ]") + " Test saldırısında kulelere element")) testTowerElements = !testTowerElements;
+            if (Btn(new Rect(x + 522, y, 150, 34), showElementInfo ? "Bilgiyi kapat" : "Element bilgisi")) showElementInfo = !showElementInfo;
+            y += 42;
+            if (showElementInfo) { DrawElementInfo(new Rect(r.x + 10, y, r.width - 20, r.yMax - y - 8)); return; }
             uiRects.Add(new Rect(x, y, 300, 38));
             if (GUI.Button(new Rect(x, y, 300, 38), confirmNew ? "EMİN MİSİN? Tekrar bas: tüm ilerleme silinir" : "Yeni oyun (sil)", UiTheme.BtnRed)) { if (confirmNew) { confirmNew = false; NewGameConfirmed(); } else confirmNew = true; }
             y += 48;
@@ -754,14 +767,46 @@ namespace GameClient
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 160), sb.ToString());
         }
 
+        private bool testTowerElements, showElementInfo;
+
+        /// <summary>Ayarlar > Element bilgisi: tüm elementlerin etkileri, döngü ve direnç.</summary>
+        private void DrawElementInfo(Rect r)
+        {
+            var sb = new StringBuilder("<size=14><b>KULE SALDIRI ELEMENTLERİ</b> (Okçu Kulesi; Akademi > Element ağacında araştır, kuleye 90 sn ile uygula)</size>\n<size=13>");
+            foreach (var e in new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning })
+            {
+                var rd = ResearchCatalog.FindSpecial(ResearchStat.TowerAttackElement, (int)e);
+                sb.Append("• <b>").Append(ContentCatalog.ElementName(e)).Append("</b>").Append(rd != null ? " (Sv" + rd.Level + ")" : "").Append(g.ElementUnlocked(e) ? " <color=#8fe07a>açık</color>" : "").Append(": ").Append(ContentCatalog.ElementEffect(e)).Append("\n");
+            }
+            sb.Append("</size>\n<size=14><b>SAVUNMA VE ASKER ELEMENTLERİ</b> (Ateş, Buz, Zehir)</size>\n<size=13>");
+            sb.Append("• Kule savunma elementi: Ateş/Buz/Zehir Kalkanı (kuleye 90 sn ile uygulanır; Duvar da alır)\n");
+            sb.Append("• Asker saldırı elementi: Ateş/Buz/Zehir Silahları — asker savunma elementi: Ateş/Buz/Zehir Zırhı (kışlada asker türüne seçilir)\n");
+            sb.Append("</size>\n<size=14><b>KURALLAR</b></size>\n<size=13>");
+            sb.Append("• Döngü: <color=#ff9a50>Ateş</color> > <color=#8fe07a>Zehir</color> > <color=#9fe0ff>Buz</color> > <color=#ff9a50>Ateş</color>\n");
+            sb.Append("• Zayıf elementle saldıran <b>%40 az</b> hasar verir (ör. zehirli asker Ateş savunmalı kuleye). Üstün olana ek hasar yok.\n");
+            sb.Append("• Direnç: hedefin savunma elementi saldırı elementiyle aynıysa <b>%35 az</b> hasar (ör. Ateş Zırhlı asker Ateş kulesinden).\n");
+            sb.Append("• Ok, Büyü ve Şimşek nötrdür (döngüye girmez).\n");
+            sb.Append("• Ayrıca: Ateş yakar, Buz yavaşlatır ve üst üste donma hasarı verir, Zehir zamanla hasar verir ve askerin hasarını %30 düşürür.</size>");
+            GUI.Label(r, sb.ToString());
+        }
+
         // ---------- Savaş arayüzü ----------
         private void DrawBattleGui(float w, float h)
         {
-            int n = ContentCatalog.SoldierTypeCount;
-            float bw = Mathf.Min(120f, (w - 8f) / n - 3f);
-            for (int i = 0; i < n; i++)
+            // yalnızca orduda olan türler (15 tür sığmaz): stokta kalan ya da sahaya inmiş
+            var shown = new List<SoldierType>();
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
             {
-                var t = (SoldierType)i;
+                var st = (SoldierType)i;
+                bool used = sim.StockOf(st) > 0 || st == selSoldier;
+                if (!used) foreach (var s in sim.Soldiers) if (s.Type == st) { used = true; break; }
+                if (used) shown.Add(st);
+            }
+            int n = Mathf.Max(1, shown.Count);
+            float bw = Mathf.Min(120f, (w - 8f) / n - 3f);
+            for (int i = 0; i < shown.Count; i++)
+            {
+                var t = shown[i];
                 if (sim.StockOf(t) <= 0 && t != selSoldier) GUI.color = new Color(1f, 1f, 1f, 0.45f);
                 var br = new Rect(4 + i * (bw + 3), 50, bw, 52);
                 if (SelBtn(br, ContentCatalog.Soldier(t).Name + "\n" + sim.StockOf(t), t == selSoldier)) selSoldier = t;

@@ -88,6 +88,16 @@ namespace GameClient
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = g.SoldierLevel((SoldierType)i);
             int seed = 7000 + battleSeed++;
             var target = new TargetInfo { Name = "Kendi köyün (test)", Level = g.Level, Defense = g.MakeDefense(), Pool = default, Seed = seed };
+            if (testTowerElements) // Ayarlar: test saldırısında kulelere sırayla saldırı + savunma elementi (yalnızca bu savaşın kopyası)
+            {
+                int ei = 0;
+                foreach (var tw in target.Defense.Towers.Values)
+                {
+                    if (tw.Type == TowerType.Archer) tw.Element = (TowerElement)(1 + ei % 6);
+                    tw.DefElement = (TowerElement)(2 + ei % 3);
+                    ei++;
+                }
+            }
             sim = new BattleSim(target.Defense, stock, levels, seed) { AttackerMods = g.Research.Mods(), AttackerElements = new Dictionary<SoldierType, (TowerElement, TowerElement)>(g.SoldierElements) };
             curTarget = target;
             testBattle = true;

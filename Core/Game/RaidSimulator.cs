@@ -20,7 +20,7 @@ namespace GameCore.Game
             var stock = new Dictionary<SoldierType, int>();
             var unlocked = new List<SoldierType>();
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
-                if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= level) unlocked.Add((SoldierType)i);
+                if (ContentCatalog.Soldier((SoldierType)i).UnlockLevel <= level && GameCore.Progression.ResearchCatalog.FindSpecial(GameCore.Progression.ResearchStat.SoldierUnlock, i) == null) unlocked.Add((SoldierType)i); // araştırmalı askerler baskında yok
             if (unlocked.Count == 0) unlocked.Add(SoldierType.Swordsman);
             int total = 6 + level * 7 / 4; // GEÇİCİ: geç oyun zorluğu (Sv30 ≈ 58 asker)
             for (int i = 0; i < total; i++)

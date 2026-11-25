@@ -45,6 +45,18 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer; Mancınık'ta gövdeye levha ve bayrak eklenir.
 
+**Araştırmayla açılan askerler** (Askerî ağaç; kullanıcı kararı 25.11.2026, değerler GEÇİCİ):
+
+| Asker | Araştırma | Can | Hasar | Aralık | Menzil | Hız | Özellik | Yer |
+|---|---|---|---|---|---|---|---|---|
+| Kalkanlı | Sv4 | 380 | 8 | 10 | 1,5 | 50 | Zırh %40; kuleler önce onu hedefler | 3 |
+| Suikastçı | Sv9 | 80 | 26 | 8 | 1,5 | 140 | Önce kuleler | 2 |
+| Şifacı | Sv14 | 140 | 0 | 10 | 2,0 | 70 | 2 hücredeki askerleri 2 sn'de bir %5 iyileştirir | 3 |
+| Arbaletli | Sv19 | 90 | 26 | 12 | 3,0 | 60 | Kulelere +%40 | 2 |
+| Bombacı | Sv24 | 110 | 200 | — | 1,5 | 110 | Yapıya ulaşınca alan 1,5'te patlar, ölür | 2 |
+
+**Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, kulelere savunma elementi element menüsünden verilir.
+
 ## 2. Kuleler (2 tür + 6 element) — kullanıcı kararı 25.11.2026
 Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta canı (yüzde) en az olan. Hakkı: başta 3, Akademi "Kule Hakkı I-V" (Sv3/6/10/15/20) ile en çok 8. Kuleler yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt).
 
@@ -136,6 +148,6 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
-- **XP eğrisi:** seviye başına 100 + 112l + 24l². Sv30'a 2 saatte bir giren oyuncu ≈ 100 gün.
+- **XP eğrisi:** seviye başına 100 + 140l + 30l². Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
 - **Araştırma:** 7 ağaç, 257 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

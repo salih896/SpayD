@@ -78,3 +78,4 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - Kule hasarı düşürülünce oyuncunun köyü günlük baskınlara karşı neredeyse hiç dayanamıyor (sim: 2 saatte bir giren bot 90 baskının 4'ünü savundu). Öneri: baskıncı ordusunu küçültmek. Karar gerekiyor.
 - 2. Akademi kurulunca +1 araştırma yuvası verir (#89, benim önerim); başka bir işlevi olsun mu?
 - Kule element değerleri ve geliştirme dalı etkileri (#90) geçicidir; oynadıktan sonra ayarlanmalı.
+- Bot zafer oranı yeni askerler ve araştırma kataloğundan sonra ≈ %94 (hedef %60-80). TargetGenerator.LevelPowerPermille kalibrasyonu (CalibrateLevelPower, Explicit) yeniden çalıştırılmalı; yeni asker ve element değerleri geçici.
