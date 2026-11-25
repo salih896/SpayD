@@ -158,12 +158,91 @@ namespace GameClient
         {
             if (dynRoot != null) Destroy(dynRoot.gameObject);
             dynRoot = null;
-            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierVel.Clear(); fxs.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
+            soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierVel.Clear(); fxs.Clear(); soldierStatus.Clear(); soldierNextFx.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
         }
 
-        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; }
-        private sealed class Fx { public Transform T; public float T0, Dur, Size; }
+        private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; public System.Action<Vector3> OnHit; }
+        private sealed class Fx { public Transform T; public float T0, Dur, Size; public Vector3 Vel; public bool Fixed; }
+
+        // asker durum görselleri: can çubuğunun üstünde simgeler (yanma, donma, zehir, zayıflama) + ayakta buz halkası
+        private readonly List<Transform[]> soldierStatus = new List<Transform[]>();
+        private readonly List<float> soldierNextFx = new List<float>();
+
+        private Transform[] MakeStatusIcons(Transform bar, Transform root)
+        {
+            var icons = new Transform[5];
+            var holder = VillageArt.Group(bar, "status", new Vector3(0f, 0.13f, 0f), 0f, 1.6f); // okunabilir boy
+            icons[0] = VillageArt.Group(holder, "burn", new Vector3(-0.15f, 0f, 0f));
+            VillageArt.Part(icons[0], VillageArt.Shape.Cone, Vector3.zero, new Vector3(0.06f, 0.09f, 0.06f), VillageArt.Mat(new Color(1f, 0.45f, 0.08f), 0.9f, 2.5f));
+            icons[1] = VillageArt.Group(holder, "frost", new Vector3(-0.05f, 0f, 0f));
+            VillageArt.Part(icons[1], VillageArt.Shape.Box, Vector3.zero, new Vector3(0.07f, 0.07f, 0.02f), VillageArt.Mat(new Color(0.6f, 0.92f, 1f), 0.9f, 2.2f), new Vector3(0, 0, 45));
+            VillageArt.Part(icons[1], VillageArt.Shape.Box, Vector3.zero, new Vector3(0.09f, 0.02f, 0.02f), VillageArt.Mat(Color.white, 0.9f, 2.5f));
+            icons[2] = VillageArt.Group(holder, "poison", new Vector3(0.05f, 0f, 0f));
+            VillageArt.Part(icons[2], VillageArt.Shape.Ball, Vector3.zero, Vector3.one * 0.07f, VillageArt.Mat(new Color(0.45f, 0.95f, 0.25f), 0.9f, 2.2f));
+            icons[3] = VillageArt.Group(holder, "weak", new Vector3(0.15f, 0f, 0f));
+            VillageArt.Part(icons[3], VillageArt.Shape.Cone, Vector3.zero, new Vector3(0.07f, 0.08f, 0.07f), VillageArt.Mat(new Color(0.95f, 0.2f, 0.2f), 0.6f, 1.5f), new Vector3(180, 0, 0));
+            icons[4] = VillageArt.Group(root, "frostRing", Vector3.zero);
+            VillageArt.Part(icons[4], VillageArt.Shape.Cyl, Vector3.zero, new Vector3(0.42f, 0.01f, 0.42f), VillageArt.Mat(new Color(0.6f, 0.9f, 1f), 0.9f, 1.4f));
+            foreach (var ic in icons) ic.gameObject.SetActive(false);
+            return icons;
+        }
+
+        /// <summary>Askerin üzerindeki etkiler (simülasyondan okunur): simgeler, yanma kıvılcımı, zehir kabarcığı, buz halkası.</summary>
+        private void UpdateStatus(int i, SimSoldier s, Vector3 pos)
+        {
+            var ic = soldierStatus[i];
+            int tick = sim.Tick;
+            bool burn = tick < s.BurnUntil, poison = tick < s.PoisonUntil, weak = tick < s.WeakUntil, slow = tick < s.SlowUntil;
+            int stacks = tick < s.FreezeUntil ? s.FreezeStacks : 0;
+            Show(ic[0], burn); Show(ic[1], slow || stacks > 0); Show(ic[2], poison); Show(ic[3], weak);
+            if (stacks > 0) ic[1].localScale = Vector3.one * (0.8f + 0.15f * stacks); // donma yığını büyüdükçe simge büyür
+            Show(ic[4], slow);
+            if (slow) ic[4].position = new Vector3(pos.x, (s.Flying ? pos.y - 0.05f : 0.03f), pos.z);
+            if ((burn || poison) && Time.time >= soldierNextFx[i])
+            {
+                soldierNextFx[i] = Time.time + (burn ? 0.12f : 0.22f);
+                var jitter = new Vector3(Random.Range(-0.08f, 0.08f), 0.15f + Random.Range(0f, 0.25f), Random.Range(-0.08f, 0.08f));
+                var c = burn ? (Random.value < 0.5f ? new Color(1f, 0.55f, 0.1f) : new Color(1f, 0.85f, 0.3f)) : new Color(0.45f, 0.95f, 0.25f);
+                SpawnSpark(pos + jitter, c, burn ? 0.1f : 0.08f, 0f, new Vector3(0f, burn ? 0.9f : 0.5f, 0f), burn ? 0.35f : 0.5f);
+            }
+        }
+
+        private static void Show(Transform t, bool on) { if (t.gameObject.activeSelf != on) t.gameObject.SetActive(on); }
+
+        /// <summary>Yıldırım: iki nokta arasında zikzak parlak çizgi (kısa süre).</summary>
+        private void Bolt(Vector3 a, Vector3 b, Color c)
+        {
+            var g = VillageArt.Group(DynRoot(), "bolt", Vector3.zero);
+            const int segs = 5;
+            var prev = a;
+            for (int k = 1; k <= segs; k++)
+            {
+                var next = Vector3.Lerp(a, b, k / (float)segs);
+                if (k < segs) next += new Vector3(Random.Range(-0.08f, 0.08f), Random.Range(-0.08f, 0.08f), Random.Range(-0.08f, 0.08f));
+                var mid = (prev + next) * 0.5f;
+                float len = Vector3.Distance(prev, next);
+                if (len > 0.001f)
+                {
+                    var seg = VillageArt.Part(g, VillageArt.Shape.Box, mid, new Vector3(0.045f, 0.045f, len), VillageArt.Mat(c, 0.9f, 2.5f));
+                    seg.transform.rotation = Quaternion.LookRotation((next - prev).normalized, Vector3.up);
+                }
+                prev = next;
+            }
+            fxs.Add(new Fx { T = g, T0 = Time.time, Dur = 0.22f, Size = 1f, Fixed = true });
+        }
+
+        /// <summary>Alan patlaması: ortada büyük parlama + çevreye saçılan küçük parçalar.</summary>
+        private void Burst(Vector3 p, Color c, float size, int bits, float radius)
+        {
+            SpawnSpark(p, c, size);
+            for (int k = 0; k < bits; k++)
+            {
+                float a = k * Mathf.PI * 2f / bits + Random.value * 0.5f;
+                var dir = new Vector3(Mathf.Cos(a), 0.35f, Mathf.Sin(a));
+                SpawnSpark(p + dir * 0.05f, Color.Lerp(c, Color.white, 0.2f), size * 0.3f, 0f, dir * (radius / 0.35f), 0.35f);
+            }
+        }
         private readonly List<Fx> fxs = new List<Fx>();
 
         /// <summary>
@@ -211,13 +290,13 @@ namespace GameClient
         private static bool IsRangedView(SoldierType t) =>
             t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Catapult || t == SoldierType.DragonRider;
 
-        private void SpawnSpark(Vector3 pos, Color c, float size, float delay = 0f)
+        private void SpawnSpark(Vector3 pos, Color c, float size, float delay = 0f, Vector3 vel = default, float dur = 0.28f)
         {
             var g = VillageArt.Group(DynRoot(), "spark", pos);
             VillageArt.Part(g, VillageArt.Shape.Ball, Vector3.zero, Vector3.one, VillageArt.Mat(c, 0.9f, 2.2f));
             g.localScale = Vector3.one * size * 0.4f;
             g.gameObject.SetActive(delay <= 0f);
-            fxs.Add(new Fx { T = g, T0 = Time.time + delay, Dur = 0.28f, Size = size });
+            fxs.Add(new Fx { T = g, T0 = Time.time + delay, Dur = dur, Size = size, Vel = vel });
         }
         private readonly List<Shot> shots = new List<Shot>();
         private readonly List<Vector3> soldierPrev = new List<Vector3>();
@@ -246,6 +325,7 @@ namespace GameClient
                 var sf = VillageArt.Group(sb, "fill", new Vector3(-0.17f, 0f, -0.02f));
                 VillageArt.Part(sf, VillageArt.Shape.Box, new Vector3(0.17f, 0f, 0f), new Vector3(0.34f, 0.045f, 0.015f), VillageArt.Mat(new Color(0.3f, 0.9f, 0.3f), 0.2f, 0.6f));
                 soldierBars.Add(sb); soldierBarFills.Add(sf); soldierBarColor.Add(0);
+                soldierStatus.Add(MakeStatusIcons(sb, root)); soldierNextFx.Add(0f);
                 soldierOff.Add(new Vector3(st.OffX / 1000f, 0f, st.OffY / 1000f));
                 soldierRigs.Add(tr.GetComponent<ISoldierAnim>());
                 soldierVel.Add(0f);
@@ -262,7 +342,7 @@ namespace GameClient
                 var t = soldierViews[i];
                 if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
                 if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
-                if (!s.Alive) continue;
+                if (!s.Alive) { Show(soldierStatus[i][4], false); continue; }
                 // ara konum: önceki adım → şimdiki adım, kalan süre oranında
                 float alpha = sim.Finished ? 1f : Mathf.Clamp01(tickAcc / SimTickSeconds);
                 var prevSim = i < simPrevPos.Count ? simPrevPos[i] : new Vector2(s.X, s.Y);
@@ -309,6 +389,7 @@ namespace GameClient
                 float hf = s.MaxHp > 0 ? Mathf.Clamp01((float)s.Hp / s.MaxHp) : 0f;
                 soldierBars[i].position = t.position + new Vector3(0f, soldierBarH[i], 0f);
                 soldierBarFills[i].localScale = new Vector3(Mathf.Max(0.03f, hf), 1f, 1f);
+                UpdateStatus(i, s, t.position);
                 int ci = hf > 0.6f ? 0 : (hf > 0.3f ? 1 : 2);
                 if (ci != soldierBarColor[i])
                 {
@@ -365,7 +446,8 @@ namespace GameClient
                 if (!sh.T.gameObject.activeSelf) sh.T.gameObject.SetActive(true);
                 if (a >= 1f)
                 {
-                    if (sh.HitColor.a > 0f) SpawnSpark(sh.B, sh.HitColor, sh.HitSize);
+                    if (sh.OnHit != null) sh.OnHit(sh.B);
+                    else if (sh.HitColor.a > 0f) SpawnSpark(sh.B, sh.HitColor, sh.HitSize);
                     Destroy(sh.T.gameObject); shots.RemoveAt(i); continue;
                 }
                 float arc = sh.Arc;
@@ -391,6 +473,8 @@ namespace GameClient
                 if (a < 0f) { if (f.T.gameObject.activeSelf) f.T.gameObject.SetActive(false); continue; }
                 if (a >= 1f) { Destroy(f.T.gameObject); fxs.RemoveAt(i); continue; }
                 if (!f.T.gameObject.activeSelf) f.T.gameObject.SetActive(true);
+                if (f.Fixed) continue; // yıldırım: ölçeklenmez, süre bitince silinir
+                if (f.Vel != Vector3.zero) f.T.position += f.Vel * Time.deltaTime;
                 float k = Mathf.Sin(Mathf.Min(1f, a * 1.6f) * Mathf.PI * 0.5f) * (1f - a * a);
                 f.T.localScale = Vector3.one * (f.Size * (0.4f + k));
             }
@@ -425,14 +509,71 @@ namespace GameClient
             for (int i = 0; i < n; i++) if (soldierSep[i].sqrMagnitude > 0.04f) soldierSep[i] = soldierSep[i].normalized * 0.2f;
         }
 
+        /// <summary>
+        /// Kule atışı görseli (simülasyonla aynı hedef). Element başına mermi ve isabet efekti:
+        /// Ok (kritikte büyük sarı parlama), Ateş (alevli top + alan patlaması), Buz (buz parçası + mavi patlama),
+        /// Zehir (yeşil küre + bulut), Büyü (mor küre), Şimşek (anında zikzak yıldırım + 2 askere sıçrama).
+        /// </summary>
         private void SpawnShot(SimStructure tower)
         {
             var best = sim.TowerTargetOf(tower); // simülasyonla aynı hedef kuralı
             if (best == null) return;
-            var t = VillageArt.Projectile(DynRoot(), ContentCatalog.ProjectileLook(tower.TowerType, tower.Element));
+            var e = tower.Element;
+            var col = VillageArt.ElementColor(e);
             var a = new Vector3(tower.Pos.X, 1.25f, tower.Pos.Y);
             var b = new Vector3(best.X / 1000f, best.Flying ? 1.0f : 0.25f, best.Y / 1000f);
-            shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = 0.25f / Mathf.Max(1, speed) });
+            float spd = Mathf.Max(1f, speed);
+            float dist = Vector3.Distance(a, b);
+            if (e == TowerElement.Lightning)
+            {
+                Bolt(a, b, col); Burst(b, col, 0.3f, 0, 0f);
+                // zincir: hedefin 2 hücre yakınındaki en yakın 2 asker (simülasyondaki sıçramanın görsel karşılığı)
+                var hit = new HashSet<int> { best.Id };
+                var cur = best; var curPos = b;
+                for (int n = 0; n < 2; n++)
+                {
+                    SimSoldier next = null; float bd = 2.01f;
+                    foreach (var o in sim.Soldiers)
+                    {
+                        if (!o.Alive || hit.Contains(o.Id)) continue;
+                        float d = Vector2.Distance(new Vector2(cur.X, cur.Y), new Vector2(o.X, o.Y)) / 1000f;
+                        if (d < bd) { bd = d; next = o; }
+                    }
+                    if (next == null) break;
+                    var np = new Vector3(next.X / 1000f, next.Flying ? 1.0f : 0.25f, next.Y / 1000f);
+                    Bolt(curPos, np, col); SpawnSpark(np, col, 0.2f);
+                    hit.Add(next.Id); cur = next; curPos = np;
+                }
+                return;
+            }
+            Transform t; float cellsPerSec = 7f, arc = 0.2f; Color trail = Color.clear; System.Action<Vector3> onHit;
+            switch (e)
+            {
+                case TowerElement.Fire:
+                    t = VillageArt.Fireball(DynRoot(), 0.22f); cellsPerSec = 3.5f; arc = 0.35f; trail = new Color(1f, 0.45f, 0.08f);
+                    onHit = p => Burst(p, col, 0.75f, 8, 0.6f); break; // alan 1,2 hücre
+                case TowerElement.Ice:
+                    t = VillageArt.Projectile(DynRoot(), TowerType.Ice); cellsPerSec = 8f; arc = 0.1f;
+                    onHit = p => Burst(p, col, 0.35f, 5, 0.25f); break;
+                case TowerElement.Poison:
+                    t = VillageArt.MagicOrb(DynRoot(), col, 0.12f); cellsPerSec = 5f; arc = 0.25f; trail = new Color(0.4f, 0.85f, 0.2f);
+                    onHit = p => { for (int k = 0; k < 4; k++) SpawnSpark(p + new Vector3(Random.Range(-0.15f, 0.15f), 0.05f, Random.Range(-0.15f, 0.15f)), col, 0.25f, k * 0.05f, new Vector3(0f, 0.25f, 0f), 0.7f); };
+                    break;
+                case TowerElement.Magic:
+                    t = VillageArt.MagicOrb(DynRoot(), col, 0.15f); cellsPerSec = 5.5f; arc = 0.15f; trail = new Color(0.7f, 0.35f, 1f);
+                    onHit = p => Burst(p, col, 0.4f, 4, 0.2f); break;
+                default: // elementsiz ve Ok
+                {
+                    t = VillageArt.Arrow(DynRoot()); cellsPerSec = 9f; arc = 0.25f;
+                    // kritik: simülasyondaki deterministik formülün aynısı (atış bir önceki adımda oldu)
+                    var def = ContentCatalog.TowerFor(tower.TowerType, e);
+                    bool crit = def.CritPct > 0 && ((sim.Tick - 1) * 31 + tower.Id * 17 + best.Id * 7) % 100 < def.CritPct;
+                    if (crit) { t.localScale = Vector3.one * 1.4f; onHit = p => { Burst(p, new Color(1f, 0.9f, 0.2f), 0.55f, 6, 0.3f); }; }
+                    else onHit = p => SpawnSpark(p, e == TowerElement.Arrow ? col : new Color(1f, 0.85f, 0.5f), 0.12f);
+                    break;
+                }
+            }
+            shots.Add(new Shot { T = t, A = a, B = b, T0 = Time.time, Dur = Mathf.Max(0.12f, dist / cellsPerSec) / spd, Arc = arc, Trail = trail, TrailSize = 0.08f, OnHit = onHit });
             t.position = a;
         }
 

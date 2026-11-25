@@ -1042,6 +1042,40 @@ namespace GameClient
             return g;
         }
 
+        /// <summary>Kule elementinin rengi (aura, mermi, isabet).</summary>
+        public static Color ElementColor(TowerElement e)
+        {
+            switch (e)
+            {
+                case TowerElement.Arrow: return new Color(1f, 0.82f, 0.25f);
+                case TowerElement.Fire: return new Color(1f, 0.42f, 0.08f);
+                case TowerElement.Ice: return new Color(0.55f, 0.9f, 1f);
+                case TowerElement.Poison: return new Color(0.45f, 0.95f, 0.25f);
+                case TowerElement.Magic: return new Color(0.75f, 0.35f, 1f);
+                case TowerElement.Lightning: return new Color(1f, 0.97f, 0.55f);
+                default: return Color.white;
+            }
+        }
+
+        /// <summary>Elementli kulenin tepesinde süzülen parlak küre + etrafında dönen 3 parçacık (yalnızca görsel).</summary>
+        public static void ElementAura(Transform parent, Vector3 pos, TowerElement e, float height)
+        {
+            if (e == TowerElement.None) return;
+            var c = ElementColor(e);
+            var g = Group(parent, "aura", pos + new Vector3(0f, height, 0f));
+            var core = Group(g, "core", Vector3.zero);
+            Part(core, Shape.Ball, Vector3.zero, Vector3.one * 0.11f, Mat(Color.Lerp(c, Color.white, 0.35f), 0.9f, 1.4f));
+            Part(core, Shape.Ball, Vector3.zero, Vector3.one * 0.19f, Mat(c, 0.9f, 0.6f));
+            Animate(core.gameObject, ArtMotion.Kind.Bob, 2.2f, 0.05f);
+            var ring = Group(g, "ring", Vector3.zero);
+            for (int i = 0; i < 3; i++)
+            {
+                float a = i * 2.094f;
+                Part(ring, e == TowerElement.Ice ? Shape.Pyramid : Shape.Ball, new Vector3(Mathf.Cos(a) * 0.22f, Mathf.Sin(a * 2f) * 0.04f, Mathf.Sin(a) * 0.22f), Vector3.one * 0.06f, Mat(c, 0.9f, 1f));
+            }
+            Animate(ring.gameObject, ArtMotion.Kind.Spin, e == TowerElement.Lightning ? 6f : 2.5f, 0f);
+        }
+
         /// <summary>Okçu oku: gövde, demir uç, tüy (z ekseni boyunca, uç önde).</summary>
         public static Transform Arrow(Transform parent)
         {

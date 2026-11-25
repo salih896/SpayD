@@ -111,7 +111,9 @@ namespace GameClient
                             if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
                                 var tt = view.Towers.TryGetValue(p, out var ts) ? ContentCatalog.ModelLook(ts.Type, ts.Element) : TowerType.Archer;
-                                VillageArt.BuildTower(viewRoot, tt, ts != null ? ts.Level : 1, ts != null && ts.PermanentDamagePct > 0, c);
+                                var towerT = VillageArt.BuildTower(viewRoot, tt, ts != null ? ts.Level : 1, ts != null && ts.PermanentDamagePct > 0, c);
+                                if (ts != null && ts.Type == TowerType.Archer && ts.Element != TowerElement.None)
+                                    VillageArt.ElementAura(viewRoot, c, ts.Element, ModelLibrary.WorldHeight(towerT) + 0.18f); // kulenin tepesinin hemen üstü
                             }
                             break;
                     }
