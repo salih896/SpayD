@@ -14,7 +14,7 @@ namespace GameCore.Game
         public const int StarterWood = 600;
         public const int SellRefundPct = 50;
 
-        /// <summary>Kule hakkı (kullanıcı kararı 15.11.2026): toplam 3 ile başlar; Sv6/Sv12/Sv20'de +1, Akademi araştırma görevleriyle +2 → en çok 8.</summary>
+        /// <summary>Kule hakkı (kullanıcı kararı 15.11.2026): toplam 3 ile başlar; Sv6/Sv12/Sv20'de +1, Akademi "Kule Hakkı I-II" araştırmalarıyla +2 → en çok 8.</summary>
         public const int StartTowerSlots = 3, MaxTowerSlots = 8;
         public static int TowerSlotsFromLevel(int playerLevel) => StartTowerSlots + (playerLevel >= 6 ? 1 : 0) + (playerLevel >= 12 ? 1 : 0) + (playerLevel >= 20 ? 1 : 0);
         /// <summary>Tuzak hakkı (kullanıcı isteği): başta 4, Akademi "Tuzak Ustalığı" araştırmasıyla 6.</summary>
@@ -22,13 +22,13 @@ namespace GameCore.Game
         /// <summary>Tuzak Ustalığı araştırması (GEÇİCİ): 12 saat; 3000 odun, 1500 taş.</summary>
         public const int TrapResearchSeconds = 12 * 3600;
         public static readonly ResourceCost TrapResearchCost = new ResourceCost(3000, 1500);
-        /// <summary>Köylü evi: başta 1, Akademi görevleriyle en çok 3.</summary>
+        /// <summary>Köylü evi: başta 1, Akademi "Köylü Evi I-II" araştırmalarıyla en çok 3.</summary>
         public const int StartVillagerHouses = 1, MaxVillagerHouses = 3;
 
         /// <summary>Kışla sınırı (kullanıcı kararı 15.11.2026): 1; Sv13'te 2, Sv26'da 3.</summary>
         public static int MaxBarracks(int playerLevel) => playerLevel >= 26 ? 3 : (playerLevel >= 13 ? 2 : 1);
 
-        /// <summary>Yapı başına üst sınır: üretim binaları ve depolar 1'er; Kışla seviyeye göre 1-3; Akademi 1; Köylü evi en çok 3 (görevle açılır).</summary>
+        /// <summary>Yapı başına üst sınır: üretim binaları ve depolar 1'er; Kışla seviyeye göre 1-3; Akademi 1; Köylü evi en çok 3 (araştırmayla açılır).</summary>
         public static int MaxBuildingCount(BuildingType t, int playerLevel = MaxLevel)
         {
             switch (t)
@@ -39,7 +39,7 @@ namespace GameCore.Game
             }
         }
 
-        /// <summary>Tipik oyuncunun o seviyedeki kule hakkı (araştırma görevlerini zamanla alır). Yapay hedef köylerin kule sayısı buna bağlı.</summary>
+        /// <summary>Tipik oyuncunun o seviyedeki kule hakkı (Kule Hakkı araştırmalarını zamanla yapar). Yapay hedef köylerin kule sayısı buna bağlı.</summary>
         public static int ExpectedTowerSlots(int playerLevel) =>
             Math.Min(MaxTowerSlots, TowerSlotsFromLevel(playerLevel) + (playerLevel >= 10 ? 1 : 0) + (playerLevel >= 18 ? 1 : 0));
 

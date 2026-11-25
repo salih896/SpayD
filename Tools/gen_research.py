@@ -13,7 +13,7 @@ for l in src:
     if not l.startswith('|') or l.startswith('|---'): continue
     cells=[c.strip() for c in l.strip().strip('|').split('|')]
     if tree<6 or tree==6:
-        if cells[0].isdigit() and len(cells)==4:
+        if cells[0].isdigit() and len(cells) in (4,5):
             lv=int(cells[0])
             for i,c in enumerate(cells[1:]):
                 if c and c!='—': rows.append((tree,lv,i+1,c))

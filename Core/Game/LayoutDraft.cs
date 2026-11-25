@@ -226,7 +226,7 @@ namespace GameCore.Game
 
         private string LimitHint(BuildingType t)
         {
-            if (t == BuildingType.VillagerHouse && g.MaxVillagerHouses < GameRules.MaxVillagerHouses) return " (Akademi görevleriyle artar)";
+            if (t == BuildingType.VillagerHouse && g.MaxVillagerHouses < GameRules.MaxVillagerHouses) return " (Akademi araştırmasıyla artar)";
             if (t == BuildingType.Barracks && g.Level < 26) return g.Level < 13 ? " (2. kışla Sv13'te)" : " (3. kışla Sv26'da)";
             return "";
         }

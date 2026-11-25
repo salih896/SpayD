@@ -10,7 +10,8 @@ namespace GameCore.Progression
     public enum ResearchStat
     {
         ProductionPct, StoragePct, TowerDamage, TowerHp, SoldierDamage, SoldierHp, BuildingHp,
-        UpgradeCost, BuildTime, TrainTime, ResearchTime, ResearchCost, ElementMastery
+        UpgradeCost, BuildTime, TrainTime, ResearchTime, ResearchCost, ElementMastery,
+        VillagerHouseSlot, TowerSlot   // yapı hakkı: Permille = +adet
     }
 
     public sealed class ResearchDef
@@ -18,14 +19,14 @@ namespace GameCore.Progression
         public string Id;
         public ResearchTree Tree;
         public int Level;      // araştırma seviyesi (1..30) = gereken Üniversite seviyesi
-        public int Column;     // 1..3
+        public int Column;     // 1..3 (Köy Gelişimi 4. sütun: yapı hakkı araştırmaları)
         public string Name;
         public ResearchStat Stat;
         public int Permille;   // bonus (‰)
     }
 
     /// <summary>
-    /// 474 araştırmanın kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
+    /// 478 araştırmanın kataloğu (GameDesign/TechTrees.md'den üretilen ResearchData). Bonus değerleri GEÇİCİDİR (dengeleme aşaması).
     /// Ön koşul: aynı sütundaki bir önceki araştırma; 3. sütun ayrıca aynı seviyedeki 1. ve 2. sütunu gerektirir (öneri, onay bekler).
     /// Element ağacının diğer ağaçlarla ortak kilitleri henüz uygulanmadı (docs/open-questions.md).
     /// </summary>
@@ -61,6 +62,8 @@ namespace GameCore.Progression
                 case ResearchTree.Defense: d.Stat = d.Column == 2 ? ResearchStat.TowerHp : ResearchStat.TowerDamage; d.Permille = c3 ? 18 : 10; break;
                 case ResearchTree.Military: d.Stat = d.Column == 2 ? ResearchStat.SoldierHp : ResearchStat.SoldierDamage; d.Permille = c3 ? 18 : 10; break;
                 case ResearchTree.Architecture: d.Stat = d.Column == 2 ? ResearchStat.UpgradeCost : ResearchStat.BuildingHp; d.Permille = d.Column == 2 ? 10 : (c3 ? 20 : 15); break;
+                case ResearchTree.Village when d.Column == 4:
+                    d.Stat = d.Name.StartsWith("Köylü Evi") ? ResearchStat.VillagerHouseSlot : ResearchStat.TowerSlot; d.Permille = 1; break;
                 case ResearchTree.Village: d.Stat = d.Column == 2 ? ResearchStat.TrainTime : ResearchStat.BuildTime; d.Permille = c3 ? 15 : 10; break;
                 case ResearchTree.Science: d.Stat = d.Column == 2 ? ResearchStat.ResearchCost : ResearchStat.ResearchTime; d.Permille = c3 ? 20 : (d.Column == 2 ? 10 : 14); break;
                 default: d.Stat = ResearchStat.ElementMastery; d.Permille = 3; break;
@@ -155,7 +158,18 @@ namespace GameCore.Progression
             if (IsActive(d.Id)) return "Sürüyor";
             if (playerLevel < UniversityUnlockLevel || universityLevel < 1) return "Akademi Sv" + UniversityUnlockLevel + "'te açılır";
             if (universityLevel < d.Level) return "Akademi Sv " + d.Level + " gerekli";
-            if (d.Column == 3)
+            if (d.Column == 4)
+            {
+                // yapı hakkı zinciri: aynı sütunda bir önceki araştırma (seviye boşluklu)
+                for (int l = d.Level - 1; l >= 1; l--)
+                {
+                    var prev = ResearchCatalog.Find(d.Tree, l, 4);
+                    if (prev == null) continue;
+                    if (!done.Contains(prev.Id)) return "Önce: " + prev.Name;
+                    break;
+                }
+            }
+            else if (d.Column == 3)
             {
                 if (!done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 1)) || !done.Contains(ResearchCatalog.MakeId((int)d.Tree, d.Level, 2)))
                     return "Aynı seviyedeki 1. ve 2. araştırma gerekli";

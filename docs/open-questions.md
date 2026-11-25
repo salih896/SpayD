@@ -63,7 +63,7 @@ Aşağıdakiler KULLANICI OYNAYARAK İNCELEYECEK; tamamı yer tutucu/varsayımd�
 - main'e birleştirme kullanıcı onayı bekler.
 
 ## AÇIK (14.11.2026 – yapı sınırları/yol)
-- Akademi görev hedefleri (Akademi kur; 3 araştırma; Akademi Sv3; 5 zafer; 15 araştırma) geçicidir; değiştirmek ister misin?
+- ~~Akademi görev hedefleri~~ → görevler kaldırıldı, yapı hakları araştırma oldu (#88). Yapı hakkı araştırmalarının seviyeleri (Sv1/3/6/15) geçicidir.
 - Yol basamağının oyuna etkisi ne olsun? (öneri: Demir yolda askerler yavaşlar veya tuzak hasarı artar) Şu an yalnızca görünüm.
 - Tek yol geliştirmesi anlık; süre eklensin mi?
 - Eski kayıtlarda sınırı aşan yapılar (ör. 27 köylü evi) korunuyor; yeni kurulum engelleniyor. Fazlası kaldırılsın mı?

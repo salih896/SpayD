@@ -168,8 +168,6 @@ namespace GameClient
         private bool HasClaimable()
         {
             foreach (var q in g.Quests.Visible(g.Level)) if (g.Quests.IsComplete(q)) return true;
-            if (g.CountBuildings(BuildingType.University) > 0)
-                foreach (var t in AcademyTasks.All) if (!g.AcademyClaimed.Contains(t.Id) && g.AcademyTaskComplete(t)) return true;
             return false;
         }
 
@@ -465,17 +463,19 @@ namespace GameClient
             for (int lv = 1; lv <= ResearchCatalog.MaxLevel; lv++)
             {
                 bool any = false;
-                for (int c = 1; c <= 3; c++) if (ResearchCatalog.Find((ResearchTree)researchTree, lv, c) != null) any = true;
+                for (int c = 1; c <= 4; c++) if (ResearchCatalog.Find((ResearchTree)researchTree, lv, c) != null) any = true;
                 if (!any) continue;
                 GUILayout.BeginHorizontal(GUILayout.Height(40));
                 GUILayout.Label("Sv " + lv, GUILayout.Width(44));
-                for (int c = 1; c <= 3; c++)
+                int cols = researchTree == (int)ResearchTree.Village ? 4 : 3; // Köy Gelişimi: 4. sütun yapı hakkı
+                float colW = cols == 4 ? 200f : 250f;
+                for (int c = 1; c <= cols; c++)
                 {
                     var d = ResearchCatalog.Find((ResearchTree)researchTree, lv, c);
-                    if (d == null) { GUILayout.Label("", GUILayout.Width(250)); continue; }
+                    if (d == null) { GUILayout.Label("", GUILayout.Width(colW)); continue; }
                     string st = g.Research.IsDone(d.Id) ? "[OK]" : (g.Research.IsActive(d.Id) ? "[...]" : (g.Research.LockReason(d, g.Level, g.UniversityLevel) == null ? "[>]" : "[X]"));
                     var style = selResearch == d.Id ? UiTheme.BtnOn : (g.Research.IsDone(d.Id) ? UiTheme.BtnGreen : GUI.skin.button);
-                    if (GUILayout.Button(st + " " + d.Name, style, GUILayout.Width(250), GUILayout.Height(38))) selResearch = d.Id;
+                    if (GUILayout.Button(st + " " + d.Name, style, GUILayout.Width(colW), GUILayout.Height(38))) selResearch = d.Id;
                 }
                 GUILayout.EndHorizontal();
             }
@@ -486,7 +486,7 @@ namespace GameClient
             var sel = selResearch != null ? ResearchCatalog.Get(selResearch) : null;
             var dr = new Rect(r.x + 6, r.y + r.height - 94, r.width - 12, 88);
             GUI.Box(dr, "");
-            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. Ön koşul: aynı sütundaki önceki araştırma; 3. sütun için aynı seviyedeki 1. ve 2. sütun."); return; }
+            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. Ön koşul: aynı sütundaki önceki araştırma; 3. sütun için aynı seviyedeki 1. ve 2. sütun. Köy Gelişimi 4. sütun: köylü evi ve kule hakkı."); return; }
             string reason = g.Research.LockReason(sel, g.Level, g.UniversityLevel);
             string bonus = StatText(sel);
             GUI.Label(new Rect(dr.x + 8, dr.y + 4, dr.width - 180, 80), sel.Name + "  (Sv " + sel.Level + ")  " + bonus + "\nMaliyet: " + g.Research.CostFor(sel, g.Config, g.Level) + "   Süre: " + Dur(g.Research.SecondsFor(sel)) + "\n" + (reason ?? "Başlatılabilir"));
@@ -503,6 +503,8 @@ namespace GameClient
             string v = (d.Permille / 10f).ToString("0.#") + "%";
             switch (d.Stat)
             {
+                case ResearchStat.VillagerHouseSlot: return "+1 Köylü Evi hakkı";
+                case ResearchStat.TowerSlot: return "+1 Kule hakkı";
                 case ResearchStat.ProductionPct: return "Üretim +" + v;
                 case ResearchStat.StoragePct: return "Depo +" + v;
                 case ResearchStat.TowerDamage: return "Kule hasarı +" + v;
@@ -527,19 +529,7 @@ namespace GameClient
             GUILayout.BeginArea(new Rect(r.x + 12, r.y + 48, r.width - 24, r.height - 58));
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             var list = g.Quests.Visible(g.Level);
-            string claimId = null, academyId = null;
-            GUILayout.Label("AKADEMİ GÖREVLERİ  <size=13><color=#d8c9a8>(yapı hakkı kazandırır" + (g.CountBuildings(BuildingType.University) == 0 ? " — önce Akademi kur" : "") + ")</color></size>", UiTheme.Header);
-            foreach (var at in AcademyTasks.All)
-            {
-                bool claimed = g.AcademyClaimed.Contains(at.Id), ok = g.AcademyTaskComplete(at);
-                GUILayout.BeginHorizontal(GUILayout.Height(36));
-                GUILayout.Label((claimed ? "<color=#8fe07a>✔ </color>" : "") + at.Name + "   " + System.Math.Min(at.Progress(g), at.Target) + "/" + at.Target + "\n<size=13><color=#ffd560>Ödül: " + at.RewardText + "</color></size>", GUILayout.Width(w - 260));
-                GUI.enabled = !claimed && ok;
-                if (GUILayout.Button(claimed ? "Alındı" : "AL", !claimed && ok ? UiTheme.BtnGreen : GUI.skin.button, GUILayout.Width(100), GUILayout.Height(36))) academyId = at.Id;
-                GUI.enabled = true;
-                GUILayout.EndHorizontal();
-            }
-            GUILayout.Space(10);
+            string claimId = null;
             for (int pass = 0; pass < 2; pass++)
             {
                 GUILayout.Label(pass == 0 ? "GÜNLÜK GÖREVLER" : "KİLOMETRE TAŞLARI", UiTheme.Header);
@@ -557,12 +547,6 @@ namespace GameClient
             }
             GUILayout.EndScrollView();
             GUILayout.EndArea();
-            if (academyId != null)
-            {
-                string aerr;
-                if (g.TryClaimAcademy(academyId, out aerr)) { popups.Add("YENİ HAK!\n" + AcademyTasks.Get(academyId).RewardText + "\nKöylü evi: " + g.MaxVillagerHouses + "/" + GameRules.MaxVillagerHouses + "   Kule: " + g.MaxTowers + "/" + GameRules.MaxTowerSlots + "\nYeni yapıyı KÖY DÜZENİ'nden kur."); dirty = true; }
-                else Toast(aerr);
-            }
             if (claimId != null)
             {
                 string err;

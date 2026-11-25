@@ -113,17 +113,16 @@ Yol hakkı: Sv1'de 10, her seviyede +1. Geliştirme için önce Akademi'de yol a
 - **Ev yapısı:** Sv5'te taş alt kat, Sv10'da 2. kat
 - **Tüm binalara eklenenler:** taş temel (Sv5), fener (Sv10), altın süs (Sv15), sancak (Sv20)
 
-## 6. Akademi görevleri ve haklar
-| Görev | Ödül |
-|---|---|
-| Akademi'yi kur | +1 köylü evi |
-| 3 araştırma tamamla | +1 köylü evi |
-| Akademi'yi Sv3'e yükselt | +1 kule |
-| 5 savaş kazan | +1 kule |
-| 15 araştırma tamamla | +1 kule |
+## 6. Akademi yapı hakkı araştırmaları (Köy Gelişimi, 4. sütun)
+| Araştırma | Sv | Ödül |
+|---|---|---|
+| Köylü Evi I | 1 | +1 köylü evi |
+| Köylü Evi II | 3 | +1 köylü evi |
+| Kule Hakkı I | 6 | +1 kule |
+| Kule Hakkı II | 15 | +1 kule |
 
 ## 7. İlerleme
 - **Kaynaklar:** Odun Sv1, Taş Sv5, Altın Sv15, Demir Sv25.
 - **XP eğrisi:** seviye başına 100 + 85l + 18l² (Sv1→30 toplam ≈ 175 bin). Sv30'a 2 saatte bir giren oyuncu ≈ 93 gün.
-- **Araştırma:** 7 ağaç, 474 araştırma.
+- **Araştırma:** 7 ağaç, 478 araştırma (tam liste: `docs/akademi-arastirmalari.md`).
 - **Savaş:** Zafer için köyün %75'i yıkılmalı (1 yıldız); %90'da 2, %100'de 3 yıldız. Rastgele savaşlarda her seviyede ≈ %50 zafer hedeflenir (bkz. `docs/battle-verify.txt`).

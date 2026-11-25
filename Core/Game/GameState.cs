@@ -75,8 +75,6 @@ namespace GameCore.Game
         public int LastRaidDay = -1;
         public RaidReport LastRaid;
         public long LastUnixSeconds;
-        /// <summary>Alınmış Akademi görevleri (yapı hakkı verir).</summary>
-        public HashSet<string> AcademyClaimed = new HashSet<string>();
         /// <summary>Yol geliştirme araştırması: tamamlandı mı, sürüyorsa kalan saniye (-1 = başlamadı).</summary>
         public bool RoadResearchDone;
         public int RoadResearchRemaining = -1;
@@ -152,32 +150,11 @@ namespace GameCore.Game
 
         public int UniversityLevel => MaxBuildingLevelOf(BuildingType.University);
 
-        // ---------- Yapı hakları (Akademi görevleri) ----------
-        private int ClaimedCount(AcademyReward r)
-        {
-            int n = 0;
-            foreach (var id in AcademyClaimed) { var t = AcademyTasks.Get(id); if (t != null && t.Reward == r) n++; }
-            return n;
-        }
-
-        /// <summary>Kule hakkı: seviyeyle 3→6, Akademi araştırma görevleriyle +2 → en çok 8.</summary>
-        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.TowerSlotsFromLevel(Level) + ClaimedCount(AcademyReward.TowerSlot));
-        public int MaxVillagerHouses => Math.Min(GameRules.MaxVillagerHouses, GameRules.StartVillagerHouses + ClaimedCount(AcademyReward.VillagerHouse));
+        // ---------- Yapı hakları (Akademi: Köy Gelişimi 4. sütun araştırmaları) ----------
+        /// <summary>Kule hakkı: seviyeyle 3→6, Kule Hakkı I-II araştırmalarıyla +2 → en çok 8.</summary>
+        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.TowerSlotsFromLevel(Level) + Research.Total(ResearchStat.TowerSlot));
+        public int MaxVillagerHouses => Math.Min(GameRules.MaxVillagerHouses, GameRules.StartVillagerHouses + Research.Total(ResearchStat.VillagerHouseSlot));
         public int MaxCountOf(BuildingType t) => t == BuildingType.VillagerHouse ? MaxVillagerHouses : GameRules.MaxBuildingCount(t, Level);
-
-        public bool AcademyTaskComplete(AcademyTask t) => t.Progress(this) >= t.Target;
-
-        public bool TryClaimAcademy(string id, out string error)
-        {
-            var t = AcademyTasks.Get(id);
-            if (t == null) { error = "Görev yok"; return false; }
-            if (AcademyClaimed.Contains(id)) { error = "Bu görev zaten alındı"; return false; }
-            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
-            if (!AcademyTaskComplete(t)) { error = "Görev tamamlanmadı (" + t.Progress(this) + "/" + t.Target + ")"; return false; }
-            AcademyClaimed.Add(id);
-            error = null;
-            return true;
-        }
 
         // ---------- Yol geliştirme ----------
         public bool TryStartRoadResearch(out string error)
@@ -433,7 +410,7 @@ namespace GameCore.Game
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
             if (CountBuildings(t) >= MaxCountOf(t))
             {
-                error = def.Name + " sınırı " + MaxCountOf(t) + (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses ? " (Akademi görevleriyle artar)" : "");
+                error = def.Name + " sınırı " + MaxCountOf(t) + (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses ? " (Akademi araştırmasıyla artar)" : "");
                 return false;
             }
             if (!Layout.InBounds(p) || Layout.Get(p) != CellKind.Empty) { error = "Hücre dolu"; return false; }

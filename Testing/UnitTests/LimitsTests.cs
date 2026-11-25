@@ -55,32 +55,43 @@ namespace GameCore.Tests
             Assert.AreEqual(1, g.PendingLevelUps.Count);
         }
 
+        private static readonly string House1 = ResearchCatalog.MakeId(4, 1, 4), House2 = ResearchCatalog.MakeId(4, 3, 4),
+            Tower1 = ResearchCatalog.MakeId(4, 6, 4), Tower2 = ResearchCatalog.MakeId(4, 15, 4);
+
         [Test]
-        public void VillagerHouses_StartAtOne_AcademyTasksRaiseToThree()
+        public void SlotResearch_AreVillageColumn4_Chained()
+        {
+            Assert.AreEqual(ResearchStat.VillagerHouseSlot, ResearchCatalog.Get(House1).Stat);
+            Assert.AreEqual(ResearchStat.VillagerHouseSlot, ResearchCatalog.Get(House2).Stat);
+            Assert.AreEqual(ResearchStat.TowerSlot, ResearchCatalog.Get(Tower1).Stat);
+            Assert.AreEqual(ResearchStat.TowerSlot, ResearchCatalog.Get(Tower2).Stat);
+            var r = new ResearchState();
+            Assert.IsNull(r.LockReason(ResearchCatalog.Get(House1), 30, 30));
+            StringAssert.Contains("Köylü Evi I", r.LockReason(ResearchCatalog.Get(House2), 30, 30));
+            r.ForceComplete(House1);
+            Assert.IsNull(r.LockReason(ResearchCatalog.Get(House2), 30, 30));
+            StringAssert.Contains("Köylü Evi II", r.LockReason(ResearchCatalog.Get(Tower1), 30, 30));
+        }
+
+        [Test]
+        public void VillagerHouses_StartAtOne_ResearchRaisesToThree()
         {
             var g = Rich(10);
             string err;
             Assert.AreEqual(1, g.MaxVillagerHouses);
             Assert.IsFalse(g.TryPlaceBuilding(P(6, 1), BuildingType.VillagerHouse, out err));
             StringAssert.Contains("Akademi", err);
-
-            Assert.IsFalse(g.TryClaimAcademy("a_house1", out err), "Akademi yokken alınamaz");
-            Assert.IsTrue(g.TryPlaceBuilding(P(6, 2), BuildingType.University, out err), err);
-            Assert.IsTrue(g.TryClaimAcademy("a_house1", out err), err);
-            Assert.IsFalse(g.TryClaimAcademy("a_house1", out err), "İki kez alınamaz");
+            g.Research.ForceComplete(House1);
             Assert.AreEqual(2, g.MaxVillagerHouses);
             Assert.IsTrue(g.TryPlaceBuilding(P(6, 1), BuildingType.VillagerHouse, out err), err);
-
-            Assert.IsFalse(g.TryClaimAcademy("a_house2", out err), "3 araştırma yapılmadı");
-            foreach (var id in new[] { "0-01-1", "0-01-2", "1-01-1" }) g.Research.ForceComplete(id);
-            Assert.IsTrue(g.TryClaimAcademy("a_house2", out err), err);
+            g.Research.ForceComplete(House2);
             Assert.AreEqual(3, g.MaxVillagerHouses);
             Assert.IsTrue(g.TryPlaceBuilding(P(6, 3), BuildingType.VillagerHouse, out err), err);
             Assert.IsFalse(g.TryPlaceBuilding(P(6, 4), BuildingType.VillagerHouse, out err), "En çok 3");
         }
 
         [Test]
-        public void Towers_StartAtThree_GrowWithLevel_ResearchTasksRaiseToEight()
+        public void Towers_StartAtThree_GrowWithLevel_ResearchRaisesToEight()
         {
             Assert.AreEqual(3, Rich(1).MaxTowers, "Başta 3");
             Assert.AreEqual(3, Rich(5).MaxTowers);
@@ -88,11 +99,9 @@ namespace GameCore.Tests
             Assert.AreEqual(5, Rich(12).MaxTowers, "Sv12 +1");
             var g = Rich(30);
             Assert.AreEqual(6, g.MaxTowers, "Sv20 +1 → seviyeyle en çok 6");
-            g.AddBuildingDirect(P(2, 2), BuildingType.University, 3);
-            string err;
-            Assert.IsFalse(g.TryClaimAcademy("a_tower1", out err), "6 araştırma yapılmadı");
-            for (int i = 0; i < 15; i++) g.Research.ForceComplete(ResearchCatalog.All[i].Id);
-            foreach (var id in new[] { "a_tower1", "a_tower2" }) Assert.IsTrue(g.TryClaimAcademy(id, out err), id + ": " + err);
+            g.Research.ForceComplete(Tower1);
+            Assert.AreEqual(7, g.MaxTowers);
+            g.Research.ForceComplete(Tower2);
             Assert.AreEqual(8, g.MaxTowers);
             Assert.AreEqual(GameRules.MaxTowerSlots, g.MaxTowers);
         }
@@ -192,20 +201,26 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void SaveLoad_KeepsAcademyClaimsAndRoadResearch()
+        public void SaveLoad_KeepsSlotResearchAndRoadResearch_MigratesOldAcademyClaims()
         {
             var g = Rich(10);
             g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
             string err;
-            Assert.IsTrue(g.TryClaimAcademy("a_house1", out err), err);
+            g.Research.ForceComplete(House1);
             Assert.IsTrue(g.TryStartRoadResearch(out err), err);
             g.Advance(100, 0);
             string text = GameSave.Save(g, 9);
             var h = GameSave.Load(text, ResourceConfig.CreateDefault(), out _);
-            Assert.IsTrue(h.AcademyClaimed.Contains("a_house1"));
+            Assert.IsTrue(h.Research.IsDone(House1));
             Assert.AreEqual(g.RoadResearchRemaining, h.RoadResearchRemaining);
             Assert.AreEqual(2, h.MaxVillagerHouses);
             Assert.AreEqual(text, GameSave.Save(h, 9));
+
+            // eski kayıt: alınmış Akademi görevleri aynı hakkı veren araştırmaya çevrilir
+            var old = GameSave.Load(text + "aq a_house2\naq a_tower1\n", ResourceConfig.CreateDefault(), out _);
+            Assert.IsTrue(old.Research.IsDone(House2));
+            Assert.IsTrue(old.Research.IsDone(Tower1));
+            Assert.AreEqual(3, old.MaxVillagerHouses);
         }
     }
 }

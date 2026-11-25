@@ -54,7 +54,6 @@ namespace GameCore.Game
                 sb.AppendLine("raid " + rr.Day + " " + (rr.Result.Victory ? 1 : 0) + " " + rr.Result.Stars + " " + rr.Result.OverallDamagePct + " "
                     + lo.Wood + " " + lo.Stone + " " + lo.Gold + " " + lo.Iron + " " + rr.TowersDamaged);
             }
-            foreach (var id in g.AcademyClaimed) sb.AppendLine("aq " + id);
             sb.AppendLine("rr " + (g.RoadResearchDone ? 1 : 0) + " " + g.RoadResearchRemaining);
             sb.AppendLine("trr " + (g.TrapResearchDone ? 1 : 0) + " " + g.TrapResearchRemaining);
             foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds);
@@ -125,7 +124,7 @@ namespace GameCore.Game
                                 TowersDamaged = int.Parse(p[9])
                             };
                             break;
-                        case "aq": g.AcademyClaimed.Add(p[1]); break;
+                        case "aq": { var rid = LegacyAcademyResearch(p[1]); if (rid != null) g.Research.ForceComplete(rid); } break; // eski görev kaydı → aynı hakkı veren araştırma
                         case "rr": g.RoadResearchDone = p[1] == "1"; g.RoadResearchRemaining = int.Parse(p[2]); break;
                         case "trr": g.TrapResearchDone = p[1] == "1"; g.TrapResearchRemaining = int.Parse(p[2]); break;
                         case "job":
@@ -149,6 +148,19 @@ namespace GameCore.Game
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        /// <summary>Eski "Akademi görevi" kimliği → aynı hakkı veren Köy Gelişimi 4. sütun araştırması (kazanılmış hak kaybolmasın).</summary>
+        internal static string LegacyAcademyResearch(string id)
+        {
+            switch (id)
+            {
+                case "a_house1": return GameCore.Progression.ResearchCatalog.MakeId(4, 1, 4);
+                case "a_house2": return GameCore.Progression.ResearchCatalog.MakeId(4, 3, 4);
+                case "a_tower1": return GameCore.Progression.ResearchCatalog.MakeId(4, 6, 4);
+                case "a_tower2": return GameCore.Progression.ResearchCatalog.MakeId(4, 15, 4);
+                default: return null;
             }
         }
     }

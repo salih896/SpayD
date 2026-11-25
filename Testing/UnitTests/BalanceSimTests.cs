@@ -104,8 +104,6 @@ namespace GameCore.Tests
                     if (!G.Quests.IsActive(q, G.Level) || G.Quests.IsClaimed(q.Id) || !G.Quests.IsComplete(q)) continue;
                     if (G.TryClaimQuest(q.Id, out _, out _)) any = true;
                 }
-                foreach (var t in AcademyTasks.All)
-                    if (!G.AcademyClaimed.Contains(t.Id) && G.AcademyTaskComplete(t) && G.TryClaimAcademy(t.Id, out _)) any = true;
             }
         }
 
