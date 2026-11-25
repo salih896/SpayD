@@ -63,6 +63,16 @@ namespace GameClient
             return false;
         }
 
+        /// <summary>Telefonda listeyi parmakla sürükleyerek kaydır (IMGUI kaydırma çubuğu dokunmatikte çok ince). Sürükleme basılı düğmeyi iptal eder.</summary>
+        private static void DragScroll(Rect area, ref Vector2 pos)
+        {
+            var e = Event.current;
+            if (e.type != EventType.MouseDrag || !area.Contains(e.mousePosition)) return;
+            pos.y = Mathf.Max(0f, pos.y - e.delta.y); // üst sınırı BeginScrollView kırpar
+            GUIUtility.hotControl = 0;
+            e.Use();
+        }
+
         private void Panel(Rect r, string title = null)
         {
             uiRects.Add(r);
@@ -88,10 +98,13 @@ namespace GameClient
             if (g == null || view == null) return;
             UiTheme.Ensure();
             GUI.skin = UiTheme.Skin;
-            uiScale = Mathf.Clamp(Screen.height / 640f, 1f, 3f); // büyük, dokunmaya uygun düğmeler
-            GUI.matrix = Matrix4x4.Scale(new Vector3(uiScale, uiScale, 1f));
+            // Telefon uyumu: arayüz güvenli alana (çentik dışı) çizilir; mantıksal tuval en az 1136x640 olacak şekilde ölçeklenir
+            var sa = Screen.safeArea;
+            uiScale = Mathf.Clamp(Mathf.Min(sa.height / 640f, sa.width / 1136f), 0.5f, 4f);
+            uiOffset = new Vector2(sa.x, Screen.height - sa.yMax);
+            GUI.matrix = Matrix4x4.TRS(new Vector3(uiOffset.x, uiOffset.y, 0f), Quaternion.identity, new Vector3(uiScale, uiScale, 1f));
             uiRects.Clear();
-            float w = Screen.width / uiScale, h = Screen.height / uiScale;
+            float w = sa.width / uiScale, h = sa.height / uiScale;
 
             if (popups.Count > 0) { DrawHud(w, h, false); DrawPopup(w, h); return; }
             if (sim != null) { DrawHud(w, h, true); DrawBattleGui(w, h); return; }
@@ -225,7 +238,7 @@ namespace GameClient
                 var wp = new Vector3(j.Pos.X, j.Kind == JobKind.Road ? 0.6f : 1.55f, j.Pos.Y);
                 var sp = cam.WorldToScreenPoint(wp);
                 if (sp.z < 0f) continue;
-                var gp = new Vector2(sp.x / uiScale, (Screen.height - sp.y) / uiScale);
+                var gp = ScreenToGui(sp);
                 string txt = "Sv " + (j.Kind == JobKind.Road ? RoadRules.Name((RoadTier)j.TargetLevel) : j.TargetLevel.ToString()) + "  " + Dur(j.RemainingSeconds);
                 var st = new GUIStyle(UiTheme.Pill) { fontSize = 12 };
                 float tw = st.CalcSize(new GUIContent(txt)).x + 24f;
@@ -425,7 +438,7 @@ namespace GameClient
                 top += 88;
             }
             else GUI.Label(new Rect(r.x + 20, top, r.width - 40, 22), "<color=#ffb070>Önce KÖY DÜZENİ'nden Kışla kur</color>", UiTheme.Small);
-            GUILayout.BeginArea(new Rect(r.x + 12, top, r.width - 24, r.yMax - top - 10));
+            { var area = new Rect(r.x + 12, top, r.width - 24, r.yMax - top - 10); DragScroll(area, ref scrollPos); GUILayout.BeginArea(area); }
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             string err;
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
@@ -540,7 +553,7 @@ namespace GameClient
             if (GUI.Button(trb, "<size=13>" + ttxt + "</size>", g.TrapResearchDone ? UiTheme.BtnGreen : GUI.skin.button) && !g.TrapResearchDone)
             { string te; if (g.TryStartTrapResearch(out te)) Toast("Tuzak Ustalığı başladı (" + Dur(GameRules.TrapResearchSeconds) + ")"); else Toast(te); }
 
-            GUILayout.BeginArea(new Rect(r.x + 8, r.y + 100, r.width - 16, r.height - 202));
+            { var area = new Rect(r.x + 8, r.y + 100, r.width - 16, r.height - 202); DragScroll(area, ref scrollPos); GUILayout.BeginArea(area); }
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             for (int lv = 1; lv <= ResearchCatalog.MaxLevel; lv++)
             {
@@ -625,7 +638,7 @@ namespace GameClient
         {
             var r = ModalRect(w, h);
             Modal(r, "GÖREVLER");
-            GUILayout.BeginArea(new Rect(r.x + 12, r.y + 48, r.width - 24, r.height - 58));
+            { var area = new Rect(r.x + 12, r.y + 48, r.width - 24, r.height - 58); DragScroll(area, ref scrollPos); GUILayout.BeginArea(area); }
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             var list = g.Quests.Visible(g.Level);
             string claimId = null;
@@ -697,13 +710,21 @@ namespace GameClient
             foreach (var kv in testArmy) housing += kv.Value * GameRules.Housing(kv.Key);
             Modal(r, "TEST ORDUSU  —  " + cnt + " asker, " + housing + " yer");
             GUI.Label(new Rect(r.x + 20, r.y + 30, r.width - 40, 22), "<size=13><color=#d8c9a8>Kendi köyüne saldırı testi: istediğin askeri seç (en çok " + TestArmyMaxSoldiers + " asker). Seviyeler senin asker seviyelerin; ordun harcanmaz, ödül yok.</color></size>");
-            float y = r.y + 58;
-            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
+            // askerler kaydırılabilir liste; başlat düğmesi her ekranda pencerenin altında sabit
+            float by = r.yMax - 48;
+            var listR = new Rect(r.x + 10, r.y + 56, r.width - 20, by - r.y - 62);
+            int rows = ContentCatalog.SoldierTypeCount;
+            uiRects.Add(listR);
+            DragScroll(listR, ref scrollPos);
+            scrollPos = GUI.BeginScrollView(listR, scrollPos, new Rect(0, 0, listR.width - 20, rows * 38f));
+            var rowSt = new GUIStyle(GUI.skin.label) { wordWrap = false, clipping = TextClipping.Clip, richText = true }; // uzun ad (Atlı Kılıçlı) sarılıp kaybolmasın
+            float y = 0;
+            for (int i = 0; i < rows; i++)
             {
                 var t = (SoldierType)i; var d = ContentCatalog.Soldier(t);
                 int n = testArmy.TryGetValue(t, out var v) ? v : 0;
-                GUI.Label(new Rect(r.x + 20, y + 6, 330, 26), "<b>" + d.Name + "</b>  <size=13>Sv " + g.SoldierLevel(t) + "  " + GameRules.Housing(t) + " yer  " + AtkSpeed(d.IntervalTicks) + (g.Level < d.UnlockLevel ? "  <color=#ffb070>(senin için Sv " + d.UnlockLevel + "'de açılır; testte serbest)</color>" : "") + "</size>");
-                float bx = r.x + 360;
+                GUI.Label(new Rect(10, y + 6, 336, 26), "<b>" + d.Name + "</b>  <size=13>Sv " + g.SoldierLevel(t) + "  " + GameRules.Housing(t) + " yer  " + AtkSpeed(d.IntervalTicks) + (g.Level < d.UnlockLevel ? "  <color=#ffb070>(senin için Sv " + d.UnlockLevel + "'de açılır; testte serbest)</color>" : "") + "</size>", rowSt);
+                float bx = 350;
                 if (Btn(new Rect(bx, y, 48, 32), "-10")) n = Mathf.Max(0, n - 10);
                 if (Btn(new Rect(bx + 52, y, 40, 32), "-")) n = Mathf.Max(0, n - 1);
                 GUI.Label(new Rect(bx + 96, y + 4, 50, 26), n.ToString(), UiTheme.Center);
@@ -714,7 +735,8 @@ namespace GameClient
                 cnt = TestArmyCount();
                 y += 38;
             }
-            y += 6;
+            GUI.EndScrollView();
+            y = by;
             if (Btn(new Rect(r.x + 20, y, 200, 38), "Kapasite kadar doldur")) FillTestArmy();
             if (Btn(new Rect(r.x + 228, y, 120, 38), "Temizle")) testArmy.Clear();
             var go = new Rect(r.x + 360, y, 240, 38);
@@ -788,7 +810,7 @@ namespace GameClient
             sb.Append("• Ok, Büyü ve Şimşek nötrdür (döngüye girmez).\n");
             sb.Append("• Ayrıca: Ateş yakar, Buz yavaşlatır ve üst üste donma hasarı verir, Zehir zamanla hasar verir ve askerin hasarını %30 düşürür.</size>");
             uiRects.Add(r);
-            GUILayout.BeginArea(r);
+            { var area = r; DragScroll(area, ref elemInfoScroll); GUILayout.BeginArea(area); }
             elemInfoScroll = GUILayout.BeginScrollView(elemInfoScroll); // pencereye sığmazsa kaydırılır
             var st = new GUIStyle(GUI.skin.label) { wordWrap = true, richText = true };
             st.normal.textColor = new Color(0.96f, 0.92f, 0.82f);

@@ -38,6 +38,10 @@ namespace GameClient
         private string toast = "";
         private float toastUntil;
         private float uiScale = 1f;
+        private Vector2 uiOffset; // güvenli alan (çentik/kamera deliği) sol-üst köşesi, piksel
+
+        /// <summary>Ekran pikseli (alt-sol köken) → arayüz koordinatı (ölçekli, güvenli alan içi).</summary>
+        private Vector2 ScreenToGui(Vector2 screen) => new Vector2((screen.x - uiOffset.x) / uiScale, (Screen.height - screen.y - uiOffset.y) / uiScale);
         private readonly List<Rect> uiRects = new List<Rect>();
         private GridPos lastPainted = new GridPos(-1, -1);
         private bool dragBlocked;
@@ -61,6 +65,15 @@ namespace GameClient
 
         private void Start()
         {
+            if (Application.isMobilePlatform)
+            {
+                // Çözünürlük telefona göre: yerel en-boy oranı korunur, çok yüksek çözünürlükte (1440p+) 1080p'ye indirilir (pil/ısı, 60 FPS hedefi)
+                Application.targetFrameRate = 60;
+                Screen.sleepTimeout = SleepTimeout.NeverSleep;
+                var full = Screen.currentResolution;
+                int fw = Mathf.Max(full.width, full.height), fh = Mathf.Min(full.width, full.height); // yatay oyun
+                if (fh > 1080) Screen.SetResolution(Mathf.RoundToInt(fw * 1080f / fh), 1080, FullScreenMode.FullScreenWindow);
+            }
             var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
             baseMat = tmp.GetComponent<MeshRenderer>().sharedMaterial;
             Destroy(tmp);
@@ -320,7 +333,7 @@ namespace GameClient
 
         private bool IsOverUi(Vector2 screen)
         {
-            var gp = new Vector2(screen.x / uiScale, (Screen.height - screen.y) / uiScale);
+            var gp = ScreenToGui(screen);
             foreach (var r in uiRects) if (r.Contains(gp)) return true;
             return false;
         }

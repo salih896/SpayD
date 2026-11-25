@@ -41,7 +41,8 @@ namespace GameClient.EditorTools
             PlayerSettings.allowedAutorotateToLandscapeRight = true;
             PlayerSettings.allowedAutorotateToPortrait = false;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
-            PlayerSettings.Android.renderOutsideSafeArea = false;
+            // tüm ekranı kapla (çentik/kamera deliği dahil); arayüz kodda Screen.safeArea içine çizilir. En-boy 2.4'e kadar (ProjectSettings)
+            PlayerSettings.Android.renderOutsideSafeArea = true;
             EditorUserBuildSettings.buildAppBundle = false; // .apk (doğrudan telefona kurulur)
             AssetDatabase.SaveAssets();
             Debug.Log($"[AndroidBuild] Ayarlar uygulandı: {PackageId} {Version} ({VersionCode}), IL2CPP ARM64, yatay");

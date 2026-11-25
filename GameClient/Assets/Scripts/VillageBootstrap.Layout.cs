@@ -150,7 +150,7 @@ namespace GameClient
 
         private bool OverGui(Rect r, Vector2 screen)
         {
-            var gp = new Vector2(screen.x / uiScale, (Screen.height - screen.y) / uiScale);
+            var gp = ScreenToGui(screen);
             return r.Contains(gp);
         }
 
