@@ -88,7 +88,7 @@ namespace GameClient
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = g.SoldierLevel((SoldierType)i);
             int seed = 7000 + battleSeed++;
             var target = new TargetInfo { Name = "Kendi köyün (test)", Level = g.Level, Defense = g.MakeDefense(), Pool = default, Seed = seed };
-            sim = new BattleSim(target.Defense, stock, levels, seed) { AttackerMods = g.Research.Mods() };
+            sim = new BattleSim(target.Defense, stock, levels, seed) { AttackerMods = g.Research.Mods(), AttackerElements = new Dictionary<SoldierType, (TowerElement, TowerElement)>(g.SoldierElements) };
             curTarget = target;
             testBattle = true;
             battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1; tickAcc = 0f;

@@ -176,6 +176,12 @@ namespace GameCore.Game
         {
             var spec = new TowerSpec(t, structLevel, 0) { BranchA = (structLevel - 1) / 2 };
             spec.BranchB = structLevel - 1 - spec.BranchA;
+            // savunma elementi: Ateş Sv5, Buz Sv11, Zehir Sv16 (tipik oyuncunun araştırdığı kadar), kuleye göre sırayla
+            var defs = new List<TowerElement>();
+            if (playerLevel >= 5) defs.Add(TowerElement.Fire);
+            if (playerLevel >= 11) defs.Add(TowerElement.Ice);
+            if (playerLevel >= 16) defs.Add(TowerElement.Poison);
+            if (defs.Count > 0 && index % 2 == 0) spec.DefElement = defs[(index / 2) % defs.Count];
             if (t != TowerType.Archer || playerLevel < 6) return spec;
             var avail = new List<TowerElement> { TowerElement.None, TowerElement.Arrow, TowerElement.Fire };
             if (playerLevel >= 9) avail.Add(TowerElement.Ice);

@@ -17,7 +17,7 @@ namespace GameCore.Combat
         public bool Alive = true, Disabled, IsResource, IsDepot;
         public ResourceType Stores;
         public int Cooldown;   // mili-tick (1000 = 1 adım); ateş edince artar (istemci atış görseli bunu izler)
-        public TowerElement Element;
+        public TowerElement Element, DefElement;
         public int IntervalPct = 100, DamagePct = 100, ArmorPct; // kule geliştirme dalları (Duvar: zırh)
         public int CenterX => Pos.X * 1000;
         public int CenterY => Pos.Y * 1000;
@@ -36,6 +36,7 @@ namespace GameCore.Combat
         public int Cooldown, SlowUntil, BurnUntil, BurnPerTick;
         public int RootUntil, AttackCount, NextHealTick;
         public int FreezeStacks, FreezeUntil;              // Buz kulesi yığını
+        public TowerElement AtkElement, DefElement;        // asker saldırı / savunma elementi
         public int PoisonUntil, PoisonPerTick, WeakUntil, WeakPct; // Zehir kulesi
         public SoldierPerks Perks = new SoldierPerks();
         /// <summary>Yolda kapladığı şerit (Dev/Mancınık 2, diğerleri 1; yol 3 şerit). Cell: tuttuğu yol karesi.</summary>
@@ -79,6 +80,8 @@ namespace GameCore.Combat
 
         /// <summary>Saldıranın araştırma bonusları (Deploy'dan önce atanır).</summary>
         public CombatMods AttackerMods = new CombatMods();
+        /// <summary>Saldıranın asker türü başına (saldırı, savunma) elementi; Deploy'da askere yazılır.</summary>
+        public Dictionary<SoldierType, (TowerElement atk, TowerElement def)> AttackerElements = new Dictionary<SoldierType, (TowerElement, TowerElement)>();
 
         public BattleSim(DefenseSetup defense, Dictionary<SoldierType, int> attackerStock,
                          Dictionary<SoldierType, int> soldierLevels, int seed)
@@ -102,7 +105,7 @@ namespace GameCore.Combat
                 int start = Math.Max(1, max * (100 - perm) / 100);
                 structures.Add(new SimStructure
                 {
-                    Id = structures.Count, Pos = p, Kind = StructKind.Tower, TowerType = spec.Type, Level = spec.Level, Element = spec.Element,
+                    Id = structures.Count, Pos = p, Kind = StructKind.Tower, TowerType = spec.Type, Level = spec.Level, Element = spec.Element, DefElement = spec.DefElement,
                     IntervalPct = wall ? 100 : spec.IntervalPct, DamagePct = wall ? 100 : spec.DamagePct, ArmorPct = Math.Min(70, (wall ? spec.WallArmorPct : 0) + defense.Mods.TowerArmor),
                     MaxHp = max, Hp = start, StartHp = start, Disabled = perm >= 70
                 });
@@ -143,6 +146,7 @@ namespace GameCore.Combat
                 X = x * 1000 + ((soldiers.Count * 37) % 400 - 200), Y = -row * 1000 + ((soldiers.Count * 53 + 211) % 400 - 200), Phase = def.Flying ? 1 : 0
             };
             s.Hp = s.MaxHp;
+            if (AttackerElements.TryGetValue(type, out var el)) { s.AtkElement = el.atk; s.DefElement = el.def; }
             s.Slots = RoadSlots(type);
             // her asker kendi temposunda yürür (±%6, kimliğe bağlı, deterministik): aynı anda gönderilenler blok gibi ilerlemez
             s.SpeedMilli = Math.Max(1, s.SpeedMilli * (94 + (s.Id * 7) % 13) / 100);
@@ -239,6 +243,7 @@ namespace GameCore.Combat
                 if (best == null) continue;
                 int dmg = CombatMods.Apply(CombatMath.TowerDamage(def, t.Level, best.Flying, best.Mounted, best.ArmorPct), setup.Mods.TowerDamage) * t.DamagePct / 100;
                 if (t.Element == TowerElement.Fire) dmg = dmg * (100 - best.FireResistPct) / 100;
+                dmg = dmg * CombatMath.ElementPct(t.Element, best.DefElement) / 100; // element döngüsü / direnç
                 // Ok: kritik (deterministik: adım/kule/asker kimliğinden)
                 if (def.CritPct > 0 && (Tick * 31 + t.Id * 17 + best.Id * 7) % 100 < def.CritPct) dmg = dmg * def.CritMultPct / 100;
                 // Buz: aynı askere 3 sn içinde tekrar vurdukça yığın artar, her yığın +% hasar
@@ -260,7 +265,7 @@ namespace GameCore.Combat
                         var o = soldiers[j];
                         if (o == best || !o.Alive) continue;
                         if (o.Flying && !def.CanHitAir) continue;
-                        if (CombatMath.DistSq(best.X, best.Y, o.X, o.Y) <= sr2) { Hit(o, Math.Max(1, dmg / 2)); ApplyOnHit(o, def, dmg / 2); }
+                        if (CombatMath.DistSq(best.X, best.Y, o.X, o.Y) <= sr2) { int sd = Math.Max(1, dmg / 2 * CombatMath.ElementPct(t.Element, o.DefElement) / CombatMath.ElementPct(t.Element, best.DefElement)); Hit(o, sd); ApplyOnHit(o, def, sd); }
                     }
                 }
                 // aralık mili-tick; artık süre bir sonraki atışa taşınır (geliştirme dalı aralığı kısaltır)
@@ -367,6 +372,7 @@ namespace GameCore.Combat
             if (Tick < s.WeakUntil) pct -= s.WeakPct; // zehir: zayıflatma
             int dmg = s.Attack * Math.Max(10, pct) / 100;
             if (target.ArmorPct > 0) dmg = Math.Max(1, dmg * (100 - target.ArmorPct) / 100); // duvar zırhı
+            dmg = dmg * CombatMath.ElementPct(s.AtkElement, target.DefElement) / 100;      // element döngüsü / kule direnci
             s.AttackCount++;
             if (pk.FirstHitMultPct > 0 && s.AttackCount == 1) dmg = dmg * pk.FirstHitMultPct / 100;
             if (pk.EveryN > 0 && s.AttackCount % pk.EveryN == 0) dmg = dmg * pk.EveryMultPct / 100;

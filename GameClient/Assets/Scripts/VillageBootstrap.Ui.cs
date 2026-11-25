@@ -258,7 +258,8 @@ namespace GameClient
         // ---------- Seçili yapı (alt orta kart) ----------
         private void DrawSelectPanel(float w, float h)
         {
-            var r = new Rect(w * 0.5f - 230f, h - 196f, 460f, 184f);
+            float ph = towerElemMenu ? 222f : 184f; // element menüsü açıkken bir satır daha
+            var r = new Rect(w * 0.5f - 230f, h - ph - 12f, 460f, ph);
             Panel(r);
             var xr = new Rect(r.xMax - 40f, r.y - 12f, 40f, 40f);
             uiRects.Add(xr);
@@ -284,15 +285,14 @@ namespace GameClient
             {
                 var d = ContentCatalog.TowerFor(t.Type, t.Element);
                 bool wall = t.Type == TowerType.Wall;
-                GUI.Label(new Rect(x, y, iw - 150, 26), ContentCatalog.Tower(t.Type).Name + "  <size=14>Sv " + t.Level + (wall ? "" : "   Element: " + ContentCatalog.ElementName(t.Element)) + "</size>", UiTheme.Header);
-                if (!wall)
+                GUI.Label(new Rect(x, y, iw - 150, 26), ContentCatalog.Tower(t.Type).Name + "  <size=14>Sv " + t.Level + (wall ? "" : "   Element: " + ContentCatalog.ElementName(t.Element)) + (t.DefElement != TowerElement.None ? "   Savunma: " + ContentCatalog.ElementName(t.DefElement) : "") + "</size>", UiTheme.Header);
                 {
                     var eb = new Rect(r.xMax - 150, r.y + 8, 100, 30);
                     uiRects.Add(eb);
                     if (GUI.Button(eb, towerElemMenu ? "Geri" : "Element", towerElemMenu ? GUI.skin.button : UiTheme.BtnGreen)) towerElemMenu = !towerElemMenu;
                 }
                 y += 28;
-                if (towerElemMenu && !wall) { DrawElementMenu(x, y, iw, p); return; }
+                if (towerElemMenu) { DrawElementMenu(x, y, iw, p, wall); return; }
                 var m = g.Research.Mods();
                 int hp = CombatMods.Apply(ContentCatalog.Scaled(d.Hp, t.Level) * (wall ? t.WallHpPct : 100) / 100, m.TowerHp);
                 int atk = CombatMods.Apply(ContentCatalog.Scaled(d.Attack, t.Level), m.TowerDamage) * t.DamagePct / 100;
@@ -352,8 +352,23 @@ namespace GameClient
         }
 
         /// <summary>Element menüsü: araştırılmış elementler kuleye uygulanır (90 sn + biraz kaynak).</summary>
-        private void DrawElementMenu(float x, float y, float iw, GridPos p)
+        private void DrawElementMenu(float x, float y, float iw, GridPos p, bool wall)
         {
+            // 2. satır: savunma elementi (Ateş/Buz/Zehir Kalkanı) — Duvar'da yalnızca bu
+            float dy = wall ? y : y + 22 + 92;
+            float dbw = (iw - 10) / 3f;
+            var defs = new[] { TowerElement.Fire, TowerElement.Ice, TowerElement.Poison };
+            for (int i = 0; i < 3; i++)
+            {
+                var e = defs[i];
+                string block = g.DefElementBlock(p, e, out _);
+                bool locked = !g.Unlocked(ResearchStat.TowerDefenseElement, e);
+                var rb = new Rect(x + i * (dbw + 5), dy, dbw, 30);
+                uiRects.Add(rb);
+                if (GUI.Button(rb, "<size=12>Savunma: " + ContentCatalog.ElementName(e) + (locked ? " (kilitli)" : "") + "</size>", block == null ? UiTheme.BtnGreen : GUI.skin.button))
+                { string err; if (g.TryApplyDefElement(p, e, out err)) { Toast(ContentCatalog.ElementName(e) + " savunması uygulanıyor"); towerElemMenu = false; } else Toast(err); }
+            }
+            if (wall) return;
             var els = new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning };
             g.ElementBlock(p, TowerElement.Arrow, out var cost);
             GUI.Label(new Rect(x, y, iw, 20), "<size=12>Uygulama: " + cost + "  " + Dur(GameRules.ElementApplySeconds) + "   (önce Akademi > Element ağacı Sv1'de araştır)</size>");
@@ -417,9 +432,9 @@ namespace GameClient
             {
                 var t = (SoldierType)i; var d = ContentCatalog.Soldier(t);
                 int lvl = g.SoldierLevel(t);
-                bool locked = g.Level < d.UnlockLevel;
+                bool locked = !g.SoldierUnlocked(t);
                 GUILayout.BeginHorizontal(GUILayout.Height(44));
-                if (GUILayout.Button((locked ? "<color=#ffb070>[Sv " + d.UnlockLevel + "'de açılır]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "  <color=#9fd0ff>" + GameRules.Housing(t) + " yer</color>" + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  " + AtkSpeed(d.IntervalTicks) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
+                if (GUILayout.Button((locked ? "<color=#ffb070>[" + (ResearchCatalog.FindSpecial(ResearchStat.SoldierUnlock, i) != null ? "Akademi araştırması" : "Sv " + d.UnlockLevel + "'de açılır") + "]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "  <color=#9fd0ff>" + GameRules.Housing(t) + " yer</color>" + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  " + AtkSpeed(d.IntervalTicks) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
                     detailSoldier = detailSoldier == i ? -1 : i;
                 GUI.enabled = !locked;
                 int ts = Mathf.Max(5, (int)((long)d.TrainSeconds * (1000 - g.Research.Total(ResearchStat.TrainTime)) / 1000));
@@ -443,6 +458,22 @@ namespace GameClient
                         sb2.Append("\n  ").Append(lvl >= ab.Level ? "<color=#8fe07a>✔ " : "<color=#b0a090>Sv " + ab.Level + " ").Append(ab.Name).Append("</color> — ").Append(ab.Desc);
                     sb2.Append("</size>");
                     GUILayout.Label(sb2.ToString(), UiTheme.Pill);
+                    // element seçimi (Element ağacında araştırılan Ateş/Buz/Zehir; ücretsiz, sonraki savaşlarda geçerli)
+                    for (int pass = 0; pass < 2; pass++)
+                    {
+                        bool atk = pass == 0;
+                        GUILayout.BeginHorizontal();
+                        GUILayout.Label("<size=13>" + (atk ? "Saldırı elementi:" : "Savunma elementi:") + "</size>", GUILayout.Width(140));
+                        var cur = atk ? g.SoldierAtkElement(t) : g.SoldierDefElement(t);
+                        foreach (var e in new[] { TowerElement.None, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison })
+                        {
+                            bool ok = g.Unlocked(atk ? ResearchStat.SoldierAttackElement : ResearchStat.SoldierDefenseElement, e);
+                            string lab = (e == TowerElement.None ? "Yok" : ContentCatalog.ElementName(e)) + (ok ? "" : " (kilitli)");
+                            if (GUILayout.Button("<size=12>" + lab + "</size>", cur == e ? UiTheme.BtnOn : (ok ? UiTheme.BtnGreen : GUI.skin.button), GUILayout.Width(110), GUILayout.Height(28)))
+                            { if (g.TrySetSoldierElement(t, atk, e, out err)) { LastSave(); } else Toast(err); }
+                        }
+                        GUILayout.EndHorizontal();
+                    }
                 }
             }
             GUILayout.Space(8);
@@ -461,6 +492,7 @@ namespace GameClient
             GUILayout.Label("YÜKSELTMELER (" + g.Jobs.Count + "/" + g.Builders + " işçi)", UiTheme.Header);
             foreach (var j in g.Jobs)
             {
+                if (j.Kind == JobKind.TowerElement) { GUILayout.Label("Kule " + (j.TargetLevel >= GameState.DefElementJobOffset ? "savunma elementi: " + ContentCatalog.ElementName((TowerElement)(j.TargetLevel - GameState.DefElementJobOffset)) : "elementi: " + ContentCatalog.ElementName((TowerElement)j.TargetLevel)) + "  kalan " + Dur(j.RemainingSeconds)); continue; }
                 string nm = j.Kind == JobKind.Soldier ? ContentCatalog.Soldier(j.Soldier).Name : (j.Kind == JobKind.Building && g.Buildings.TryGetValue(j.Pos, out var bs) ? ContentCatalog.Building(bs.Type).Name : (g.Towers.TryGetValue(j.Pos, out var ts2) ? ContentCatalog.Tower(ts2.Type).Name : "Yapı"));
                 GUILayout.Label(nm + " → Sv " + j.TargetLevel + "  kalan " + Dur(j.RemainingSeconds));
             }

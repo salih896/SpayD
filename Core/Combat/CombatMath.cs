@@ -32,6 +32,24 @@ namespace GameCore.Combat
         }
 
         /// <summary>Kule vuruşu: seviye çarpanı, uçan/atlı bonusu, zırh (delici oranı kadar azalır).</summary>
+        /// <summary>
+        /// Element hasar çarpanı (%) (kullanıcı kararı 25.11.2026). Döngü: Ateş > Zehir > Buz > Ateş.
+        /// Zayıf elementle saldıran %40 az hasar verir (üstün olana ek hasar yok). Direnç: hedefin savunma elementi
+        /// saldırı elementiyle aynıysa %35 az hasar. Ok/Büyü/Şimşek ve elementsiz nötr.
+        /// </summary>
+        public static int ElementPct(TowerElement attack, TowerElement defense)
+        {
+            if (!IsCore(attack) || !IsCore(defense)) return 100;
+            if (attack == defense) return 65;
+            return Beats(defense, attack) ? 60 : 100;
+        }
+
+        public static bool IsCore(TowerElement e) => e == TowerElement.Fire || e == TowerElement.Ice || e == TowerElement.Poison;
+
+        /// <summary>a, b'ye üstün mü: Ateş > Zehir, Zehir > Buz, Buz > Ateş.</summary>
+        public static bool Beats(TowerElement a, TowerElement b) =>
+            (a == TowerElement.Fire && b == TowerElement.Poison) || (a == TowerElement.Poison && b == TowerElement.Ice) || (a == TowerElement.Ice && b == TowerElement.Fire);
+
         public static int TowerDamage(TowerDef def, int level, bool targetFlying, bool targetMounted, int targetArmorPct)
         {
             int raw = ContentCatalog.Scaled(def.Attack, level);

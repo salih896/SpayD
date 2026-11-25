@@ -143,6 +143,44 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void ElementCycle_WeakAttackerDealsLess_SameDefenseResists_NoBonus()
+        {
+            Assert.AreEqual(60, CombatMath.ElementPct(TowerElement.Poison, TowerElement.Fire), "Ateş zehre üstün: zehirle saldıran %40 az");
+            Assert.AreEqual(60, CombatMath.ElementPct(TowerElement.Ice, TowerElement.Poison));
+            Assert.AreEqual(60, CombatMath.ElementPct(TowerElement.Fire, TowerElement.Ice));
+            Assert.AreEqual(100, CombatMath.ElementPct(TowerElement.Fire, TowerElement.Poison), "üstün olana ek hasar yok");
+            Assert.AreEqual(65, CombatMath.ElementPct(TowerElement.Ice, TowerElement.Ice), "direnç");
+            Assert.AreEqual(100, CombatMath.ElementPct(TowerElement.Lightning, TowerElement.Fire), "Şimşek nötr");
+            Assert.AreEqual(100, CombatMath.ElementPct(TowerElement.Fire, TowerElement.None));
+        }
+
+        [Test]
+        public void FireResistantSoldier_TakesLessFromFireTower()
+        {
+            int Loss(TowerElement soldierDef)
+            {
+                var sim = new BattleSim(Setup(Archer(TowerElement.Fire)), new Dictionary<SoldierType, int> { { SoldierType.Giant, 1 } }, null, 3);
+                sim.AttackerElements[SoldierType.Giant] = (TowerElement.None, soldierDef);
+                Assert.IsTrue(sim.Deploy(SoldierType.Giant, 5, 1, out _));
+                for (int i = 0; i < 60; i++) sim.Step();
+                return sim.Soldiers[0].MaxHp - sim.Soldiers[0].Hp;
+            }
+            Assert.Less(Loss(TowerElement.Fire), Loss(TowerElement.None));
+        }
+
+        [Test]
+        public void SoldierElement_NeedsResearch_AndSaves()
+        {
+            var g = Rich(30);
+            string err;
+            Assert.IsFalse(g.TrySetSoldierElement(SoldierType.Giant, false, TowerElement.Ice, out err));
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.SoldierDefenseElement, (int)TowerElement.Ice).Id);
+            Assert.IsTrue(g.TrySetSoldierElement(SoldierType.Giant, false, TowerElement.Ice, out err), err);
+            var h = GameSave.Load(GameSave.Save(g, 1), ResourceConfig.CreateDefault(), out _);
+            Assert.AreEqual(TowerElement.Ice, h.SoldierDefElement(SoldierType.Giant));
+        }
+
+        [Test]
         public void OldTowerTypes_LoadAsArcherWithElement()
         {
             var g = Rich(10);

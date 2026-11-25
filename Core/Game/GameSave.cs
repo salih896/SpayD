@@ -32,7 +32,8 @@ namespace GameCore.Game
             sb.AppendLine("layout " + g.Layout.Size + " " + g.Layout.RoadLimit + " " + g.Layout.EntranceLimit);
             foreach (var p in g.Layout.CellsOf(CellKind.Road)) sb.AppendLine("road " + p.X + " " + p.Y + " " + (int)g.Layout.GetRoadTier(p));
             foreach (var p in g.Layout.EntrancePositions()) sb.AppendLine("ent " + p.X + " " + p.Y);
-            foreach (var kv in g.Towers) sb.AppendLine("tower " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level + " " + (int)kv.Value.Element + " " + kv.Value.BranchA + " " + kv.Value.BranchB);
+            foreach (var kv in g.Towers) sb.AppendLine("tower " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level + " " + (int)kv.Value.Element + " " + kv.Value.BranchA + " " + kv.Value.BranchB + " " + (int)kv.Value.DefElement);
+            foreach (var kv in g.SoldierElements) sb.AppendLine("sel " + (int)kv.Key + " " + (int)kv.Value.atk + " " + (int)kv.Value.def);
             foreach (var kv in g.Buildings) sb.AppendLine("build " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value.Type + " " + kv.Value.Level);
             foreach (var kv in g.Traps) sb.AppendLine("trap " + kv.Key.X + " " + kv.Key.Y + " " + (int)kv.Value);
             foreach (var kv in g.Wears) sb.AppendLine("wear " + kv.Key.X + " " + kv.Key.Y + " " + kv.Value.PermanentDamagePct + " " + kv.Value.AttackCount);
@@ -98,7 +99,8 @@ namespace GameCore.Game
                         case "layout": layout = new VillageLayout(int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3])); break;
                         case "road": roadRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]) }); break;
                         case "ent": entRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]) }); break;
-                        case "tower": towerRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]), p.Length > 5 ? int.Parse(p[5]) : 0, p.Length > 6 ? int.Parse(p[6]) : 0, p.Length > 7 ? int.Parse(p[7]) : 0 }); break;
+                        case "tower": towerRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]), p.Length > 5 ? int.Parse(p[5]) : 0, p.Length > 6 ? int.Parse(p[6]) : 0, p.Length > 7 ? int.Parse(p[7]) : 0, p.Length > 8 ? int.Parse(p[8]) : 0 }); break;
+                        case "sel": g.SoldierElements[(SoldierType)int.Parse(p[1])] = ((TowerElement)int.Parse(p[2]), (TowerElement)int.Parse(p[3])); break;
                         case "build": buildRows.Add(new[] { int.Parse(p[1]), int.Parse(p[2]), int.Parse(p[3]), int.Parse(p[4]) }); break;
                         case "trap": g.Traps[new GridPos(int.Parse(p[1]), int.Parse(p[2]))] = (TrapType)int.Parse(p[3]); break;
                         case "wear": g.Wears[new GridPos(int.Parse(p[1]), int.Parse(p[2]))] = new TowerWear(int.Parse(p[3]), int.Parse(p[4])); break;
@@ -153,7 +155,7 @@ namespace GameCore.Game
                     var elem = (TowerElement)r[4];
                     // 25.11.2026: kaldırılan kule türleri → Okçu Kulesi + karşılık gelen element
                     if (type != TowerType.Archer && type != TowerType.Wall) { elem = ContentCatalog.LegacyElement(type); type = TowerType.Archer; }
-                    g.Towers[pos] = new TowerSpec(type, r[3], 0) { Element = elem, BranchA = r[5], BranchB = r[6] };
+                    g.Towers[pos] = new TowerSpec(type, r[3], 0) { Element = elem, BranchA = r[5], BranchB = r[6], DefElement = (TowerElement)r[7] };
                 }
                 foreach (var r in buildRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Building, out e)) g.Buildings[pos] = new BuildingSpec((BuildingType)r[2], r[3]); }
                 g.Layout = layout;

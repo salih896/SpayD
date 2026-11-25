@@ -428,7 +428,11 @@ namespace GameCore.Game
                     }
                     return "Kule yükseltildi";
                 case JobKind.TowerElement:
-                    if (Towers.TryGetValue(j.Pos, out var te)) { te.Element = (TowerElement)j.TargetLevel; return "Kule elementi: " + ContentCatalog.ElementName(te.Element); }
+                    if (Towers.TryGetValue(j.Pos, out var te))
+                    {
+                        if (j.TargetLevel >= DefElementJobOffset) { te.DefElement = (TowerElement)(j.TargetLevel - DefElementJobOffset); return "Kule savunma elementi: " + ContentCatalog.ElementName(te.DefElement); }
+                        te.Element = (TowerElement)j.TargetLevel; return "Kule elementi: " + ContentCatalog.ElementName(te.Element);
+                    }
                     return "Element uygulandı";
                 case JobKind.Road:
                     Layout.SetRoadTier(j.Pos, (RoadTier)j.TargetLevel);
@@ -656,6 +660,57 @@ namespace GameCore.Game
             return true;
         }
 
+        // ---------- Element atamaları (kullanıcı kararı 25.11.2026) ----------
+        /// <summary>Asker türü başına saldırı / savunma elementi (Ateş/Buz/Zehir; Element ağacında araştırılır). Kışladan ücretsiz seçilir.</summary>
+        public Dictionary<SoldierType, (TowerElement atk, TowerElement def)> SoldierElements = new Dictionary<SoldierType, (TowerElement, TowerElement)>();
+
+        public bool Unlocked(ResearchStat stat, TowerElement e)
+        {
+            if (e == TowerElement.None) return true;
+            var d = ResearchCatalog.FindSpecial(stat, (int)e);
+            return d != null && Research.IsDone(d.Id);
+        }
+
+        public TowerElement SoldierAtkElement(SoldierType t) => SoldierElements.TryGetValue(t, out var v) ? v.atk : TowerElement.None;
+        public TowerElement SoldierDefElement(SoldierType t) => SoldierElements.TryGetValue(t, out var v) ? v.def : TowerElement.None;
+
+        public bool TrySetSoldierElement(SoldierType t, bool attack, TowerElement e, out string error)
+        {
+            error = null;
+            if (e != TowerElement.None && !CombatMath.IsCore(e)) { error = "Askerler yalnızca Ateş, Buz veya Zehir alır"; return false; }
+            if (!Unlocked(attack ? ResearchStat.SoldierAttackElement : ResearchStat.SoldierDefenseElement, e))
+            { error = "Akademi > Element ağacında " + ContentCatalog.ElementName(e) + (attack ? " Silahları" : " Zırhı") + " gerekli"; return false; }
+            var cur = (SoldierAtkElement(t), SoldierDefElement(t));
+            SoldierElements[t] = attack ? (e, cur.Item2) : (cur.Item1, e);
+            return true;
+        }
+
+        /// <summary>Kuleye savunma elementi uygular (Ateş/Buz/Zehir Kalkanı araştırması; saldırı elementi gibi 90 sn + biraz kaynak).</summary>
+        public string DefElementBlock(GridPos pos, TowerElement e, out ResourceCost cost)
+        {
+            cost = default;
+            if (!Towers.TryGetValue(pos, out var t)) return "Kule yok";
+            cost = GameRules.ElementCost(t.Level, Config, Level);
+            if (!CombatMath.IsCore(e)) return "Savunma elementi: Ateş, Buz veya Zehir";
+            if (t.DefElement == e) return "Zaten " + ContentCatalog.ElementName(e) + " savunması";
+            if (!Unlocked(ResearchStat.TowerDefenseElement, e)) return "Akademi: Element ağacında " + ContentCatalog.ElementName(e) + " Kalkanı gerekli";
+            if (IsUpgrading(JobKind.Tower, pos, SoldierType.Swordsman) || IsUpgrading(JobKind.TowerElement, pos, SoldierType.Swordsman)) return "Kulede iş sürüyor";
+            if (FreeBuilders <= 0) return "Boş işçi yok (Köylü Evi ekle)";
+            return null;
+        }
+
+        public bool TryApplyDefElement(GridPos pos, TowerElement e, out string error)
+        {
+            error = DefElementBlock(pos, e, out var cost);
+            if (error != null) return false;
+            if (!Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error)) return false;
+            Jobs.Add(new UpgradeJob { Kind = JobKind.TowerElement, Pos = pos, TargetLevel = DefElementJobOffset + (int)e, RemainingSeconds = GameRules.ElementApplySeconds });
+            return true;
+        }
+
+        /// <summary>TowerElement işinde TargetLevel ≥ 100 → savunma elementi.</summary>
+        public const int DefElementJobOffset = 100;
+
         // ---------- Kule geliştirme dalları ve element (kullanıcı kararı 25.11.2026) ----------
         public static string BranchName(TowerType t, int branch) => t == TowerType.Wall ? (branch == 1 ? "Can" : "Zırh") : (branch == 1 ? "Saldırı hızı" : "Saldırı hasarı");
 
@@ -781,7 +836,7 @@ namespace GameCore.Game
             if (ReadySoldiers <= 0) { error = "Saldırmak için asker eğit"; return null; }
             var stock = Inventory.ToStock();
             foreach (var k in new List<SoldierType>(stock.Keys)) Inventory.TryRemove(k, stock[k]);
-            return new BattleSim(target, stock, new Dictionary<SoldierType, int>(SoldierLevels), seed) { AttackerMods = Research.Mods() };
+            return new BattleSim(target, stock, new Dictionary<SoldierType, int>(SoldierLevels), seed) { AttackerMods = Research.Mods(), AttackerElements = new Dictionary<SoldierType, (TowerElement, TowerElement)>(SoldierElements) };
         }
 
         /// <summary>Savaş sonucunu oyuncuya işler: dönen askerler, yağma, XP (hedef seviyesiyle büyür), görev ilerlemesi.</summary>
