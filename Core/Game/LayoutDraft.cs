@@ -204,7 +204,7 @@ namespace GameCore.Game
                     {
                         var t = (TowerType)type; var d = ContentCatalog.Tower(t);
                         if (lvl < d.UnlockLevel) { error = d.Name + " Sv " + d.UnlockLevel + "'de açılır"; return null; }
-                        if (TowerCount >= g.MaxTowers) { error = "Kule sınırı " + g.MaxTowers + (g.MaxTowers < GameRules.MaxTowerSlots ? " (seviye ve Akademi araştırmalarıyla artar)" : ""); return null; }
+                        if (TowerCount >= g.MaxTowers) { error = "Kule sınırı " + g.MaxTowers + (g.MaxTowers < GameRules.MaxTowerSlots ? " (Akademi: Kule Hakkı araştırmalarıyla artar)" : ""); return null; }
                         it.Tower = t; break;
                     }
                 case DraftKind.Trap:
@@ -226,7 +226,7 @@ namespace GameCore.Game
 
         private string LimitHint(BuildingType t)
         {
-            if (t == BuildingType.VillagerHouse && g.MaxVillagerHouses < GameRules.MaxVillagerHouses) return " (Akademi araştırmasıyla artar)";
+            if (g.LimitHint(t) != "") return g.LimitHint(t);
             if (t == BuildingType.Barracks && g.Level < 26) return g.Level < 13 ? " (2. kışla Sv13'te)" : " (3. kışla Sv26'da)";
             return "";
         }

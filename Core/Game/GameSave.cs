@@ -108,7 +108,7 @@ namespace GameCore.Game
                                 Type = (SoldierType)int.Parse(p[1]), RemainingSeconds = int.Parse(p[2]), Started = p[3] == "1",
                                 Cost = new ResourceCost(int.Parse(p[4]), int.Parse(p[5]), int.Parse(p[6]), int.Parse(p[7]))
                             }); break;
-                        case "rdone": g.Research.ForceComplete(p[1]); break;
+                        case "rdone": g.Research.ForceComplete(RenamedResearch(p[1])); break;
                         case "ract": g.Research.ForceActive(p[1], int.Parse(p[2])); break;
                         case "qp": qpRows.Add(p); break;
                         case "qd":
@@ -158,10 +158,13 @@ namespace GameCore.Game
             {
                 case "a_house1": return GameCore.Progression.ResearchCatalog.MakeId(4, 1, 4);
                 case "a_house2": return GameCore.Progression.ResearchCatalog.MakeId(4, 3, 4);
-                case "a_tower1": return GameCore.Progression.ResearchCatalog.MakeId(4, 6, 4);
-                case "a_tower2": return GameCore.Progression.ResearchCatalog.MakeId(4, 15, 4);
+                case "a_tower1": return GameCore.Progression.ResearchCatalog.MakeId(4, 6, 5);
+                case "a_tower2": return GameCore.Progression.ResearchCatalog.MakeId(4, 15, 5);
                 default: return null;
             }
         }
+
+        /// <summary>Taşınan araştırma kimlikleri (25.11.2026: Kule Hakkı 4. sütundan 5. sütuna).</summary>
+        internal static string RenamedResearch(string id) => id == "4-06-4" ? "4-06-5" : id == "4-15-4" ? "4-15-5" : id;
     }
 }

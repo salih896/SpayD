@@ -380,7 +380,7 @@ namespace GameCore.Tests
         }
 
         /// <summary>Tipik ordu büyüklüğü (yer birimi): tipik kışla sayısı × tipik seviye. Sv1 karşılaştırma için 10.</summary>
-        public static int ArmyHousing(int lvl) => lvl < 2 ? 10 : GameRules.ArmyCapacity(GameRules.ExpectedBarracksLevelSum(lvl));
+        public static int ArmyHousing(int lvl) => lvl < 3 ? 10 : GameRules.ArmyCapacity(GameRules.ExpectedBarracksLevelSum(lvl));
 
         /// <summary>Rastgele ordu: yer dolana kadar sığan türlerden rastgele seçer (asker yer kaplar: GameRules.Housing).</summary>
         public static Dictionary<SoldierType, int> RandomArmy(System.Random rng, List<SoldierType> types, int housing, out int count)

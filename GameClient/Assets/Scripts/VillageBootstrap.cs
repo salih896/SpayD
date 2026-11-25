@@ -112,7 +112,7 @@ namespace GameClient
             {
                 g = GameState.NewGame();
                 g.Advance(0, DayIndex);
-                popups.Add("Köyüne hoş geldin!\nKÖY DÜZENİ düğmesine bas: yapıları envanterden sürükleyip yola bağlı yerlere bırak, sonra ONAYLA. İlk iş Kereste Deposu kur. Sv2'de kule, kışla ve Kılıçlı açılır.");
+                popups.Add("Köyüne hoş geldin!\nKÖY DÜZENİ düğmesine bas: yapıları envanterden sürükleyip yola bağlı yerlere bırak, sonra ONAYLA. İlk iş Kereste Deposu kur. Sv2'de kule, Sv3'te kışla ve Kılıçlı açılır.");
             }
             LastSave();
         }

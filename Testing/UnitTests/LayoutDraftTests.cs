@@ -141,10 +141,10 @@ namespace GameCore.Tests
             string err;
             Assert.IsNull(d.AddNew(DraftKind.Building, (int)BuildingType.Forest, out err), "Orman sınırı 1");
             Assert.IsNotNull(d.AddNew(DraftKind.Building, (int)BuildingType.Barracks, out err), err);
-            Assert.IsNull(d.AddNew(DraftKind.Building, (int)BuildingType.Barracks, out err), "Sv10'da 1 kışla");
-            StringAssert.Contains("Sv13", err);
-            for (int i = 0; i < 4; i++) Assert.IsNotNull(d.AddNew(DraftKind.Tower, (int)TowerType.Archer, out err), err);
-            Assert.IsNull(d.AddNew(DraftKind.Tower, (int)TowerType.Archer, out err), "Sv10'da 4 kule");
+            Assert.IsNull(d.AddNew(DraftKind.Building, (int)BuildingType.Barracks, out err), "Kışla II araştırması yok: 1 kışla");
+            StringAssert.Contains("Kışla II", err);
+            for (int i = 0; i < 3; i++) Assert.IsNotNull(d.AddNew(DraftKind.Tower, (int)TowerType.Archer, out err), err);
+            Assert.IsNull(d.AddNew(DraftKind.Tower, (int)TowerType.Archer, out err), "Kule Hakkı araştırması yok: 3 kule");
             Assert.IsNull(d.AddNew(DraftKind.Building, (int)BuildingType.GoldMine, out err), "Altın Sv15");
         }
 

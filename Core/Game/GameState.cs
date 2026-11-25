@@ -151,10 +151,28 @@ namespace GameCore.Game
         public int UniversityLevel => MaxBuildingLevelOf(BuildingType.University);
 
         // ---------- Yapı hakları (Akademi: Köy Gelişimi 4. sütun araştırmaları) ----------
-        /// <summary>Kule hakkı: seviyeyle 3→6, Kule Hakkı I-II araştırmalarıyla +2 → en çok 8.</summary>
-        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.TowerSlotsFromLevel(Level) + Research.Total(ResearchStat.TowerSlot));
+        /// <summary>Kule hakkı: 3 + Kule Hakkı I-V araştırmaları → en çok 8.</summary>
+        public int MaxTowers => Math.Min(GameRules.MaxTowerSlots, GameRules.StartTowerSlots + Research.Total(ResearchStat.TowerSlot));
         public int MaxVillagerHouses => Math.Min(GameRules.MaxVillagerHouses, GameRules.StartVillagerHouses + Research.Total(ResearchStat.VillagerHouseSlot));
-        public int MaxCountOf(BuildingType t) => t == BuildingType.VillagerHouse ? MaxVillagerHouses : GameRules.MaxBuildingCount(t, Level);
+        public int MaxCountOf(BuildingType t)
+        {
+            switch (t)
+            {
+                case BuildingType.VillagerHouse: return MaxVillagerHouses;
+                case BuildingType.Barracks: return Math.Min(GameRules.MaxBarracksCount, 1 + Research.Total(ResearchStat.BarracksSlot));
+                case BuildingType.University: return Math.Min(GameRules.MaxAcademyCount, 1 + Research.Total(ResearchStat.AcademySlot));
+                default: return GameRules.MaxBuildingCount(t, Level);
+            }
+        }
+
+        /// <summary>Sınırı araştırmayla artan yapılar için ipucu.</summary>
+        public string LimitHint(BuildingType t)
+        {
+            if (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses) return " (Akademi araştırmasıyla artar)";
+            if (t == BuildingType.Barracks && MaxCountOf(t) < GameRules.MaxBarracksCount) return " (Akademi: Kışla II-III)";
+            if (t == BuildingType.University && MaxCountOf(t) < GameRules.MaxAcademyCount) return " (Akademi: Akademi II)";
+            return "";
+        }
 
         // ---------- Yol geliştirme ----------
         public bool TryStartRoadResearch(out string error)
@@ -351,6 +369,7 @@ namespace GameCore.Game
                 if (RoadResearchRemaining <= 0) { RoadResearchRemaining = -1; RoadResearchDone = true; events.Add("Yol geliştirme araştırması tamamlandı"); }
             }
 
+            Research.BonusSlots = Math.Max(0, CountBuildings(BuildingType.University) - 1);
             foreach (var d in Research.Advance(seconds))
             {
                 Quests.Report(QuestEvent.ResearchDone, 1, lvl);
@@ -410,7 +429,7 @@ namespace GameCore.Game
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
             if (CountBuildings(t) >= MaxCountOf(t))
             {
-                error = def.Name + " sınırı " + MaxCountOf(t) + (t == BuildingType.VillagerHouse && MaxVillagerHouses < GameRules.MaxVillagerHouses ? " (Akademi araştırmasıyla artar)" : "");
+                error = def.Name + " sınırı " + MaxCountOf(t) + LimitHint(t);
                 return false;
             }
             if (!Layout.InBounds(p) || Layout.Get(p) != CellKind.Empty) { error = "Hücre dolu"; return false; }
@@ -432,7 +451,7 @@ namespace GameCore.Game
             var def = ContentCatalog.Tower(t);
             int lvl = Level;
             if (lvl < def.UnlockLevel) { error = def.Name + " Sv " + def.UnlockLevel + "'de açılır"; return false; }
-            if (Towers.Count >= MaxTowers) { error = "Kule sınırı " + MaxTowers + (MaxTowers < GameRules.MaxTowerSlots ? " (seviye ve Akademi araştırmalarıyla " + GameRules.MaxTowerSlots + "'e çıkar)" : ""); return false; }
+            if (Towers.Count >= MaxTowers) { error = "Kule sınırı " + MaxTowers + (MaxTowers < GameRules.MaxTowerSlots ? " (Akademi: Kule Hakkı araştırmalarıyla " + GameRules.MaxTowerSlots + "'e çıkar)" : ""); return false; }
             var cost = GameRules.Scale(def.BuildCost, Config, lvl, 100);
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
             if (!Layout.TryPlace(p, CellKind.Tower, out error)) return false;
@@ -666,6 +685,7 @@ namespace GameCore.Game
         {
             var d = ResearchCatalog.Get(id);
             if (d == null) { error = "Araştırma yok"; return false; }
+            Research.BonusSlots = Math.Max(0, CountBuildings(BuildingType.University) - 1); // 2. Akademi +1 yuva
             bool ok = Research.TryStart(d, Wallet, Config, Level, UniversityLevel, out error);
             return ok;
         }

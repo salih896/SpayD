@@ -357,7 +357,7 @@ namespace GameClient
             float top = r.y + 30;
             if (bsel != null && bsel.Type == BuildingType.Barracks)
             {
-                GUI.Label(new Rect(r.x + 20, top, 300, 24), "Kışla Sv " + bsel.Level + "   <size=12>(" + g.CountBuildings(BuildingType.Barracks) + "/" + g.MaxCountOf(BuildingType.Barracks) + " kışla; 2. Sv13, 3. Sv26)</size>", UiTheme.Header);
+                GUI.Label(new Rect(r.x + 20, top, 300, 24), "Kışla Sv " + bsel.Level + "   <size=12>(" + g.CountBuildings(BuildingType.Barracks) + "/" + g.MaxCountOf(BuildingType.Barracks) + " kışla; 2. ve 3. Akademi araştırmasıyla)</size>", UiTheme.Header);
                 DrawUpgradeRow(r.x + 20, top + 24, r.width - 40, JobKind.Building, bpos, SoldierType.Swordsman);
                 top += 88;
             }
@@ -463,12 +463,12 @@ namespace GameClient
             for (int lv = 1; lv <= ResearchCatalog.MaxLevel; lv++)
             {
                 bool any = false;
-                for (int c = 1; c <= 4; c++) if (ResearchCatalog.Find((ResearchTree)researchTree, lv, c) != null) any = true;
+                for (int c = 1; c <= 6; c++) if (ResearchCatalog.Find((ResearchTree)researchTree, lv, c) != null) any = true;
                 if (!any) continue;
                 GUILayout.BeginHorizontal(GUILayout.Height(40));
                 GUILayout.Label("Sv " + lv, GUILayout.Width(44));
-                int cols = researchTree == (int)ResearchTree.Village ? 4 : 3; // Köy Gelişimi: 4. sütun yapı hakkı
-                float colW = cols == 4 ? 200f : 250f;
+                int cols = researchTree == (int)ResearchTree.Village ? 5 : researchTree == (int)ResearchTree.Element ? 6 : 3; // ek sütunlar: yapı/kule hakkı, kule elementleri
+                float colW = cols == 3 ? 250f : cols == 5 ? 165f : 140f;
                 for (int c = 1; c <= cols; c++)
                 {
                     var d = ResearchCatalog.Find((ResearchTree)researchTree, lv, c);
@@ -486,7 +486,7 @@ namespace GameClient
             var sel = selResearch != null ? ResearchCatalog.Get(selResearch) : null;
             var dr = new Rect(r.x + 6, r.y + r.height - 94, r.width - 12, 88);
             GUI.Box(dr, "");
-            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. Ön koşul: aynı sütundaki önceki araştırma; 3. sütun için aynı seviyedeki 1. ve 2. sütun. Köy Gelişimi 4. sütun: köylü evi ve kule hakkı."); return; }
+            if (sel == null) { GUI.Label(new Rect(dr.x + 8, dr.y + 6, dr.width - 16, 70), "Bir araştırma seç. Ön koşul: aynı sütundaki önceki araştırma; 3. sütun için aynı seviyedeki 1. ve 2. sütun. Köy Gelişimi 4-5. sütun: yapı ve kule hakları (aynı adlı bir öncekini ister)."); return; }
             string reason = g.Research.LockReason(sel, g.Level, g.UniversityLevel);
             string bonus = StatText(sel);
             GUI.Label(new Rect(dr.x + 8, dr.y + 4, dr.width - 180, 80), sel.Name + "  (Sv " + sel.Level + ")  " + bonus + "\nMaliyet: " + g.Research.CostFor(sel, g.Config, g.Level) + "   Süre: " + Dur(g.Research.SecondsFor(sel)) + "\n" + (reason ?? "Başlatılabilir"));
@@ -505,6 +505,8 @@ namespace GameClient
             {
                 case ResearchStat.VillagerHouseSlot: return "+1 Köylü Evi hakkı";
                 case ResearchStat.TowerSlot: return "+1 Kule hakkı";
+                case ResearchStat.BarracksSlot: return "+1 Kışla hakkı";
+                case ResearchStat.AcademySlot: return "+1 Akademi hakkı (+1 araştırma yuvası)";
                 case ResearchStat.ProductionPct: return "Üretim +" + v;
                 case ResearchStat.StoragePct: return "Depo +" + v;
                 case ResearchStat.TowerDamage: return "Kule hasarı +" + v;

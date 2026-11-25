@@ -228,47 +228,52 @@ Amaç: Binaların inşaatını, canını, dayanıklılığını, onarımını ve
 
 Amaç: Köyün büyümesini, işçi kapasitesini, harita genişlemesini, kaynak korumasını ve kalkan sistemini geliştirmek.
 
-| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 | Araştırma 4 (Yapı hakkı) |
-|---|---|---|---|---|
-| 1 | Köy Yönetimi | Yerleşim Planlaması | — | Köylü Evi I |
-| 2 | Köy Organizasyonu I | İşçi Verimliliği | — | — |
-| 3 | İşçi Eğitimi I | Yerleşim Düzeni | — | Köylü Evi II |
-| 4 | Korunaklı Kaynaklar I | Köy Güvenliği | — | — |
-| 5 | Harita Genişletme I | Gelişmiş Yerleşim | Köy Planlaması | — |
-| 6 | Kaynak Koruma Sistemi | Köy Nöbetçileri | — | Kule Hakkı I |
-| 7 | Köy Organizasyonu II | Acil Durum Hazırlığı | — | — |
-| 8 | İşçi Eğitimi II | Gelişmiş İş Bölümü | — | — |
-| 9 | Korunaklı Kaynaklar II | Köy Savunma Düzeni | — | — |
-| 10 | Harita Genişletme II | Kalkan Yönetimi I | Yerleşim Uzmanlığı | — |
-| 11 | Köy İdaresi | Gelişmiş Köy Güvenliği | — | — |
-| 12 | Kalkan Süresi Geliştirmesi I | Kaynak Muhafazası | — | — |
-| 13 | Korunaklı Kaynaklar III | Genişletilmiş Yerleşim | — | — |
-| 14 | İşçi Organizasyonu | Köy İletişim Ağı | — | — |
-| 15 | Harita Genişletme III | Kalkan Yönetimi II | Köy Gelişim Planı | Kule Hakkı II |
-| 16 | Köy Refahı | Gelişmiş Yönetim | — | — |
-| 17 | Kaynak Güvenliği | Saldırı Sonrası Toparlanma | — | — |
-| 18 | Korunaklı Kaynaklar IV | Köy Gözetleme Sistemi | — | — |
-| 19 | Kalkan Süresi Geliştirmesi II | Gelişmiş Nöbet Sistemi | — | — |
-| 20 | Harita Genişletme IV | Büyük Yerleşim Planı | Köy Organizasyonu Ustalığı | — |
-| 21 | Köy Yönetim Merkezi | Gelişmiş Kaynak Muhafazası | — | — |
-| 22 | Acil Savunma Hazırlığı | Yerleşim Koordinasyonu | — | — |
-| 23 | Kalkan Yönetimi III | Köy Gözetleme Uzmanlığı | — | — |
-| 24 | Gelişmiş Köy Organizasyonu | Kaynak Güvenliği Ustalığı | — | — |
-| 25 | Büyük Köy Planlaması | Köy Refahı Uzmanlığı | Yerleşim Hâkimiyeti | — |
-| 26 | Kalkan Süresi Geliştirmesi III | Saldırı Öncesi Hazırlık | — | — |
-| 27 | Köy Güvenlik Ağı | Gelişmiş Nöbet Organizasyonu | — | — |
-| 28 | Kalkan Yönetimi IV | Kaynak Koruma Ustalığı | — | — |
-| 29 | Efsanevi Köy Organizasyonu | Büyük Yerleşim Düzeni | — | — |
-| 30 | Köy Gelişim Mirası | Mutlak Köy Güvenliği | Kadim Yerleşim | — |
+| Seviye | Araştırma 1 | Araştırma 2 | Araştırma 3 | Araştırma 4 (Yapı hakkı) | Araştırma 5 (Kule hakkı) |
+|---|---|---|---|---|---|
+| 1 | Köy Yönetimi | Yerleşim Planlaması | — | Köylü Evi I | — |
+| 2 | Köy Organizasyonu I | İşçi Verimliliği | — | — | — |
+| 3 | İşçi Eğitimi I | Yerleşim Düzeni | — | Köylü Evi II | Kule Hakkı I |
+| 4 | Korunaklı Kaynaklar I | Köy Güvenliği | — | — | — |
+| 5 | Harita Genişletme I | Gelişmiş Yerleşim | Köy Planlaması | — | — |
+| 6 | Kaynak Koruma Sistemi | Köy Nöbetçileri | — | — | Kule Hakkı II |
+| 7 | Köy Organizasyonu II | Acil Durum Hazırlığı | — | — | — |
+| 8 | İşçi Eğitimi II | Gelişmiş İş Bölümü | — | Kışla II | — |
+| 9 | Korunaklı Kaynaklar II | Köy Savunma Düzeni | — | — | — |
+| 10 | Harita Genişletme II | Kalkan Yönetimi I | Yerleşim Uzmanlığı | — | Kule Hakkı III |
+| 11 | Köy İdaresi | Gelişmiş Köy Güvenliği | — | — | — |
+| 12 | Kalkan Süresi Geliştirmesi I | Kaynak Muhafazası | — | Akademi II | — |
+| 13 | Korunaklı Kaynaklar III | Genişletilmiş Yerleşim | — | — | — |
+| 14 | İşçi Organizasyonu | Köy İletişim Ağı | — | — | — |
+| 15 | Harita Genişletme III | Kalkan Yönetimi II | Köy Gelişim Planı | — | Kule Hakkı IV |
+| 16 | Köy Refahı | Gelişmiş Yönetim | — | — | — |
+| 17 | Kaynak Güvenliği | Saldırı Sonrası Toparlanma | — | — | — |
+| 18 | Korunaklı Kaynaklar IV | Köy Gözetleme Sistemi | — | Kışla III | — |
+| 19 | Kalkan Süresi Geliştirmesi II | Gelişmiş Nöbet Sistemi | — | — | — |
+| 20 | Harita Genişletme IV | Büyük Yerleşim Planı | Köy Organizasyonu Ustalığı | — | Kule Hakkı V |
+| 21 | Köy Yönetim Merkezi | Gelişmiş Kaynak Muhafazası | — | — | — |
+| 22 | Acil Savunma Hazırlığı | Yerleşim Koordinasyonu | — | — | — |
+| 23 | Kalkan Yönetimi III | Köy Gözetleme Uzmanlığı | — | — | — |
+| 24 | Gelişmiş Köy Organizasyonu | Kaynak Güvenliği Ustalığı | — | — | — |
+| 25 | Büyük Köy Planlaması | Köy Refahı Uzmanlığı | Yerleşim Hâkimiyeti | — | — |
+| 26 | Kalkan Süresi Geliştirmesi III | Saldırı Öncesi Hazırlık | — | — | — |
+| 27 | Köy Güvenlik Ağı | Gelişmiş Nöbet Organizasyonu | — | — | — |
+| 28 | Kalkan Yönetimi IV | Kaynak Koruma Ustalığı | — | — | — |
+| 29 | Efsanevi Köy Organizasyonu | Büyük Yerleşim Düzeni | — | — | — |
+| 30 | Köy Gelişim Mirası | Mutlak Köy Güvenliği | Kadim Yerleşim | — | — |
 
-### Yapı Hakkı Araştırmaları (kullanıcı kararı 25.11.2026)
+### Yapı Hakkı Araştırmaları (kullanıcı kararları 25.11.2026)
 
-Eski "Akademi görevleri" yerine 4. sütunda dört araştırma (diğer araştırmalar gibi kaynak ve süre harcar):
+Eski "Akademi görevleri" yerine 4. ve 5. sütunda araştırmalar (diğer araştırmalar gibi kaynak ve süre harcar).
+Ön koşul: aynı sütunda aynı adlı bir önceki araştırma (Köylü Evi II → Köylü Evi I; Kışla III → Kışla II; Kule Hakkı II → Kule Hakkı I ...).
 
+4. sütun (yapı hakkı):
 1. Köylü Evi I (Sv1): +1 Köylü Evi hakkı (1 → 2).
-2. Köylü Evi II (Sv3): +1 Köylü Evi hakkı (2 → 3). Ön koşul: Köylü Evi I.
-3. Kule Hakkı I (Sv6): +1 Kule hakkı. Ön koşul: Köylü Evi II.
-4. Kule Hakkı II (Sv15): +1 Kule hakkı (seviye ile 6 + 2 = en çok 8). Ön koşul: Kule Hakkı I.
+2. Köylü Evi II (Sv3): +1 Köylü Evi hakkı (2 → 3).
+3. Kışla II (Sv8): 2. Kışla hakkı.
+4. Akademi II (Sv12): 2. Akademi hakkı (kurulunca +1 araştırma yuvası).
+5. Kışla III (Sv18): 3. Kışla hakkı.
+
+5. sütun (kule hakkı): başta 3 kule; Kule Hakkı I-V (Sv3, Sv6, Sv10, Sv15, Sv20) her biri +1 → en çok 8. Oyuncu seviyesi kule hakkı vermez.
 
 ### Köy Organizasyonu – Özel ve Değiştirilemez İşleyiş
 
