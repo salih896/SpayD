@@ -366,9 +366,18 @@ namespace GameClient
                 bool locked = !g.ElementUnlocked(e);
                 var rb = new Rect(x + (i % 3) * (bw + 5), y + (i / 3) * 46, bw, 42);
                 uiRects.Add(rb);
-                string label = "<size=12><b>" + ContentCatalog.ElementName(e) + "</b>" + (locked ? " (kilitli)" : "") + "\n<size=10>" + ContentCatalog.ElementEffect(e) + "</size></size>";
+                string label = "<size=12><b>" + ContentCatalog.ElementName(e) + "</b>" + (locked ? " (kilitli)" : "") + "\n<size=11>" + ElementShort(e) + "</size></size>";
                 if (GUI.Button(rb, label, block == null ? UiTheme.BtnGreen : GUI.skin.button))
                 { string err; if (g.TryApplyElement(p, e, out err)) { Toast(ContentCatalog.ElementName(e) + " uygulanıyor"); towerElemMenu = false; } else Toast(err); }
+            }
+        }
+
+        private static string ElementShort(TowerElement e)
+        {
+            switch (e)
+            {
+                case TowerElement.Arrow: return "Kritik, hızlı"; case TowerElement.Fire: return "Alan + yanma"; case TowerElement.Ice: return "Yavaşlatır, donma";
+                case TowerElement.Poison: return "Zehir, zayıflatır"; case TowerElement.Magic: return "Uçana +%100"; default: return "2 askere sıçrar";
             }
         }
 
