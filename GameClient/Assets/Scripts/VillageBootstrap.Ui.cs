@@ -820,7 +820,7 @@ namespace GameClient
             string stats = "Savaş: " + g.BattlesFought + "  Zafer: " + g.BattlesWon + "  Yıldız: " + g.TotalStars + "   Araştırma: " + g.Research.Done.Count + "/" + ResearchCatalog.All.Count;
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 26), stats); y += 28;
             if (Btn(new Rect(r.x + 10, y, 160, 34), "Kaydet")) { LastSave(); Toast("Kaydedildi"); }
-            if (Btn(new Rect(r.x + 180, y, 230, 34), "Grafik: " + (GraphicsFx.High ? "Yüksek" : "Düşük (pil dostu)"))) GraphicsFx.High = !GraphicsFx.High;
+            if (Btn(new Rect(r.x + 180, y, 230, 34), "Grafik: " + (GraphicsFx.High ? "Yüksek" : "Düşük (pil dostu)"))) { GraphicsFx.High = !GraphicsFx.High; dirty = true; if (envRoot != null) { Destroy(envRoot.gameObject); envRoot = null; } } // efektler yeniden kurulur
             if (Btn(new Rect(r.x + 420, y, 250, 34), "Gün/Gece: " + (DayCycle.RealTime ? "Gerçek saat" : "Hep gündüz"))) DayCycle.RealTime = !DayCycle.RealTime;
             y += 42;
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 24), "— TEST ARAÇLARI (zaman/kaynak hızlandırma) —"); y += 28;

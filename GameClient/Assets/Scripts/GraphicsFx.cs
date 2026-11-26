@@ -63,7 +63,7 @@ namespace GameClient
                     data.antialiasing = h ? AntialiasingMode.FastApproximateAntialiasing : AntialiasingMode.None;
                 }
             }
-            if (sun != null) sun.shadows = h ? LightShadows.Soft : LightShadows.Hard;
+            if (sun != null) sun.shadows = h ? LightShadows.Soft : LightShadows.None; // düşük: gölge geçişi yok (draw call yarıya iner)
         }
     }
 }

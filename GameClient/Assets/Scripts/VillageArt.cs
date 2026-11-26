@@ -35,10 +35,37 @@ namespace GameClient
             baseMat = urpLit;
             if (cube != null) return;
             cube = PrimMesh(PrimitiveType.Cube); cyl = PrimMesh(PrimitiveType.Cylinder);
-            ball = PrimMesh(PrimitiveType.Sphere); capsule = PrimMesh(PrimitiveType.Capsule);
+            ball = MakeLowSphere(10, 7); // 768 yerine ~120 üçgen (low-poly stile de uygun; mobil performans) capsule = PrimMesh(PrimitiveType.Capsule);
             cone = MakeCone(12); roof = MakeRoof(); pyramid = MakePyramid();
             grassTex = NoiseTex(64, 0.82f, 1.08f, 11);
             dirtTex = NoiseTex(64, 0.75f, 1.12f, 23);
+        }
+
+        /// <summary>Az yüzlü UV küre (çap 1, merkez 0): lon dilim, lat halka.</summary>
+        private static Mesh MakeLowSphere(int lon, int lat)
+        {
+            var v = new List<Vector3>(); var n = new List<Vector3>(); var uv = new List<Vector2>(); var tri = new List<int>();
+            for (int y = 0; y <= lat; y++)
+            {
+                float a = Mathf.PI * y / lat;
+                for (int x = 0; x <= lon; x++)
+                {
+                    float b = 2f * Mathf.PI * x / lon;
+                    var p = new Vector3(Mathf.Sin(a) * Mathf.Cos(b), Mathf.Cos(a), Mathf.Sin(a) * Mathf.Sin(b));
+                    v.Add(p * 0.5f); n.Add(p); uv.Add(new Vector2(x / (float)lon, 1f - y / (float)lat));
+                }
+            }
+            for (int y = 0; y < lat; y++)
+                for (int x = 0; x < lon; x++)
+                {
+                    int i0 = y * (lon + 1) + x, i1 = i0 + 1, i2 = i0 + lon + 1, i3 = i2 + 1;
+                    if (y > 0) { tri.Add(i0); tri.Add(i1); tri.Add(i2); }
+                    if (y < lat - 1) { tri.Add(i1); tri.Add(i3); tri.Add(i2); }
+                }
+            var m = new Mesh { name = "lowSphere" };
+            m.SetVertices(v); m.SetNormals(n); m.SetUVs(0, uv); m.SetTriangles(tri, 0);
+            m.RecalculateBounds();
+            return m;
         }
 
         private static Mesh PrimMesh(PrimitiveType t)
@@ -52,6 +79,9 @@ namespace GameClient
         // ---------- Materyal ----------
         public static Material Mat(Color c, float smooth = 0.12f, float emit = 0f, Texture2D tex = null, float tile = 1f)
         {
+            // yakın tonlar aynı materyali paylaşsın (rastgele renkli yüzlerce süs = yüzlerce materyal; draw call için)
+            const float q = 24f;
+            c = new Color(Mathf.Round(c.r * q) / q, Mathf.Round(c.g * q) / q, Mathf.Round(c.b * q) / q, c.a);
             string key = ColorUtility.ToHtmlStringRGBA(c) + "|" + smooth.ToString("0.00") + "|" + emit.ToString("0.0") + "|" + (tex != null ? tex.GetInstanceID() : 0) + "|" + tile;
             if (mats.TryGetValue(key, out var m)) return m;
             m = new Material(baseMat);

@@ -59,8 +59,11 @@ namespace GameClient
             envRoot = new GameObject("Environment").transform;
             envSize = layout.Size;
             VillageArt.BuildEnvironment(envRoot, layout.Size, VillageLayout.AttackZoneRows);
+            // küçük çevre süsleri (çiçek, taş, çimen) gölge düşürmesin: gölge geçişinde draw call yarıya iner
+            foreach (var mr in envRoot.GetComponentsInChildren<MeshRenderer>())
+                if (mr.bounds.size.magnitude < 0.45f) mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             BatchStatic(envRoot.gameObject);
-            AmbientLife.Create(envRoot, layout.Size, VillageLayout.AttackZoneRows); // kuşlar, bulut gölgeleri, kelebekler, su pırıltısı
+            if (GraphicsFx.High) AmbientLife.Create(envRoot, layout.Size, VillageLayout.AttackZoneRows); // kuşlar, bulut gölgeleri, kelebekler, su pırıltısı
         }
 
         /// <summary>Hareketsiz parçaları birleştirir (draw call azaltır); ArtMotion taşıyanlar ayrı kalır.</summary>

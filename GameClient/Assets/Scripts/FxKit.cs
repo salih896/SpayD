@@ -239,6 +239,7 @@ namespace GameClient
         /// <summary>Gece: binanın penceresinde titrek sıcak ışık.</summary>
         public static void NightGlow(Transform parent, Vector3 p, float size = 0.55f)
         {
+            if (!GraphicsFx.High) return;
             Halo(parent, p, new Color(1f, 0.72f, 0.35f), size, 3.5f);
             var f = PS(parent, p, "windowflicker", Mat(Glow, true), true, 1f, 4);
             Life(f, 0.3f, 0.6f, size * 0.25f, size * 0.4f); Rate(f, 4f);
@@ -411,6 +412,7 @@ namespace GameClient
         /// <summary>Tuzak üstünde küçük sürekli efekt (uzaktan fark edilsin, göz yormasın).</summary>
         public static void TrapIdle(Transform parent, TrapType t, Vector3 p)
         {
+            if (!GraphicsFx.High) return;
             switch (t)
             {
                 case TrapType.Fire:
@@ -500,6 +502,7 @@ namespace GameClient
         /// <summary>Yapıya göre sürekli efekt: baca dumanı, altın pırıltısı, demirci kıvılcımı, büyü ışıkları... top: yapının tepesi.</summary>
         public static void BuildingIdle(Transform parent, BuildingType t, Vector3 basePos, float topY, int level)
         {
+            if (!GraphicsFx.High) return; // düşük grafik: süs efekti yok
             var top = new Vector3(basePos.x, topY, basePos.z);
             switch (t)
             {
