@@ -879,6 +879,7 @@ namespace GameClient
         // ---------- Savaş arayüzü ----------
         private void DrawBattleGui(float w, float h)
         {
+            DrawFloatTexts(w, h); // hasar sayıları, "YIKILDI", yıldız duyuruları
             // yalnızca orduda olan türler (15 tür sığmaz): stokta kalan ya da sahaya inmiş
             var shown = new List<SoldierType>();
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)

@@ -265,7 +265,7 @@ namespace GameClient
             target.z = Mathf.Clamp(target.z, c - lim - VillageLayout.AttackZoneRows, c + lim);
             cam.orthographicSize = zoom;
             cam.transform.rotation = Quaternion.Euler(30f, 45f, 0f);
-            cam.transform.position = target - cam.transform.forward * 30f; // yakın: gölge mesafesine sığar (ortografik, boyut değişmez)
+            cam.transform.position = target - cam.transform.forward * 30f + cam.transform.rotation * ShakeOffset(); // yakın: gölge mesafesine sığar; sarsıntı ekranda
         }
 
         private bool RayToPlane(Vector2 screen, out Vector3 hit)

@@ -131,7 +131,8 @@ namespace GameClient
                 foreach (var te in sim.TrapEvents)
                 {
                     FxKit.TrapTrigger(DynRoot(), te.Type, new Vector3(te.Cell.X, 0.15f, te.Cell.Y), Mathf.Max(1f, speed));
-                    if (trapAnims.TryGetValue(te.Cell, out var ta) && ta != null) ta.Trigger(); // dikenler fırlar, çene kapanır... (patlayıcı kendi kaybolur)
+                    if (trapAnims.TryGetValue(te.Cell, out var ta) && ta != null) ta.Trigger();
+                    if (te.Type == TrapType.Bomb) Shake(0.2f, 0.35f); // dikenler fırlar, çene kapanır... (patlayıcı kendi kaybolur)
                 }
                 sim.TrapEvents.Clear();
                 if (n >= 60) tickAcc = 0f;
@@ -157,6 +158,7 @@ namespace GameClient
         {
             battleOver = true;
             lastResult = sim.Result(curTarget.Pool, g.Config, curTarget.Level);
+            OnBattleFinishedFx(lastResult.Victory); // konfeti / duyuru
             if (testBattle) { lastOutcome = null; return; } // test: ordu/yağma/XP işlenmez
             lastOutcome = g.FinishAttack(sim, lastResult, curTarget.Level);
             AddLevelUpPopups(lastOutcome.LevelUps);
@@ -166,6 +168,7 @@ namespace GameClient
         private void CloseBattle()
         {
             sim = null; battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1; testBattle = false;
+            celebrate = false; floatTexts.Clear(); structPrevHp = null;
             DestroyDyn();
             dirty = true;
             if (g != null) { view = g.MakeDefense(); ResetCamera(); }
@@ -177,6 +180,7 @@ namespace GameClient
             dynRoot = null;
             soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierVel.Clear(); fxs.Clear(); soldierStatus.Clear(); soldierNextFx.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
+            soldierDeathT.Clear(); soldierDeathRot.Clear(); soldierDeathScale.Clear();
         }
 
         private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; public System.Action<Vector3> OnHit; public PixelFxPlayer Px; public ParticleSystem TrailPs; }
@@ -441,9 +445,9 @@ namespace GameClient
                 var t = soldierViews[i];
                 if (t.gameObject.activeSelf && !s.Alive && s.Type == SoldierType.Bomber && s.AttackCount > 0)
                     Burst(t.position + new Vector3(0f, 0.25f, 0f), new Color(1f, 0.5f, 0.1f), 1.1f, 10, 0.9f); // bombacı patladı
-                if (t.gameObject.activeSelf != s.Alive) t.gameObject.SetActive(s.Alive);
+                if (s.Alive && !t.gameObject.activeSelf) t.gameObject.SetActive(true);
                 if (soldierBars[i].gameObject.activeSelf != s.Alive) soldierBars[i].gameObject.SetActive(s.Alive);
-                if (!s.Alive) { for (int k = 4; k < 9; k++) Show(soldierStatus[i][k], false); continue; }
+                if (!s.Alive) { for (int k = 4; k < 9; k++) Show(soldierStatus[i][k], false); SoldierDying(i, t, s); continue; } // devrilir, kaybolur
                 // ara konum: önceki adım → şimdiki adım, kalan süre oranında
                 float alpha = sim.Finished ? 1f : Mathf.Clamp01(tickAcc / SimTickSeconds);
                 var prevSim = i < simPrevPos.Count ? simPrevPos[i] : new Vector2(s.X, s.Y);
@@ -483,7 +487,7 @@ namespace GameClient
                     ? new Vector3(s.OffX / 1000f, 0f, s.OffY / 1000f)
                     : new Vector3(((s.Id * 73) % 100 / 100f - 0.5f) * 0.3f, 0f, ((s.Id * 41 + 17) % 100 / 100f - 0.5f) * 0.3f);
                 soldierOff[i] = Vector3.Lerp(soldierOff[i], offTarget + soldierSep[i], Mathf.Min(1f, Time.deltaTime * 5f));
-                t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob, 0f);
+                t.position = p + soldierOff[i] + new Vector3(0f, (s.Flying ? 0.9f + Mathf.Sin(Time.time * 3f + i) * 0.05f : 0.05f) + bob + CelebrateHop(i), 0f);
                 soldierDisp[i] = t.position;
                 soldierPrev[i] = p;
                 // can çubuğu: başın üstünde; renk yeşil > sarı > kırmızı
@@ -502,6 +506,7 @@ namespace GameClient
             SeparateSoldiers();
 
             // yapılar: can çubuğu, yıkım dumanı, kule atışı
+            JuiceStructures(); // hasar sayıları + yıldız eşikleri
             int n = sim.Structures.Count;
             if (towerPrevCd == null || towerPrevCd.Length != n)
             {
@@ -530,7 +535,7 @@ namespace GameClient
                     var r = barFills[i].GetComponentInChildren<MeshRenderer>();
                     r.sharedMaterial = VillageArt.Mat(f > 0.6f ? new Color(0.3f, 0.9f, 0.3f) : (f > 0.3f ? new Color(1f, 0.8f, 0.2f) : new Color(1f, 0.3f, 0.2f)), 0.2f, 0.6f);
                 }
-                if (structPrevAlive[i] && !st.Alive) VillageArt.Smoke(root, new Vector3(st.Pos.X, 0f, st.Pos.Y), i * 13 + sim.Tick);
+                if (structPrevAlive[i] && !st.Alive) StructureDestroyed(st); // toz, moloz, sarsıntı, "YIKILDI"
                 structPrevAlive[i] = st.Alive;
 
                 if (st.Kind == StructKind.Tower && st.Alive && st.Cooldown > towerPrevCd[i]) SpawnShot(st);
@@ -621,6 +626,7 @@ namespace GameClient
         {
             var best = sim.TowerTargetOf(tower); // simülasyonla aynı hedef kuralı
             if (best == null) return;
+            TowerKick(tower.Pos, tower.Element == TowerElement.Fire ? 0.12f : 0.07f); // ateş eden kule bir an geri teper
             var e = tower.Element;
             var col = VillageArt.ElementColor(e);
             var a = new Vector3(tower.Pos.X, 1.25f, tower.Pos.Y);
@@ -655,7 +661,7 @@ namespace GameClient
             {
                 case TowerElement.Fire:
                     t = PxShot("fireball", 105f, () => VillageArt.Fireball(DynRoot(), 0.22f)); cellsPerSec = 3.5f; arc = 0.35f;
-                    onHit = p => { FxKit.Impact(DynRoot(), e, p, 1.1f, spd); PxHit("burning", p, 70f, 0.05f, 1.4f); }; break; // alan 1,2 hücre
+                    onHit = p => { FxKit.Impact(DynRoot(), e, p, 1.1f, spd); PxHit("burning", p, 70f, 0.05f, 1.4f); Shake(0.05f, 0.18f); }; break; // alan 1,2 hücre
                 case TowerElement.Ice:
                     t = PxShot("ice-lance", 140f, () => VillageArt.Projectile(DynRoot(), TowerType.Ice)); cellsPerSec = 8f; arc = 0.1f;
                     onHit = p => FxKit.Impact(DynRoot(), e, p, 0.8f, spd); break;

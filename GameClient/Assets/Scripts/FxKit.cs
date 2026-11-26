@@ -585,6 +585,76 @@ namespace GameClient
             ColorLife(g, Grad(Color.white, c, c, 0.3f)); SizeLife(g, Curve(0f, 0f, 0.4f, 1f, 1f, 0f)); Go(g);
         }
 
+        // ================= SAVAŞ: ÇÖKME, ÖLÜM, KONFETİ =================
+
+        /// <summary>Yapı yıkıldı: yükselen toz bulutu, savrulan moloz parçaları, yerde şok halkası.</summary>
+        public static void Collapse(Transform parent, Vector3 basePos, float scale = 1f, float speed = 1f)
+        {
+            var dustC = new Color(0.62f, 0.55f, 0.46f);
+            var dust = PS(parent, basePos + new Vector3(0f, 0.3f, 0f), "collapsedust", Mat(Smoke, false), false, 2f, 18);
+            Life(dust, 1f, 1.6f, 0.4f * scale, 0.7f * scale, 0.4f * scale, 1.1f * scale); Sphere(dust, 0.3f * scale, true); Burst(dust, 14);
+            Spin(dust, 40f); Up(dust, 0.1f, 0.35f); Gravity(dust, -0.05f);
+            ColorLife(dust, Grad(dustC, dustC, new Color(0.5f, 0.46f, 0.4f), 0.08f)); SizeLife(dust, Curve(0f, 0.5f, 1f, 1.8f)); Speed(dust, speed); Go(dust);
+            // moloz: küçük taş/tahta parçaları (ışıklı küp örgüsü), yerçekimiyle düşer
+            var deb = PS(parent, basePos + new Vector3(0f, 0.5f * scale, 0f), "debris", VillageArt.Mat(new Color(0.42f, 0.38f, 0.34f)), false, 1.6f, 16);
+            Life(deb, 0.8f, 1.2f, 0.06f * scale, 0.13f * scale, 1.5f * scale, 3f * scale); Sphere(deb, 0.2f * scale, true); Burst(deb, 12); Gravity(deb, 1.6f);
+            var mm = deb.main; mm.startRotation3D = true; mm.startRotationX = new ParticleSystem.MinMaxCurve(0f, 6.28f); mm.startRotationY = new ParticleSystem.MinMaxCurve(0f, 6.28f); mm.startRotationZ = new ParticleSystem.MinMaxCurve(0f, 6.28f);
+            var rot = deb.rotationOverLifetime; rot.enabled = true; rot.separateAxes = true; rot.x = new ParticleSystem.MinMaxCurve(-6f, 6f); rot.y = new ParticleSystem.MinMaxCurve(-6f, 6f); rot.z = new ParticleSystem.MinMaxCurve(-6f, 6f);
+            var r = deb.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Mesh; r.mesh = CubeMesh();
+            var col = deb.collision; col.enabled = true; col.type = ParticleSystemCollisionType.Planes; col.SetPlane(0, PlaneAt(basePos.y)); col.bounce = 0.3f; col.dampen = 0.5f;
+            Speed(deb, speed); Go(deb);
+            GroundRing(parent, new Vector3(basePos.x, 0.05f, basePos.z), new Color(0.9f, 0.85f, 0.75f), dustC, 1.8f * scale, speed);
+        }
+
+        /// <summary>Asker öldü: küçük toz + yukarı süzülen soluk ışık (ruh).</summary>
+        public static void SoldierDeath(Transform parent, Vector3 p, bool flying)
+        {
+            var dc = new Color(0.7f, 0.66f, 0.6f, 0.8f);
+            var d = PS(parent, new Vector3(p.x, 0.08f, p.z), "deathdust", Mat(Smoke, false), false, 1f, 6);
+            Life(d, 0.5f, 0.8f, 0.12f, 0.2f, 0.2f, 0.5f); Circle(d, 0.08f); Burst(d, 5); Spin(d, 30f);
+            ColorLife(d, Grad(dc, dc, dc, 0.1f)); SizeLife(d, Curve(0f, 0.6f, 1f, 1.5f)); Go(d);
+            var soul = PS(parent, p + new Vector3(0f, 0.3f, 0f), "soul", Mat(Glow, true), false, 1.5f, 6);
+            Life(soul, 0.9f, 1.2f, 0.07f, 0.11f); Burst(soul, 3); Sphere(soul, 0.05f); Up(soul, 0.5f, 0.8f); Noise(soul, 0.1f);
+            ColorLife(soul, Grad(Color.white, new Color(0.85f, 0.9f, 1f), new Color(0.6f, 0.7f, 1f), 0.1f)); Go(soul);
+        }
+
+        /// <summary>Zafer: renkli konfeti yağmuru.</summary>
+        public static void Confetti(Transform parent, Vector3 p)
+        {
+            var c = PS(parent, p, "confetti", Mat(Glow, false), false, 3f, 80);
+            Life(c, 2f, 3f, 0.05f, 0.09f, 2f, 4f); Sphere(c, 1.5f, true); Burst(c, 70); Gravity(c, 0.35f); Noise(c, 0.6f, 1f); Spin(c, 360f);
+            var m = c.main;
+            var g = new Gradient();
+            g.SetKeys(new[] { new GradientColorKey(new Color(1f, 0.3f, 0.3f), 0f), new GradientColorKey(new Color(1f, 0.85f, 0.2f), 0.33f), new GradientColorKey(new Color(0.3f, 0.85f, 0.4f), 0.66f), new GradientColorKey(new Color(0.35f, 0.6f, 1f), 1f) },
+                      new[] { new GradientAlphaKey(1f, 0f), new GradientAlphaKey(1f, 1f) });
+            m.startColor = new ParticleSystem.MinMaxGradient(g) { mode = ParticleSystemGradientMode.RandomColor };
+            var r = c.GetComponent<ParticleSystemRenderer>(); r.renderMode = ParticleSystemRenderMode.Mesh; r.mesh = CubeMesh();
+            r.sharedMaterial = VillageArt.Mat(Color.white, 0.4f, 0.4f);
+            var sz = c.sizeOverLifetime; sz.enabled = true; sz.separateAxes = true;
+            sz.x = new ParticleSystem.MinMaxCurve(1f, Curve(0f, 1f, 1f, 1f)); sz.y = new ParticleSystem.MinMaxCurve(0.15f, Curve(0f, 1f, 1f, 1f)); sz.z = new ParticleSystem.MinMaxCurve(0.6f, Curve(0f, 1f, 1f, 1f));
+            var rot = c.rotationOverLifetime; rot.enabled = true; rot.separateAxes = true; rot.x = new ParticleSystem.MinMaxCurve(-8f, 8f); rot.y = new ParticleSystem.MinMaxCurve(-8f, 8f);
+            var mm = c.main; mm.startRotation3D = true;
+            Go(c);
+        }
+
+        private static Mesh cube;
+        private static Mesh CubeMesh()
+        {
+            if (cube != null) return cube;
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube = go.GetComponent<MeshFilter>().sharedMesh;
+            Object.Destroy(go);
+            return cube;
+        }
+
+        private static Transform plane;
+        private static Transform PlaneAt(float y)
+        {
+            if (plane == null) { plane = new GameObject("FxGroundPlane").transform; Object.DontDestroyOnLoad(plane.gameObject); }
+            plane.position = new Vector3(0f, y + 0.02f, 0f);
+            return plane;
+        }
+
         // ================= YILDIRIM =================
 
         /// <summary>Parlayan zikzak yıldırım (dış renkli + iç beyaz çizgi + küçük dal). dur sn sonra silinir.</summary>

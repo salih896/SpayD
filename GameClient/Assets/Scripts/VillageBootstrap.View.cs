@@ -68,7 +68,7 @@ namespace GameClient
         {
             var list = new List<GameObject>();
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>())
-                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
+                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null && r.GetComponentInParent<KickAnim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
             if (list.Count > 1) StaticBatchingUtility.Combine(list.ToArray(), root);
         }
 
@@ -84,7 +84,7 @@ namespace GameClient
             EnsureEnvironment();
             if (viewRoot != null) Destroy(viewRoot.gameObject);
             viewRoot = new GameObject("View").transform;
-            trapAnims.Clear();
+            trapAnims.Clear(); towerViews.Clear();
             int n = layout.Size;
             bool building = sim == null && draft != null; // Köy Düzeni: hafif ızgara
             for (int x = 0; x < n; x++)
@@ -134,6 +134,8 @@ namespace GameClient
                                     towerT = VillageArt.BuildTower(viewRoot, ts != null ? ContentCatalog.ModelLook(ts.Type, ts.Element) : TowerType.Archer, tl, dmg, c);
                                     if (el != TowerElement.None) VillageArt.ElementAura(viewRoot, c, el, ModelLibrary.WorldHeight(towerT) + 0.18f); // model yoksa eski aura
                                 }
+                                towerViews[p] = towerT;
+                                if (sim != null && towerT != null) towerT.gameObject.AddComponent<KickAnim>(); // savaşta geri teper (birleştirilmez)
                                 if (ts != null && ts.DefElement != TowerElement.None) FxKit.DefenseAura(towerT, ts.DefElement, c, ts.Type == TowerType.Wall ? 0.5f : 0.42f);
                                 if (sim == null && (g.IsUpgrading(JobKind.Tower, p, SoldierType.Swordsman) || g.IsUpgrading(JobKind.TowerElement, p, SoldierType.Swordsman))) FxKit.Construction(viewRoot, c);
                             }
