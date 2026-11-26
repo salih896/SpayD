@@ -49,6 +49,7 @@ namespace GameClient
             sun.shadows = LightShadows.Soft;
             sun.shadowStrength = 0.55f;
             sun.transform.rotation = Quaternion.Euler(52f, -35f, 0f);
+            GraphicsFx.Setup(cam, sun); // son işleme: parlama, renk, kenar yumuşatma (Ayarlar'dan Yüksek/Düşük)
         }
 
         private void EnsureEnvironment()
@@ -59,6 +60,7 @@ namespace GameClient
             envSize = layout.Size;
             VillageArt.BuildEnvironment(envRoot, layout.Size, VillageLayout.AttackZoneRows);
             BatchStatic(envRoot.gameObject);
+            AmbientLife.Create(envRoot, layout.Size, VillageLayout.AttackZoneRows); // kuşlar, bulut gölgeleri, kelebekler, su pırıltısı
         }
 
         /// <summary>Hareketsiz parçaları birleştirir (draw call azaltır); ArtMotion taşıyanlar ayrı kalır.</summary>

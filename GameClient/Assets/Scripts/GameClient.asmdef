@@ -1,7 +1,7 @@
 {
   "name": "GameClient",
   "rootNamespace": "GameClient",
-  "references": ["GameCore", "Unity.InputSystem"],
+  "references": ["GameCore", "Unity.InputSystem", "Unity.RenderPipelines.Universal.Runtime", "Unity.RenderPipelines.Core.Runtime"],
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

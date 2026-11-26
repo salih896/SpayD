@@ -807,6 +807,7 @@ namespace GameClient
             string stats = "Savaş: " + g.BattlesFought + "  Zafer: " + g.BattlesWon + "  Yıldız: " + g.TotalStars + "   Araştırma: " + g.Research.Done.Count + "/" + ResearchCatalog.All.Count;
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 26), stats); y += 28;
             if (Btn(new Rect(r.x + 10, y, 160, 34), "Kaydet")) { LastSave(); Toast("Kaydedildi"); }
+            if (Btn(new Rect(r.x + 180, y, 230, 34), "Grafik: " + (GraphicsFx.High ? "Yüksek" : "Düşük (pil dostu)"))) GraphicsFx.High = !GraphicsFx.High;
             y += 42;
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 24), "— TEST ARAÇLARI (zaman/kaynak hızlandırma) —"); y += 28;
             float x = r.x + 10;
