@@ -66,9 +66,13 @@ namespace GameClient
         {
             var list = new List<GameObject>();
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>())
-                if (r.GetComponentInParent<ArtMotion>() == null) list.Add(r.gameObject);
+                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
             if (list.Count > 1) StaticBatchingUtility.Combine(list.ToArray(), root);
         }
+
+        /// <summary>Çizilen tuzakların animasyonu (tetiklenince oynatılır).</summary>
+        private readonly Dictionary<GridPos, TrapAnim> trapAnims = new Dictionary<GridPos, TrapAnim>();
+        private GridPos trapPreview = new GridPos(-1, -1);
 
         private void Rebuild()
         {
@@ -78,6 +82,7 @@ namespace GameClient
             EnsureEnvironment();
             if (viewRoot != null) Destroy(viewRoot.gameObject);
             viewRoot = new GameObject("View").transform;
+            trapAnims.Clear();
             int n = layout.Size;
             bool building = sim == null && draft != null; // Köy Düzeni: hafif ızgara
             for (int x = 0; x < n; x++)
@@ -99,7 +104,7 @@ namespace GameClient
                         case CellKind.Road:
                             var open = new[] { IsRoad(x, y + 1), IsRoad(x + 1, y), IsRoad(x, y - 1) || layout.IsEntrance(p), IsRoad(x - 1, y) };
                             VillageArt.BuildRoad(viewRoot, c, layout.GetRoadTier(p), open, seed);
-                            if (view.Traps.TryGetValue(p, out var tr) && !(sim != null && sim.TrapUsed(p))) VillageArt.BuildTrap(viewRoot, c, tr); // patlamış tuzak çizilmez
+                            if (view.Traps.TryGetValue(p, out var tr) && !(sim != null && sim.TrapUsed(p))) trapAnims[p] = VillageArt.BuildTrap(viewRoot, c, tr); // patlamış tuzak çizilmez
                             break;
                         case CellKind.Building:
                             if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
@@ -152,6 +157,8 @@ namespace GameClient
             dirty = false;
             if (sim == null) valid = g.VillageValid(out validationError);
             villagersDirty = true;
+            if (trapPreview.X >= 0 && trapAnims.TryGetValue(trapPreview, out var pa) && pa != null) pa.Trigger(false); // köyde dokunulan tuzağın önizlemesi
+            trapPreview = new GridPos(-1, -1);
         }
 
         private bool IsDestroyed(GridPos p)

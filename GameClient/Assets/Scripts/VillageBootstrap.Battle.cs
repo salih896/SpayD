@@ -131,7 +131,7 @@ namespace GameClient
                 foreach (var te in sim.TrapEvents)
                 {
                     FxKit.TrapTrigger(DynRoot(), te.Type, new Vector3(te.Cell.X, 0.15f, te.Cell.Y), Mathf.Max(1f, speed));
-                    if (TrapCatalog.Get(te.Type) != null && TrapCatalog.Get(te.Type).OneShot) dirty = true;
+                    if (trapAnims.TryGetValue(te.Cell, out var ta) && ta != null) ta.Trigger(); // dikenler fırlar, çene kapanır... (patlayıcı kendi kaybolur)
                 }
                 sim.TrapEvents.Clear();
                 if (n >= 60) tickAcc = 0f;

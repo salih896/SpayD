@@ -586,50 +586,109 @@ namespace GameClient
             Part(g, Shape.Box, new Vector3(0, 0.48f, -0.055f), new Vector3(0.36f, 0.12f, 0.01f), Mat(new Color(0.75f, 0.15f, 0.12f), 0.2f));
         }
 
-        public static void BuildTrap(Transform parent, Vector3 c, TrapType t)
+        /// <summary>
+        /// Tuzak modeli: sabit taban + hareketli parçalar (TrapAnim: bekleme ve tetiklenme animasyonu) + küçük sürekli efekt (FxKit).
+        /// Grup hücre merkezinde durur; parçalar ona göre konumlanır (ölçek/dönüş merkezden olur).
+        /// </summary>
+        public static TrapAnim BuildTrap(Transform parent, Vector3 c, TrapType t)
         {
-            var g = Group(parent, "trap_" + t, new Vector3(0f, 0.015f, 0f)); // yol taşlarıyla aynı yükseklikte titremesin
-            parent = g;
+            var g = Group(parent, "trap_" + t, c + new Vector3(0f, 0.015f, 0f)); // yol taşlarıyla aynı yükseklikte titremesin
+            var anim = g.gameObject.AddComponent<TrapAnim>();
+            anim.Type = t;
             FxKit.TrapIdle(g, t, c + new Vector3(0f, 0.08f, 0f));
+            Transform Mov(Vector3 p) { var m = Group(g, "mov", p); anim.Mov = m; return m; }
             switch (t)
             {
                 case TrapType.Spikes:
-                    for (int i = 0; i < 5; i++)
-                        Part(parent, Shape.Cone, c + new Vector3(-0.16f + i * 0.08f, 0.1f, (i % 2) * 0.1f - 0.05f), new Vector3(0.05f, 0.1f, 0.05f), Iron);
-                    break;
-                case TrapType.Poison:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.056f, 0), new Vector3(0.34f, 0.01f, 0.3f), Mat(new Color(0.35f, 0.75f, 0.2f), 0.9f, 0.6f));
-                    for (int i = 0; i < 3; i++) { var b = Part(parent, Shape.Ball, c + new Vector3(-0.08f + i * 0.08f, 0.07f, (i - 1) * 0.05f), Vector3.one * 0.05f, Mat(new Color(0.5f, 0.95f, 0.3f), 0.9f, 1.2f)); Animate(b, ArtMotion.Kind.Bob, 4f + i, 0.02f, i); }
-                    break;
-                case TrapType.Frost:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.34f, 0.01f, 0.34f), Mat(new Color(0.85f, 0.95f, 1f), 0.9f, 0.4f));
-                    for (int i = 0; i < 4; i++) Part(parent, Shape.Pyramid, c + new Vector3((i % 2 - 0.5f) * 0.16f, 0.1f, (i / 2 - 0.5f) * 0.16f), new Vector3(0.05f, 0.1f, 0.05f), Mat(new Color(0.6f, 0.9f, 1f), 0.95f, 1.2f));
-                    break;
-                case TrapType.Bomb:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.1f, 0), new Vector3(0.16f, 0.12f, 0.16f), Mat(new Color(0.18f, 0.16f, 0.15f), 0.4f));
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.1f, 0), new Vector3(0.17f, 0.02f, 0.17f), Iron);
-                    { var spark = Part(parent, Shape.Ball, c + new Vector3(0.03f, 0.2f, 0), Vector3.one * 0.035f, Mat(new Color(1f, 0.7f, 0.2f), 0.5f, 3f)); Animate(spark, ArtMotion.Kind.Bob, 12f, 0.01f); }
-                    break;
-                case TrapType.Snare:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.26f, 0.01f, 0.26f), Iron);
-                    for (int i = 0; i < 6; i++) { float a = i * Mathf.PI / 3f; Part(parent, Shape.Cone, c + new Vector3(Mathf.Cos(a) * 0.12f, 0.09f, Mathf.Sin(a) * 0.12f), new Vector3(0.03f, 0.07f, 0.03f), StoneLight); }
-                    break;
-                case TrapType.Shock:
-                    Part(parent, Shape.Box, c + new Vector3(0, 0.056f, 0), new Vector3(0.3f, 0.012f, 0.3f), Mat(new Color(0.5f, 0.52f, 0.58f), 0.8f));
-                    for (int i = 0; i < 2; i++) { var z = Part(parent, Shape.Box, c + new Vector3((i - 0.5f) * 0.12f, 0.08f, 0), new Vector3(0.02f, 0.02f, 0.2f), Mat(new Color(1f, 0.95f, 0.4f), 0.9f, 3f), new Vector3(0, 30 + i * 60, 0)); Animate(z, ArtMotion.Kind.Bob, 15f, 0.008f, i); }
-                    break;
-                case TrapType.Slippery:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.06f, 0), new Vector3(0.36f, 0.01f, 0.3f), Mat(new Color(0.45f, 0.75f, 0.95f), 0.95f, 0.2f));
-                    break;
-                case TrapType.Fire:
-                    Part(parent, Shape.Cyl, c + new Vector3(0, 0.055f, 0), new Vector3(0.34f, 0.01f, 0.34f), Dark);
-                    for (int i = 0; i < 3; i++)
+                {
+                    // delikli demir plaka; dikenler plakanın altında bekler
+                    Part(g, Shape.Box, new Vector3(0f, 0.045f, 0f), new Vector3(0.36f, 0.02f, 0.36f), Mat(new Color(0.3f, 0.3f, 0.33f), 0.6f));
+                    var m = Mov(Vector3.zero);
+                    for (int i = 0; i < 9; i++)
                     {
-                        var f = Part(parent, Shape.Cone, c + new Vector3(-0.08f + i * 0.08f, 0.12f, (i - 1) * 0.04f), new Vector3(0.07f, 0.13f, 0.07f), Mat(new Color(1f, 0.45f, 0.1f), 0.2f, 2.5f));
-                        Animate(f, ArtMotion.Kind.Bob, 11f, 0.015f, i * 2f);
+                        var sp = new Vector3((i % 3 - 1) * 0.11f, 0.11f, (i / 3 - 1) * 0.11f);
+                        Part(g, Shape.Cyl, new Vector3(sp.x, 0.056f, sp.z), new Vector3(0.05f, 0.003f, 0.05f), Dark); // delik
+                        Part(m, Shape.Cone, sp, new Vector3(0.045f, 0.12f, 0.045f), Mat(new Color(0.78f, 0.8f, 0.84f), 0.85f));
                     }
                     break;
+                }
+                case TrapType.Snare:
+                {
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.045f, 0f), new Vector3(0.3f, 0.012f, 0.3f), Iron);
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.055f, 0f), new Vector3(0.06f, 0.01f, 0.06f), Mat(new Color(0.75f, 0.2f, 0.15f), 0.5f)); // tetik
+                    var jawMat = Mat(new Color(0.62f, 0.64f, 0.68f), 0.8f);
+                    foreach (var side in new[] { -1f, 1f })
+                    {
+                        // menteşe kenarda; çene açıkken yatık durur, kapanınca yukarı kalkıp ortada buluşur
+                        var jaw = Group(g, side < 0 ? "jawL" : "jawR", new Vector3(0.14f * side, 0.055f, 0f));
+                        Part(jaw, Shape.Box, new Vector3(-0.07f * side, 0f, 0f), new Vector3(0.14f, 0.012f, 0.24f), jawMat);
+                        for (int k = 0; k < 4; k++)
+                            Part(jaw, Shape.Cone, new Vector3(-0.13f * side, 0.025f, -0.09f + k * 0.06f), new Vector3(0.025f, 0.05f, 0.025f), StoneLight);
+                        if (side < 0) anim.JawL = jaw; else anim.JawR = jaw;
+                    }
+                    break;
+                }
+                case TrapType.Fire:
+                {
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.045f, 0f), new Vector3(0.34f, 0.012f, 0.34f), Dark);
+                    for (int i = 0; i < 4; i++) Part(g, Shape.Box, new Vector3(0f, 0.054f, -0.12f + i * 0.08f), new Vector3(0.3f, 0.008f, 0.02f), Iron); // ızgara
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.05f, 0f), new Vector3(0.26f, 0.005f, 0.26f), Mat(new Color(1f, 0.35f, 0.05f), 0.3f, 1.6f)); // kor
+                    var m = Mov(new Vector3(0f, 0.055f, 0f));
+                    for (int i = 0; i < 3; i++)
+                    {
+                        Part(m, Shape.Cone, new Vector3(-0.08f + i * 0.08f, 0.065f, (i - 1) * 0.04f), new Vector3(0.07f, 0.13f, 0.07f), Mat(new Color(1f, 0.45f, 0.1f), 0.2f, 2.5f));
+                        Part(m, Shape.Cone, new Vector3(-0.08f + i * 0.08f, 0.05f, (i - 1) * 0.04f), new Vector3(0.04f, 0.08f, 0.04f), Mat(new Color(1f, 0.85f, 0.35f), 0.2f, 3f));
+                    }
+                    break;
+                }
+                case TrapType.Poison:
+                {
+                    var m = Mov(new Vector3(0f, 0.05f, 0f));
+                    Part(m, Shape.Cyl, Vector3.zero, new Vector3(0.34f, 0.01f, 0.3f), Mat(new Color(0.35f, 0.75f, 0.2f), 0.9f, 0.6f));
+                    Part(m, Shape.Cyl, new Vector3(0.06f, 0.004f, -0.03f), new Vector3(0.16f, 0.01f, 0.13f), Mat(new Color(0.5f, 0.95f, 0.3f), 0.95f, 1f));
+                    for (int i = 0; i < 3; i++) { var b = Part(m, Shape.Ball, new Vector3(-0.08f + i * 0.08f, 0.02f, (i - 1) * 0.05f), Vector3.one * 0.05f, Mat(new Color(0.5f, 0.95f, 0.3f), 0.9f, 1.2f)); Animate(b, ArtMotion.Kind.Bob, 4f + i, 0.02f, i); }
+                    break;
+                }
+                case TrapType.Frost:
+                {
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.045f, 0f), new Vector3(0.34f, 0.01f, 0.34f), Mat(new Color(0.85f, 0.95f, 1f), 0.9f, 0.4f));
+                    var m = Mov(new Vector3(0f, 0.05f, 0f));
+                    var ice = Mat(new Color(0.6f, 0.9f, 1f), 0.95f, 1.2f);
+                    for (int i = 0; i < 5; i++)
+                    {
+                        float a = i * Mathf.PI * 0.4f;
+                        Part(m, Shape.Pyramid, new Vector3(Mathf.Cos(a) * 0.1f, 0.05f, Mathf.Sin(a) * 0.1f), new Vector3(0.045f, 0.1f + (i % 2) * 0.04f, 0.045f), ice, new Vector3(Mathf.Sin(a) * 12f, 0f, -Mathf.Cos(a) * 12f));
+                    }
+                    Part(m, Shape.Pyramid, new Vector3(0f, 0.07f, 0f), new Vector3(0.06f, 0.15f, 0.06f), ice);
+                    break;
+                }
+                case TrapType.Bomb:
+                {
+                    Part(g, Shape.Cyl, new Vector3(0f, 0.045f, 0f), new Vector3(0.24f, 0.01f, 0.24f), Mat(new Color(0.25f, 0.2f, 0.16f)));
+                    var m = Mov(new Vector3(0f, 0.05f, 0f));
+                    Part(m, Shape.Cyl, new Vector3(0f, 0.05f, 0f), new Vector3(0.16f, 0.1f, 0.16f), Mat(new Color(0.18f, 0.16f, 0.15f), 0.4f));
+                    Part(m, Shape.Cyl, new Vector3(0f, 0.05f, 0f), new Vector3(0.17f, 0.02f, 0.17f), Iron);
+                    Part(m, Shape.Cyl, new Vector3(0.03f, 0.12f, 0f), new Vector3(0.012f, 0.05f, 0.012f), Mat(new Color(0.55f, 0.45f, 0.3f))); // fitil
+                    { var spark = Part(m, Shape.Ball, new Vector3(0.03f, 0.15f, 0f), Vector3.one * 0.035f, Mat(new Color(1f, 0.7f, 0.2f), 0.5f, 3f)); Animate(spark, ArtMotion.Kind.Bob, 12f, 0.01f); }
+                    break;
+                }
+                case TrapType.Shock:
+                {
+                    Part(g, Shape.Box, new Vector3(0f, 0.046f, 0f), new Vector3(0.3f, 0.012f, 0.3f), Mat(new Color(0.5f, 0.52f, 0.58f), 0.8f));
+                    foreach (var x in new[] { -0.12f, 0.12f }) Part(g, Shape.Cyl, new Vector3(x, 0.08f, x), new Vector3(0.04f, 0.06f, 0.04f), Mat(new Color(0.78f, 0.45f, 0.25f), 0.8f)); // bakır uçlar
+                    var m = Mov(new Vector3(0f, 0.065f, 0f));
+                    for (int i = 0; i < 3; i++) Part(m, Shape.Box, Vector3.zero, new Vector3(0.02f, 0.02f, 0.22f), Mat(new Color(1f, 0.95f, 0.4f), 0.9f, 3f), new Vector3(0, 30 + i * 60, 0));
+                    break;
+                }
+                case TrapType.Slippery:
+                {
+                    var m = Mov(new Vector3(0f, 0.05f, 0f));
+                    Part(m, Shape.Cyl, Vector3.zero, new Vector3(0.36f, 0.01f, 0.3f), Mat(new Color(0.45f, 0.75f, 0.95f), 0.95f, 0.2f));
+                    Part(m, Shape.Cyl, new Vector3(-0.05f, 0.004f, 0.04f), new Vector3(0.12f, 0.01f, 0.08f), Mat(new Color(0.85f, 0.95f, 1f), 0.95f, 0.5f)); // parlama
+                    break;
+                }
             }
+            return anim;
         }
 
         public static void BuildRubble(Transform parent, Vector3 c, int seed)

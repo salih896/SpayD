@@ -313,6 +313,12 @@ namespace GameClient
                 if (tool == Tool.Select && released && !dragging && !dragBlocked && tab == Tab.Village)
                 {
                     selCell = TryGetCell(pos, out var tapCell) ? tapCell : new GridPos(-1, -1);
+                    // tuzağa dokununca nasıl çalıştığını göster (yalnızca görsel önizleme)
+                    if (g.Traps.TryGetValue(selCell, out var tapTrap))
+                    {
+                        trapPreview = selCell; // seçim görünümü yeniden kurar; animasyon kurulumdan sonra başlar
+                        FxKit.TrapTrigger(null, tapTrap, new Vector3(selCell.X, 0.15f, selCell.Y));
+                    }
                     if (g.Buildings.TryGetValue(selCell, out var tb))
                     {
                         if (tb.Type == BuildingType.Barracks) { tab = Tab.Barracks; scrollPos = Vector2.zero; }
