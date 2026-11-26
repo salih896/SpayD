@@ -169,6 +169,8 @@ namespace GameClient
             else if (!OverGui(invPanelGui, pos) && TryGetCell(pos, out var cell))
             {
                 placed = draft.Place(it, cell, out err);
+                if (placed) { FxKit.Construction(null, new Vector3(cell.X, 0f, cell.Y)); DropPuff(new Vector3(cell.X, 0f, cell.Y)); } // yerleşti: toz + halka
+                else Shake(0.06f, 0.2f); // yerleşmedi: hafif sarsıntı
                 if (!placed && dragFromCell) draft.Place(it, dragOrigin, out _); // geçersizse eski yerine dön
             }
             else if (dragFromCell && !OverGui(invPanelGui, pos)) draft.Place(it, dragOrigin, out _);

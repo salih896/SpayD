@@ -189,6 +189,37 @@ namespace GameClient
             deployZoneMat.SetColor("_Color", new Color(1f, 0.25f, 0.15f, a));
         }
 
+        // ---------- köy: üretim yazıları, yerleştirme tozu, seviye kutlaması ----------
+        private float nextProdPop;
+        private int prodPopIndex;
+
+        /// <summary>Köyde ~6 sn'de bir sıradaki üretim binasının üstünde "+N kaynak" uçar (üretimin hissi; sayı gerçek hızdan).</summary>
+        private void ProductionPops()
+        {
+            if (sim != null || tab != Tab.Village || LayoutMode || Time.time < nextProdPop) return;
+            nextProdPop = Time.time + 6f;
+            var list = new List<KeyValuePair<GameCore.Grid.GridPos, GameCore.Combat.BuildingSpec>>();
+            foreach (var kv in g.Buildings) if (GameCore.Game.GameRules.ProducedBy(kv.Value.Type).HasValue) list.Add(kv);
+            if (list.Count == 0) return;
+            var b = list[prodPopIndex++ % list.Count];
+            var res = GameCore.Game.GameRules.ProducedBy(b.Value.Type).Value;
+            long perHour = (long)GameCore.Game.GameRules.BasePerHour(res) * ContentCatalog.ScalePct(b.Value.Level) / 100;
+            int amount = Mathf.Max(1, Mathf.RoundToInt(perHour * 6f / 3600f));
+            PopText(new Vector3(b.Key.X, 1.1f, b.Key.Y), "+" + amount + " " + ResName(res), ResColor(res), 16f, 1.6f);
+        }
+
+        private void DropPuff(Vector3 p)
+        {
+            FxKit.GroundRing(null, new Vector3(p.x, 0.05f, p.z), new Color(1f, 0.95f, 0.75f), new Color(0.9f, 0.75f, 0.45f), 1.2f);
+        }
+
+        /// <summary>Seviye atlandı: ekranda duyuru + köyün ortasında konfeti.</summary>
+        private void LevelUpFx(int level)
+        {
+            Banner("SEVİYE " + level + "!", new Color(0.55f, 0.85f, 1f));
+            FxKit.Confetti(null, new Vector3((layout.Size - 1) * 0.5f, 3f, (layout.Size - 1) * 0.5f));
+        }
+
         // ---------- zafer kutlaması ----------
         private bool celebrate;
 

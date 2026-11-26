@@ -155,6 +155,7 @@ namespace GameClient
         {
             HandleInput();
             if (DayCycle.NightChanged) { DayCycle.NightChanged = false; dirty = true; } // gece pencere ışıkları
+            ProductionPops(); // köyde "+N kaynak" yazıları
             if (sim != null) StepBattle();
             else TickGame();
             if (dirty) Rebuild();
@@ -229,6 +230,7 @@ namespace GameClient
         private void AddLevelUpPopups(List<LevelUpInfo> ups)
         {
             if (ups == null || ups.Count == 0) return;
+            LevelUpFx(g.Level); // duyuru + konfeti
             if (ups.Count == 1) { popups.Add(LevelUpText(ups[0])); return; }
             int w = 0, s = 0, gd = 0, ir = 0;
             var unlocks = new List<string>();
@@ -258,8 +260,14 @@ namespace GameClient
             zoom = layout.Size * 0.42f + 2.2f; // köy ekranı doldursun
         }
 
+        private Vector3 panVel; // sürükleme bitince kamera kayarak durur
+
         private void UpdateCamera()
         {
+            var ptrNow = UnityEngine.InputSystem.Pointer.current;
+            bool holding = ptrNow != null && ptrNow.press.isPressed;
+            if (!holding && panVel.sqrMagnitude > 0.0004f) { target += panVel * Time.deltaTime; panVel *= Mathf.Pow(0.04f, Time.deltaTime); }
+            else if (!holding) panVel = Vector3.zero;
             float c = (layout.Size - 1) * 0.5f;
             float lim = layout.Size * 0.5f + 2f;
             target.x = Mathf.Clamp(target.x, c - lim, c + lim);
@@ -340,7 +348,7 @@ namespace GameClient
                 if (dragging || tool == Tool.Pan)
                 {
                     Vector2 delta = ptr.delta.ReadValue();
-                    if (RayToPlane(pos, out var cur) && RayToPlane(pos - delta, out var prev)) target += prev - cur;
+                    if (RayToPlane(pos, out var cur) && RayToPlane(pos - delta, out var prev)) { var mv = prev - cur; target += mv; panVel = Time.deltaTime > 0f ? Vector3.Lerp(panVel, mv / Time.deltaTime, 0.5f) : panVel; }
                 }
                 return;
             }

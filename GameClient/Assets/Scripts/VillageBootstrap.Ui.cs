@@ -243,6 +243,7 @@ namespace GameClient
         // ---------- Köy (ana ekran) ----------
         private void DrawVillage(float w, float h)
         {
+            DrawFloatTexts(w, h); // üretim yazıları, seviye duyurusu
             // sol alt: SALDIR
             if (RoundBtn(new Rect(16, h - 132, 116, 116), "SALDIR", new Color(0.85f, 0.25f, 0.15f))) { tab = Tab.Attack; tool = Tool.Select; selCell = new GridPos(-1, -1); }
             // sağ alt: KÖY DÜZENİ (yapı kurmanın tek yolu) + Görev + Ayar
