@@ -110,10 +110,20 @@ namespace GameClient
                         case CellKind.Tower:
                             if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
-                                var tt = view.Towers.TryGetValue(p, out var ts) ? ContentCatalog.ModelLook(ts.Type, ts.Element) : TowerType.Archer;
-                                var towerT = VillageArt.BuildTower(viewRoot, tt, ts != null ? ts.Level : 1, ts != null && ts.PermanentDamagePct > 0, c);
-                                if (ts != null && ts.Type == TowerType.Archer && ts.Element != TowerElement.None)
-                                    VillageArt.ElementAura(viewRoot, c, ts.Element, ModelLibrary.WorldHeight(towerT) + 0.18f); // kulenin tepesinin hemen üstü
+                                view.Towers.TryGetValue(p, out var ts);
+                                int tl = ts != null ? ts.Level : 1;
+                                bool dmg = ts != null && ts.PermanentDamagePct > 0;
+                                var el = ts != null && ts.Type == TowerType.Archer ? ts.Element : TowerElement.None;
+                                // elementli kule: kendine özgü model + tepede sürekli element efekti (FxKit)
+                                Vector3 top = default;
+                                var towerT = el != TowerElement.None ? ModelArt.TryBuildElementTower(viewRoot, el, tl, dmg, c, out top) : null;
+                                if (towerT != null) FxKit.TowerIdle(towerT, el, top);
+                                else
+                                {
+                                    towerT = VillageArt.BuildTower(viewRoot, ts != null ? ContentCatalog.ModelLook(ts.Type, ts.Element) : TowerType.Archer, tl, dmg, c);
+                                    if (el != TowerElement.None) VillageArt.ElementAura(viewRoot, c, el, ModelLibrary.WorldHeight(towerT) + 0.18f); // model yoksa eski aura
+                                }
+                                if (ts != null && ts.DefElement != TowerElement.None) FxKit.DefenseAura(towerT, ts.DefElement, c, ts.Type == TowerType.Wall ? 0.5f : 0.42f);
                             }
                             break;
                     }

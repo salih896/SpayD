@@ -545,5 +545,168 @@ namespace GameClient
             if (damaged) VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0.15f, 0.25f, -0.2f), new Vector3(0.18f, 0.1f, 0.15f), VillageArt.StoneDark); // yıkıntı taşı
             return root;
         }
+
+        /// <summary>Kenney modelini renklendirir (MaterialPropertyBlock; ortak materyal değişmez) ve modelin ölçülen tepe yüksekliğini (model uzayı) döndürür.</summary>
+        private static float Tint(Transform t, Color c, float strength = 0.55f)
+        {
+            var mpb = new MaterialPropertyBlock();
+            var soft = Color.Lerp(Color.white, c, strength); // doku renkleri tamamen kaybolmasın
+            float top = float.MinValue;
+            foreach (var r in t.GetComponentsInChildren<Renderer>())
+            {
+                r.GetPropertyBlock(mpb);
+                mpb.SetColor("_BaseColor", soft);
+                mpb.SetColor("_Color", soft);
+                r.SetPropertyBlock(mpb);
+                top = Mathf.Max(top, r.bounds.max.y);
+            }
+            // parça yükseklikleri tahmin değil ölçü: tepe süsleri modelin gerçek tepesine oturur
+            return top > float.MinValue ? (top - t.position.y) / Mathf.Max(0.0001f, t.lossyScale.y) : 0f;
+        }
+
+        /// <summary>
+        /// Elementli Okçu Kulesi (kullanıcı isteği 26.11.2026): her element kendine özgü taş rengi ve tepe:
+        /// Ok = balista + altın sancak, Ateş = demir mangal + kor çatlakları, Buz = buz taç + süzülen kristal + sarkıtlar,
+        /// Zehir = kazan + yeşil sıvı + damlalar, Büyü = süzülen kristal + dönen rün halkası, Şimşek = bakır bobin + parlak küre.
+        /// top: tepe efektinin dünya konumu (FxKit.TowerIdle). Elementsizde null döner (normal Okçu Kulesi çizilir).
+        /// </summary>
+        public static Transform TryBuildElementTower(Transform parent, TowerElement e, int level, bool damaged, Vector3 pos, out Vector3 top)
+        {
+            top = pos + new Vector3(0f, 1.6f, 0f);
+            if (!ModelLibrary.Available || e == TowerElement.None) return null;
+            int tier = VillageArt.Tier(level);
+            var root = VillageArt.Group(parent, "Tower_" + e, pos);
+            var g = VillageArt.Group(root, "model", Vector3.zero, 0f, 0.5f);
+            float y = 0f;
+            void Stack(string piece, float height) { C(g, piece, new Vector3(0f, y, 0f)); y += height; }
+            Material M(Color c, float emit = 0f, float smooth = 0.6f) => VillageArt.Mat(c, smooth, emit);
+            var iron = M(new Color(0.2f, 0.2f, 0.23f), 0f, 0.5f);
+            var copper = M(new Color(0.78f, 0.45f, 0.25f), 0.15f, 0.85f);
+            var gold = M(VillageArt.GoldC, 0.25f, 0.85f);
+            float crown; // tepe efektinin model-uzayı yüksekliği
+            switch (e)
+            {
+                case TowerElement.Arrow:
+                    Stack("tower-hexagon-base", 1.31f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-hexagon-mid", 0.46f);
+                    Stack("tower-hexagon-top-wood", 0.46f);
+                    y = Tint(g, new Color(1f, 0.93f, 0.78f), 0.75f);
+                    C(g, "siege-ballista", new Vector3(0f, y, 0f), 180f, 0.55f);
+                    for (int i = 0; i < 2; i++) // ince altın bantlar
+                        VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, 0.7f + i * 0.75f, 0f), new Vector3(0.9f, 0.025f, 0.9f), gold);
+                    crown = y + 0.5f; y += 0.6f;
+                    break;
+                case TowerElement.Fire:
+                    Stack("tower-square-base", 1.01f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-square-mid", 1.01f);
+                    Stack("tower-square-top", 0.5f);
+                    y = Tint(g, new Color(0.72f, 0.42f, 0.36f), 0.75f);
+                    // kor çatlakları (dört yüzde parlayan dikey yarıklar)
+                    var lava = M(new Color(1f, 0.45f, 0.08f), 2.2f, 0.9f);
+                    for (int i = 0; i < 4; i++)
+                    {
+                        float a = i * Mathf.PI * 0.5f; // dört yüzün ortası
+                        VillageArt.Part(g, VillageArt.Shape.Box, new Vector3(Mathf.Cos(a) * 0.505f, 0.5f + (i % 2) * 0.35f, Mathf.Sin(a) * 0.505f), new Vector3(0.05f, 0.42f, 0.05f), lava, new Vector3(0f, -a * Mathf.Rad2Deg, (i % 2 == 0 ? 10f : -8f)));
+                    }
+                    // mangal: üç demir ayak, kase, kor
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float a = i * 2.094f;
+                        VillageArt.Part(g, VillageArt.Shape.Box, new Vector3(Mathf.Cos(a) * 0.2f, y + 0.12f, Mathf.Sin(a) * 0.2f), new Vector3(0.05f, 0.26f, 0.05f), iron, new Vector3(Mathf.Sin(a) * 15f, 0f, -Mathf.Cos(a) * 15f));
+                    }
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.3f, 0f), new Vector3(0.55f, 0.1f, 0.55f), iron);
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.36f, 0f), new Vector3(0.45f, 0.03f, 0.45f), M(new Color(1f, 0.55f, 0.12f), 3f, 0.9f));
+                    crown = y + 0.4f; y += 0.5f;
+                    break;
+                case TowerElement.Ice:
+                    Stack("tower-square-base", 1.01f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-square-mid-windows", 1.01f);
+                    Stack("tower-square-top", 0.5f);
+                    y = Tint(g, new Color(0.62f, 0.82f, 1f), 0.9f);
+                    var ice = M(new Color(0.65f, 0.9f, 1f), 0.6f, 0.95f);
+                    for (int i = 0; i < 5 + tier; i++) // buz taç
+                    {
+                        float a = i * Mathf.PI * 2f / (5 + tier);
+                        VillageArt.Part(g, VillageArt.Shape.Cone, new Vector3(Mathf.Cos(a) * 0.36f, y + 0.22f, Mathf.Sin(a) * 0.36f), new Vector3(0.12f, 0.45f + (i % 2) * 0.15f, 0.12f), ice, new Vector3(Mathf.Sin(a) * 14f, 0f, -Mathf.Cos(a) * 14f));
+                    }
+                    for (int i = 0; i < 8; i++) // sarkıtlar
+                    {
+                        float a = i * Mathf.PI * 0.25f + 0.2f;
+                        VillageArt.Part(g, VillageArt.Shape.Cone, new Vector3(Mathf.Cos(a) * 0.52f, y - 0.12f, Mathf.Sin(a) * 0.52f), new Vector3(0.06f, 0.2f + (i % 3) * 0.06f, 0.06f), ice, new Vector3(180f, 0f, 0f));
+                    }
+                    var crystal = VillageArt.Group(g, "crystal", new Vector3(0f, y + 0.75f, 0f));
+                    var crystalMat = M(new Color(0.7f, 0.95f, 1f), 1.0f, 0.95f);
+                    VillageArt.Part(crystal, VillageArt.Shape.Pyramid, new Vector3(0f, 0.14f, 0f), new Vector3(0.22f, 0.28f, 0.22f), crystalMat);
+                    VillageArt.Part(crystal, VillageArt.Shape.Pyramid, new Vector3(0f, -0.14f, 0f), new Vector3(0.22f, 0.28f, 0.22f), crystalMat, new Vector3(180f, 0f, 0f));
+                    VillageArt.Animate(crystal.gameObject, ArtMotion.Kind.Spin, 1.2f);
+                    crown = y + 0.75f; y += 1.1f;
+                    break;
+                case TowerElement.Poison:
+                    Stack("tower-hexagon-base", 1.31f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-hexagon-mid", 0.46f);
+                    Stack("tower-hexagon-top", 0.46f);
+                    y = Tint(g, new Color(0.62f, 0.8f, 0.5f), 0.92f);
+                    var slime = M(new Color(0.45f, 0.95f, 0.2f), 1.6f, 0.95f);
+                    // kazan: gövde, ağız halkası, yeşil sıvı
+                    VillageArt.Part(g, VillageArt.Shape.Ball, new Vector3(0f, y + 0.22f, 0f), new Vector3(0.58f, 0.44f, 0.58f), iron);
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.4f, 0f), new Vector3(0.5f, 0.05f, 0.5f), iron);
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.42f, 0f), new Vector3(0.42f, 0.03f, 0.42f), slime);
+                    for (int i = 0; i < 6; i++) // duvardan süzülen zehir damlaları
+                    {
+                        float a = i * 1.047f + 0.3f;
+                        VillageArt.Part(g, VillageArt.Shape.Box, new Vector3(Mathf.Cos(a) * 0.49f, y - 0.25f - (i % 3) * 0.15f, Mathf.Sin(a) * 0.49f), new Vector3(0.05f, 0.3f + (i % 2) * 0.2f, 0.05f), slime, new Vector3(0f, -a * Mathf.Rad2Deg, 0f));
+                    }
+                    crown = y + 0.45f; y += 0.55f;
+                    break;
+                case TowerElement.Magic:
+                    Stack("tower-hexagon-base", 1.31f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-hexagon-mid", 0.46f);
+                    Stack("tower-hexagon-top", 0.46f);
+                    y = Tint(g, new Color(0.74f, 0.64f, 0.92f), 0.92f);
+                    var arcane = M(new Color(0.8f, 0.45f, 1f), 0.9f, 0.95f);
+                    var gem = VillageArt.Group(g, "gem", new Vector3(0f, y + 0.8f, 0f));
+                    VillageArt.Part(gem, VillageArt.Shape.Pyramid, new Vector3(0f, 0.17f, 0f), new Vector3(0.28f, 0.34f, 0.28f), arcane);
+                    VillageArt.Part(gem, VillageArt.Shape.Pyramid, new Vector3(0f, -0.17f, 0f), new Vector3(0.28f, 0.34f, 0.28f), arcane, new Vector3(180f, 0f, 0f));
+                    VillageArt.Animate(gem.gameObject, ArtMotion.Kind.Spin, 1.6f);
+                    var runes = VillageArt.Group(g, "runes", new Vector3(0f, y + 0.8f, 0f));
+                    var runeMat = M(new Color(0.9f, 0.6f, 1f), 1.1f, 0.9f);
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float a = i * Mathf.PI * 0.25f;
+                        VillageArt.Part(runes, VillageArt.Shape.Box, new Vector3(Mathf.Cos(a) * 0.48f, 0f, Mathf.Sin(a) * 0.48f), new Vector3(0.1f, 0.14f, 0.03f), runeMat, new Vector3(0f, -a * Mathf.Rad2Deg + 90f, 0f));
+                    }
+                    VillageArt.Animate(runes.gameObject, ArtMotion.Kind.Spin, -0.8f);
+                    for (int i = 0; i < 6; i++) // tepe sivri uçları
+                    {
+                        float a = i * 1.047f;
+                        VillageArt.Part(g, VillageArt.Shape.Cone, new Vector3(Mathf.Cos(a) * 0.42f, y + 0.12f, Mathf.Sin(a) * 0.42f), new Vector3(0.08f, 0.25f, 0.08f), gold);
+                    }
+                    crown = y + 0.8f; y += 1.15f;
+                    break;
+                default: // Şimşek
+                    Stack("tower-hexagon-base", 1.31f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-hexagon-mid", 0.46f);
+                    Stack("tower-hexagon-top", 0.46f);
+                    y = Tint(g, new Color(0.66f, 0.73f, 0.86f), 0.92f);
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.45f, 0f), new Vector3(0.09f, 0.9f, 0.09f), copper);
+                    for (int i = 0; i < 4; i++) // bobin halkaları (yukarı doğru küçülür)
+                        VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.18f + i * 0.2f, 0f), new Vector3(0.5f - i * 0.09f, 0.05f, 0.5f - i * 0.09f), copper);
+                    var orb = VillageArt.Part(g, VillageArt.Shape.Ball, new Vector3(0f, y + 1.02f, 0f), new Vector3(0.3f, 0.3f, 0.3f), M(new Color(0.7f, 0.85f, 1f), 1.4f, 0.95f));
+                    VillageArt.Animate(orb, ArtMotion.Kind.Bob, 4f, 0.03f);
+                    crown = y + 1.02f; y += 1.25f;
+                    break;
+            }
+            // element renginde iki sancak (kule gövdesinin iki yanında): elementi uzaktan tanıtır
+            var bc = VillageArt.ElementColor(e);
+            foreach (var side in new[] { 1f, -1f })
+            {
+                var ban = C(g, "flag-banner-short", new Vector3(0.5f * side, crown * 0.42f, 0f), 90f * side);
+                if (ban != null) Tint(ban, bc, 1f);
+            }
+            if (tier >= 2 && e != TowerElement.Arrow) C(g, "flag", new Vector3(0.3f, y - 0.4f, 0.3f));
+            if (damaged) VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0.15f, 0.25f, -0.2f), new Vector3(0.18f, 0.1f, 0.15f), VillageArt.StoneDark);
+            top = pos + new Vector3(0f, crown * 0.5f, 0f);
+            return root;
+        }
     }
 }
