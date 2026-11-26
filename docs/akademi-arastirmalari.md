@@ -258,7 +258,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 3 | 2 | Ateş | Okçu Kulesi elementi |
 | 4 | 1 | Element Ustalığı 4 | Asker ve kule hasarı +%0,8 |
 | 5 | 1 | Element Ustalığı 5 | Asker ve kule hasarı +%0,8 |
-| 5 | 3 | Ateş Kalkanı | Kule savunma elementi |
+| 5 | 3 | Ateş Kalkanı | Duvar savunma elementi |
 | 6 | 1 | Element Ustalığı 6 | Asker ve kule hasarı +%0,8 |
 | 6 | 2 | Buz | Okçu Kulesi elementi |
 | 7 | 1 | Element Ustalığı 7 | Asker ve kule hasarı +%0,8 |
@@ -269,7 +269,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 10 | 1 | Element Ustalığı 10 | Asker ve kule hasarı +%0,8 |
 | 10 | 4 | Ateş Zırhı | Asker savunma elementi |
 | 11 | 1 | Element Ustalığı 11 | Asker ve kule hasarı +%0,8 |
-| 11 | 3 | Buz Kalkanı | Kule savunma elementi |
+| 11 | 3 | Buz Kalkanı | Duvar savunma elementi |
 | 12 | 1 | Element Ustalığı 12 | Asker ve kule hasarı +%0,8 |
 | 13 | 1 | Element Ustalığı 13 | Asker ve kule hasarı +%0,8 |
 | 13 | 2 | Büyü | Okçu Kulesi elementi |
@@ -277,7 +277,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 14 | 4 | Buz Silahları | Asker saldırı elementi |
 | 15 | 1 | Element Ustalığı 15 | Asker ve kule hasarı +%0,8 |
 | 16 | 1 | Element Ustalığı 16 | Asker ve kule hasarı +%0,8 |
-| 16 | 3 | Zehir Kalkanı | Kule savunma elementi |
+| 16 | 3 | Zehir Kalkanı | Duvar savunma elementi |
 | 17 | 1 | Element Ustalığı 17 | Asker ve kule hasarı +%0,8 |
 | 17 | 2 | Şimşek | Okçu Kulesi elementi |
 | 18 | 1 | Element Ustalığı 18 | Asker ve kule hasarı +%0,8 |

@@ -449,7 +449,11 @@ namespace GameCore.Game
                 case JobKind.TowerElement:
                     if (Towers.TryGetValue(j.Pos, out var te))
                     {
-                        if (j.TargetLevel >= DefElementJobOffset) { te.DefElement = (TowerElement)(j.TargetLevel - DefElementJobOffset); return "Kule savunma elementi: " + ContentCatalog.ElementName(te.DefElement); }
+                        if (j.TargetLevel >= DefElementJobOffset)
+                        {
+                            if (te.Type != TowerType.Wall) return "Savunma elementi yalnızca Duvarda"; // eski kayıttaki yarım iş
+                            te.DefElement = (TowerElement)(j.TargetLevel - DefElementJobOffset); return "Duvar savunma elementi: " + ContentCatalog.ElementName(te.DefElement);
+                        }
                         te.Element = (TowerElement)j.TargetLevel; return "Kule elementi: " + ContentCatalog.ElementName(te.Element);
                     }
                     return "Element uygulandı";
@@ -704,12 +708,14 @@ namespace GameCore.Game
             return true;
         }
 
-        /// <summary>Kuleye savunma elementi uygular (Ateş/Buz/Zehir Kalkanı araştırması; saldırı elementi gibi 90 sn + biraz kaynak).</summary>
+        /// <summary>Duvara savunma elementi uygular (Ateş/Buz/Zehir Kalkanı araştırması; 90 sn + biraz kaynak).
+        /// Kullanıcı kararı 27.11.2026: savunma elementi yalnızca Duvarda; Okçu Kulesi yalnızca saldırı elementi alır.</summary>
         public string DefElementBlock(GridPos pos, TowerElement e, out ResourceCost cost)
         {
             cost = default;
             if (!Towers.TryGetValue(pos, out var t)) return "Kule yok";
             cost = GameRules.ElementCost(t.Level, Config, Level);
+            if (t.Type != TowerType.Wall) return "Savunma elementi yalnızca Duvara uygulanır";
             if (!CombatMath.IsCore(e)) return "Savunma elementi: Ateş, Buz veya Zehir";
             if (t.DefElement == e) return "Zaten " + ContentCatalog.ElementName(e) + " savunması";
             if (!Unlocked(ResearchStat.TowerDefenseElement, e)) return "Akademi: Element ağacında " + ContentCatalog.ElementName(e) + " Kalkanı gerekli";

@@ -55,7 +55,7 @@ Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer
 | Arbaletli | Sv19 | 90 | 26 | 12 | 3,0 | 60 | Kulelere +%40 | 2 |
 | Bombacı | Sv24 | 110 | 200 | — | 1,5 | 110 | Yapıya ulaşınca alan 1,5'te patlar, ölür | 2 |
 
-**Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, kulelere savunma elementi element menüsünden verilir.
+**Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, savunma elementi (Ateş/Buz/Zehir Kalkanı) yalnızca Duvara, element menüsünden verilir; Okçu Kulesi yalnızca saldırı elementi alır.
 
 ## 2. Kuleler (2 tür + 6 element) — kullanıcı kararı 25.11.2026
 Hedef: önce yakın dövüşçüler, yoksa uzaktan saldıranlar; aynı grupta canı (yüzde) en az olan. Hakkı: başta 3, Akademi "Kule Hakkı I-V" (Sv3/6/10/15/20) ile en çok 8. Kuleler yola bağlı olmalıdır (yalnızca sağ/sol/üst/alt).

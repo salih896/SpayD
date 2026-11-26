@@ -303,5 +303,5 @@ Amaç: Kule saldırı ve savunma elementleri, asker saldırı ve savunma element
 | 30 | Element Ustalığı 30 [ElementMastery:8] | — | — | — |
 
 - Kule saldırı elementleri (Okçu Kulesine uygulanır): Ok, Ateş, Buz, Zehir, Büyü, Şimşek.
-- Kule savunma elementleri ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
+- Duvar savunma elementleri (yalnızca Duvar; kullanıcı kararı 27.11.2026) ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
 - Döngü: Ateş > Zehir > Buz > Ateş. Zayıf elementle saldıran %40 az hasar verir (üstün olana ek hasar yok). Direnç: bir elemente karşı güçlendirilmiş (aynı savunma elementli) hedef o elementten %35 az hasar alır. Ok, Büyü, Şimşek nötrdür.

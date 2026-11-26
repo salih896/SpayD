@@ -155,7 +155,7 @@ namespace GameCore.Game
                     var elem = (TowerElement)r[4];
                     // 25.11.2026: kaldırılan kule türleri → Okçu Kulesi + karşılık gelen element
                     if (type != TowerType.Archer && type != TowerType.Wall) { elem = ContentCatalog.LegacyElement(type); type = TowerType.Archer; }
-                    g.Towers[pos] = new TowerSpec(type, r[3], 0) { Element = elem, BranchA = r[5], BranchB = r[6], DefElement = (TowerElement)r[7] };
+                    g.Towers[pos] = new TowerSpec(type, r[3], 0) { Element = elem, BranchA = r[5], BranchB = r[6], DefElement = type == TowerType.Wall ? (TowerElement)r[7] : TowerElement.None }; // savunma elementi yalnızca Duvarda (27.11.2026)
                 }
                 foreach (var r in buildRows) { var pos = new GridPos(r[0], r[1]); if (layout.TryPlace(pos, CellKind.Building, out e)) g.Buildings[pos] = new BuildingSpec((BuildingType)r[2], r[3]); }
                 g.Layout = layout;

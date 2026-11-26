@@ -181,6 +181,26 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void DefenseElement_OnlyOnWalls_ArcherLosesItOnLoad()
+        {
+            var g = Rich(30);
+            string err;
+            Assert.IsTrue(g.TryPlaceTower(P(4, 1), TowerType.Archer, out err), err);
+            Assert.IsTrue(g.TryPlaceTower(P(6, 2), TowerType.Wall, out err), err);
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.TowerDefenseElement, (int)TowerElement.Fire).Id);
+            Assert.IsFalse(g.TryApplyDefElement(P(4, 1), TowerElement.Fire, out err));
+            StringAssert.Contains("Duvar", err);
+            Assert.IsTrue(g.TryApplyDefElement(P(6, 2), TowerElement.Fire, out err), err);
+            g.Advance(GameRules.ElementApplySeconds + 1, 0);
+            Assert.AreEqual(TowerElement.Fire, g.Towers[P(6, 2)].DefElement);
+            // eski kayıt: Okçu Kulesinde savunma elementi → yüklemede kaldırılır
+            g.Towers[P(4, 1)].DefElement = TowerElement.Ice;
+            var h = GameSave.Load(GameSave.Save(g, 1), ResourceConfig.CreateDefault(), out _);
+            Assert.AreEqual(TowerElement.None, h.Towers[P(4, 1)].DefElement);
+            Assert.AreEqual(TowerElement.Fire, h.Towers[P(6, 2)].DefElement);
+        }
+
+        [Test]
         public void OldTowerTypes_LoadAsArcherWithElement()
         {
             var g = Rich(10);
