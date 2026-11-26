@@ -19,6 +19,7 @@ namespace GameClient
 
         private readonly Dictionary<string, RenderTexture> cache = new Dictionary<string, RenderTexture>();
         private readonly Queue<(string key, System.Func<Transform, Transform> build)> queue = new Queue<(string, System.Func<Transform, Transform>)>();
+        private readonly Dictionary<string, Vector2Int> sizes = new Dictionary<string, Vector2Int>(); // varsayılan dışı boyutlar (köy önizlemesi)
         private readonly HashSet<string> queued = new HashSet<string>();
         private Camera cam;
         private Transform stageRoot;
@@ -37,6 +38,48 @@ namespace GameClient
 
         public static Texture Trap(TrapType t) =>
             Get("p" + (int)t, p => { var g = VillageArt.Group(p, "trap", Vector3.zero); VillageArt.BuildTrap(g, Vector3.zero, t); return g; });
+
+        /// <summary>Saldırı ekranı: hedef köyün küçük 3B görünümü (tuzaklar saldırandan gizli; yollar, binalar, kuleler).</summary>
+        public static Texture Village(string key, DefenseSetup d)
+        {
+            if (inst == null) inst = new GameObject("PreviewIcons").AddComponent<PreviewIcons>();
+            inst.sizes["v" + key] = new Vector2Int(320, 200);
+            return Get("v" + key, p => BuildVillage(p, d));
+        }
+
+        private static Transform BuildVillage(Transform parent, DefenseSetup d)
+        {
+            var root = VillageArt.Group(parent, "village", Vector3.zero);
+            var lay = d.Layout;
+            int n = lay.Size;
+            float cx = (n - 1) * 0.5f;
+            VillageArt.Part(root, VillageArt.Shape.Box, new Vector3(cx, -0.06f, cx), new Vector3(n + 0.6f, 0.1f, n + 0.6f), VillageArt.GrassMat(VillageArt.Meadow, 3f));
+            bool Road(int x, int y) => lay.InBounds(new GameCore.Grid.GridPos(x, y)) && lay.Get(new GameCore.Grid.GridPos(x, y)) == GameCore.Village.CellKind.Road;
+            for (int x = 0; x < n; x++)
+                for (int y = 0; y < n; y++)
+                {
+                    var p = new GameCore.Grid.GridPos(x, y);
+                    var c = new Vector3(x, 0f, y);
+                    switch (lay.Get(p))
+                    {
+                        case GameCore.Village.CellKind.Road:
+                            VillageArt.BuildRoad(root, c, lay.GetRoadTier(p), new[] { Road(x, y + 1), Road(x + 1, y), Road(x, y - 1) || lay.IsEntrance(p), Road(x - 1, y) }, x * 31 + y);
+                            break;
+                        case GameCore.Village.CellKind.Building:
+                            if (d.Buildings.TryGetValue(p, out var b)) VillageArt.BuildBuilding(root, b.Type, b.Level, x * 7 + y, c);
+                            break;
+                        case GameCore.Village.CellKind.Tower:
+                            if (d.Towers.TryGetValue(p, out var t))
+                            {
+                                var m = t.Type == TowerType.Archer && t.Element != TowerElement.None ? ModelArt.TryBuildElementTower(root, t.Element, t.Level, false, c, out _) : null;
+                                if (m == null) VillageArt.BuildTower(root, t.Type, t.Level, false, c);
+                            }
+                            break;
+                    }
+                    if (lay.IsEntrance(p)) VillageArt.BuildGate(root, c);
+                }
+            return root;
+        }
 
         public static Texture Soldier(SoldierType t, int level) =>
             Get("s" + (int)t + "_" + level, p => VillageArt.BuildSoldier(p, t, level));
@@ -121,8 +164,19 @@ namespace GameClient
                 var lp = Quaternion.Inverse(rot) * (corner - b.center);
                 half = Mathf.Max(half, Mathf.Abs(lp.x), Mathf.Abs(lp.y));
             }
-            cam.orthographicSize = half * 1.08f;
-            var rt = new RenderTexture(Size, Size, 16, RenderTextureFormat.ARGB32) { antiAliasing = 2, name = "preview_" + key };
+            var sz = sizes.TryGetValue(key, out var custom) ? custom : new Vector2Int(Size, Size);
+            float aspect = sz.x / (float)sz.y;
+            // geniş görüntüde yatay sığdırma: yarı genişlik / en-boy oranı
+            float halfY = 0.01f, halfX = 0.01f;
+            for (int i = 0; i < 8; i++)
+            {
+                var corner = b.center + Vector3.Scale(b.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1));
+                var lp = Quaternion.Inverse(rot) * (corner - b.center);
+                halfX = Mathf.Max(halfX, Mathf.Abs(lp.x)); halfY = Mathf.Max(halfY, Mathf.Abs(lp.y));
+            }
+            cam.aspect = aspect;
+            cam.orthographicSize = (sz.x == sz.y ? half : Mathf.Max(halfY, halfX / aspect)) * 1.06f;
+            var rt = new RenderTexture(sz.x, sz.y, 16, RenderTextureFormat.ARGB32) { antiAliasing = 2, name = "preview_" + key };
             rt.Create();
             cam.targetTexture = rt;
             cam.Render();

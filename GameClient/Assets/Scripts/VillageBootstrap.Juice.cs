@@ -160,6 +160,35 @@ namespace GameClient
             k.Kick(amount);
         }
 
+        // ---------- saldırı alanı ipucu ----------
+        private Transform deployZone;
+        private Material deployZoneMat;
+
+        /// <summary>Saldırı alanının üstünde kırmızı yarı saydam parlama; asker yokken belirgin atar, sonra soluklaşır.</summary>
+        private void UpdateDeployZone()
+        {
+            if (sim == null || battleOver) { if (deployZone != null) deployZone.gameObject.SetActive(false); return; }
+            if (deployZone == null)
+            {
+                var q = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                Destroy(q.GetComponent<Collider>());
+                q.name = "deployZone";
+                q.transform.SetParent(DynRoot(), false);
+                int rows = GameCore.Village.VillageLayout.AttackZoneRows;
+                q.transform.position = new Vector3((layout.Size - 1) * 0.5f, 0.02f, -(rows + 1) * 0.5f);
+                q.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+                q.transform.localScale = new Vector3(layout.Size, rows, 1f);
+                deployZoneMat = new Material(FxKit.Mat(FxKit.SoftRect, true));
+                q.GetComponent<MeshRenderer>().sharedMaterial = deployZoneMat;
+                q.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                deployZone = q.transform;
+            }
+            deployZone.gameObject.SetActive(true);
+            bool none = sim.Soldiers.Count == 0;
+            float a = none ? 0.3f + 0.18f * Mathf.Sin(Time.time * 4f) : 0.07f;
+            deployZoneMat.SetColor("_Color", new Color(1f, 0.25f, 0.15f, a));
+        }
+
         // ---------- zafer kutlaması ----------
         private bool celebrate;
 

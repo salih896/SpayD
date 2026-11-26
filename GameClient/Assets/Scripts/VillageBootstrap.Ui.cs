@@ -736,23 +736,35 @@ namespace GameClient
             var r = ModalRect(w, h);
             Modal(r, "SALDIR  —  " + g.ReadySoldiers + " asker hazır (" + g.ReadyHousing + " yer)");
             string[] dn = { "KOLAY", "NORMAL", "ZOR" };
+            var diffCol = new[] { new Color(0.2f, 0.5f, 0.15f), new Color(0.6f, 0.38f, 0.05f), new Color(0.7f, 0.15f, 0.1f) };
             float cw = (r.width - 40f) / 3f;
+            float ch = Mathf.Min(r.height - 96f, 430f);
+            var dark = new GUIStyle(UiTheme.Skin.label) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) }, fontSize = 13 };
             for (int d = 0; d < 3; d++)
             {
                 var t = targets[d];
-                var cr = new Rect(r.x + 10 + d * (cw + 10), r.y + 40, cw, 240);
+                var cr = new Rect(r.x + 10 + d * (cw + 10), r.y + 38, cw, ch);
                 GUI.Box(cr, "", UiTheme.Parchment);
-                var dark = new GUIStyle(UiTheme.Skin.label) { normal = { textColor = new Color(0.25f, 0.15f, 0.07f) } };
-                var head = new GUIStyle(UiTheme.Title) { fontSize = 20, normal = { textColor = d == 0 ? new Color(0.2f, 0.5f, 0.15f) : (d == 1 ? new Color(0.6f, 0.38f, 0.05f) : new Color(0.7f, 0.15f, 0.1f)) } };
-                GUI.Label(new Rect(cr.x + 8, cr.y + 10, cr.width - 16, 28), dn[d], head);
-                GUI.Label(new Rect(cr.x + 14, cr.y + 42, cr.width - 28, 140),
-                    "<b>" + t.Name + "</b>  (Sv " + t.Level + ")\nKule: " + t.Defense.Towers.Count + "   Bina: " + t.Defense.Buildings.Count + "\nGiriş: " + t.Defense.Layout.EntranceCount + "   Tuzak: " + t.Defense.Traps.Count +
-                    "\nYağma: " + t.Pool + "\nXP çarpanı: x" + ((100 + GameState.BattleXpPctPerTargetLevel * (t.Level - 1)) / 100f).ToString("0.00"), dark);
-                uiRects.Add(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42));
-                if (GUI.Button(new Rect(cr.x + 12, cr.y + 188, cr.width - 24, 42), "SALDIR", UiTheme.BtnRed)) StartBattle(t);
+                var head = new GUIStyle(UiTheme.Title) { fontSize = 19, normal = { textColor = diffCol[d] } };
+                GUI.Label(new Rect(cr.x + 8, cr.y + 6, cr.width - 16, 26), dn[d] + "  <size=13>Sv " + t.Level + "</size>", head);
+                // hedef köyün 3B önizlemesi (keşif: tuzaklar görünmez)
+                float pw = cr.width - 16f, ph = Mathf.Min(pw * 0.66f, ch * 0.52f);
+                var pr = new Rect(cr.x + 8f, cr.y + 34f, pw, ph);
+                GUI.Box(pr, "", UiTheme.Chip);
+                var pv = PreviewIcons.Village(t.Seed + "_" + t.Level, t.Defense);
+                if (pv != null) GUI.DrawTexture(new Rect(pr.x + 2f, pr.y + 2f, pr.width - 4f, pr.height - 4f), pv, ScaleMode.ScaleToFit, true);
+                else GUI.Label(pr, "<color=#d8c9a8>Keşif yapılıyor...</color>", UiTheme.Center);
+                float iy = pr.yMax + 6f;
+                GUI.Label(new Rect(cr.x + 12, iy, cr.width - 24, ch - (iy - cr.y) - 52f),
+                    "<b>" + t.Name + "</b>\nKule " + t.Defense.Towers.Count + "   Bina " + t.Defense.Buildings.Count + "   Giriş " + t.Defense.Layout.EntranceCount + "   Tuzak ?" +
+                    "\nYağma: " + t.Pool + "\nXP x" + ((100 + GameState.BattleXpPctPerTargetLevel * (t.Level - 1)) / 100f).ToString("0.00"), dark);
+                var bb = new Rect(cr.x + 12, cr.yMax - 48, cr.width - 24, 40);
+                uiRects.Add(bb);
+                if (GUI.Button(Pressed(bb), "SALDIR", UiTheme.BtnRed)) StartBattle(t);
             }
-            if (Btn(new Rect(r.x + 10, r.y + 290, 180, 36), "Hedefleri yenile")) { targetSeed++; targets = null; }
-            GUI.Label(new Rect(r.x + 12, r.y + 334, r.width - 24, 120), "<color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Kılıçlı en yakın yapıya saldırır. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer), Elf kulesi periye, Top kalabalığa güçlüdür; Buz yavaşlatır, Şimşek zincirleme vurur. Zafer için köyün %75'ini yık (%90: 2 yıldız, %100: 3 yıldız).</color>");
+            float by = r.y + 38 + ch + 10;
+            if (Btn(new Rect(r.x + 10, by, 180, 34), "Hedefleri yenile")) { targetSeed++; targets = null; }
+            GUI.Label(new Rect(r.x + 200, by - 2, r.width - 210, r.yMax - by), "<size=12><color=#d8c9a8>İpucu: askerleri kırmızı alana dokunarak (basılı tutarak) gönder. Tuzaklar keşifte görünmez. Duvarlar yer askerlerini üstüne çeker (uçanlar geçer); Ateş alan hasarı, Buz yavaşlatma, Zehir zayıflatma, Şimşek zincir vurur. Zafer için %75 (%90: 2 yıldız, %100: 3 yıldız).</color></size>");
         }
 
         // ---------- Test ordusu ----------
@@ -897,14 +909,19 @@ namespace GameClient
                 if (sim.StockOf(t) <= 0 && t != selSoldier) GUI.color = new Color(1f, 1f, 1f, 0.45f);
                 var br = new Rect(4 + i * (bw + 3), 50, bw, 52);
                 if (SelBtn(br, ContentCatalog.Soldier(t).Name + "\n" + sim.StockOf(t), t == selSoldier)) selSoldier = t;
+                var sp = PreviewIcons.Soldier(t, g.SoldierLevel(t)); // askerin küçük 3B görseli
+                if (sp != null) GUI.DrawTexture(new Rect(br.x + 2, br.y + 2, 26, 26), sp, ScaleMode.ScaleToFit, true);
+                else UiTheme.Dot(new Rect(br.x + 4, br.y + 4, 12, 12), VillageArt.TunicOf(t));
                 GUI.color = Color.white;
-                UiTheme.Dot(new Rect(br.x + 4, br.y + 4, 12, 12), VillageArt.TunicOf(t));
             }
             if (!battleOver)
             {
                 uiRects.Add(new Rect(4, 108, 120, 36));
                 if (GUI.Button(new Rect(4, 108, 120, 36), "Geri Çek", UiTheme.BtnRed) && !sim.Finished) sim.Retreat();
                 if (Btn(new Rect(128, 108, 100, 36), "Hız " + speed + "x")) speed = speed == 1 ? 3 : (speed == 3 ? 6 : 1);
+                bool anyStock = false;
+                for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) if (sim.StockOf((SoldierType)i) > 0) { anyStock = true; break; }
+                if (anyStock) { var da = new Rect(232, 108, 150, 36); uiRects.Add(da); if (GUI.Button(Pressed(da), "Hepsini Gönder", UiTheme.BtnGreen) && !sim.Finished) DeployAll(); }
             }
             int aliveSoldiers = 0;
             foreach (var s in sim.Soldiers) if (s.Alive) aliveSoldiers++;

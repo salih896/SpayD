@@ -30,7 +30,9 @@ namespace GameClient
         }
 
         // ---------- Dokular ----------
-        private static Texture2D glow, ring, smoke, star, beam;
+        private static Texture2D glow, ring, smoke, star, beam, softRect;
+        /// <summary>Kenarları yumuşak dikdörtgen (alan vurgusu).</summary>
+        public static Texture2D SoftRect => softRect ? softRect : (softRect = MakeTex(64, (x, y) => Mathf.Clamp01((1f - Mathf.Abs(x)) * 5f) * Mathf.Clamp01((1f - Mathf.Abs(y)) * 5f)));
         /// <summary>Çizgi (yıldırım) için: enine yumuşak, boyuna dolu.</summary>
         public static Texture2D Beam => beam ? beam : (beam = MakeTex(32, (x, y) => { float a = Mathf.Clamp01(1f - Mathf.Abs(y)); return a * a; }));
         public static Texture2D Glow => glow ? glow : (glow = MakeTex(64, (x, y) => { float r = Mathf.Sqrt(x * x + y * y); float a = Mathf.Clamp01(1f - r); return a * a; }));

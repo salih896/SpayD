@@ -181,6 +181,7 @@ namespace GameClient
             soldierViews.Clear(); soldierBars.Clear(); soldierBarFills.Clear(); soldierBarColor.Clear(); soldierOff.Clear(); simPrevPos.Clear(); soldierRigs.Clear(); soldierBarH.Clear(); soldierVel.Clear(); fxs.Clear(); soldierStatus.Clear(); soldierNextFx.Clear(); soldierPrevAttacks.Clear(); soldierDir.Clear(); soldierSep.Clear(); soldierDisp.Clear(); barViews.Clear(); barFills.Clear(); soldierPrev.Clear(); shots.Clear();
             towerPrevCd = null; structPrevAlive = null;
             soldierDeathT.Clear(); soldierDeathRot.Clear(); soldierDeathScale.Clear();
+            deployZone = null; // DynRoot ile birlikte silindi
         }
 
         private sealed class Shot { public Transform T; public Vector3 A, B; public float T0, Dur, Arc = 0.35f, HitSize, TrailSize, NextTrail; public Color HitColor, Trail; public bool Spin; public System.Action<Vector3> OnHit; public PixelFxPlayer Px; public ParticleSystem TrailPs; }
@@ -507,6 +508,7 @@ namespace GameClient
 
             // yapılar: can çubuğu, yıkım dumanı, kule atışı
             JuiceStructures(); // hasar sayıları + yıldız eşikleri
+            UpdateDeployZone(); // saldırı alanı ipucu
             int n = sim.Structures.Count;
             if (towerPrevCd == null || towerPrevCd.Length != n)
             {
@@ -696,6 +698,24 @@ namespace GameClient
             if (!TryGetZoneCell(pos, out int x, out int row)) return;
             if (!sim.Deploy(selSoldier, x, row, out string err)) Toast(err);
             deployTimer = 0.12f;
+        }
+
+        /// <summary>Kalan tüm askerleri girişlerin önüne sırayla gönderir (kolaylık; kural aynı: Deploy).</summary>
+        private void DeployAll()
+        {
+            var xs = new List<int>();
+            for (int x = 0; x < layout.Size; x++) if (layout.IsEntrance(new GameCore.Grid.GridPos(x, 0))) xs.Add(x);
+            if (xs.Count == 0) xs.Add(layout.Size / 2);
+            int k = 0, guard = 0;
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++)
+            {
+                var t = (SoldierType)i;
+                while (sim.StockOf(t) > 0 && guard++ < 600)
+                {
+                    if (!sim.Deploy(t, xs[k % xs.Count], 1 + (k / xs.Count) % 2, out _)) break;
+                    k++;
+                }
+            }
         }
 
         private bool TryGetZoneCell(Vector2 screen, out int x, out int row)
