@@ -85,6 +85,23 @@ namespace GameClient
                 flies.Add(f);
             }
 
+            // nehir: akıntı yönünde kayan pırıltılar
+            for (int k = 0; k < 5; k++)
+            {
+                float rz = -attackRows - 6 + k * (size + attackRows + 14) / 5f;
+                var rp = new Vector3(VillageArt.RiverX(rz, size), 0f, rz);
+                var rs = FxKit.PS(root, rp, "riversparkle", FxKit.Mat(FxKit.Star, true), true, 1f, 8);
+                var rm = rs.main; rm.startLifetime = new ParticleSystem.MinMaxCurve(0.8f, 1.3f); rm.startSize = new ParticleSystem.MinMaxCurve(0.07f, 0.14f); rm.startSpeed = 0f;
+                var re = rs.emission; re.rateOverTime = 4f;
+                var rsh = rs.shape; rsh.enabled = true; rsh.shapeType = ParticleSystemShapeType.Box; rsh.scale = new Vector3(1.4f, 0.01f, 3f);
+                var rv = rs.velocityOverLifetime; rv.enabled = true; rv.space = ParticleSystemSimulationSpace.World; rv.x = new ParticleSystem.MinMaxCurve(0f); rv.y = new ParticleSystem.MinMaxCurve(0f); rv.z = new ParticleSystem.MinMaxCurve(0.6f, 0.9f);
+                var rc = rs.colorOverLifetime; rc.enabled = true;
+                var rg = new Gradient();
+                rg.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(new Color(0.75f, 0.92f, 1f), 1f) }, new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.9f, 0.3f), new GradientAlphaKey(0f, 1f) });
+                rc.color = rg;
+                rs.gameObject.SetActive(true);
+            }
+
             // gölet pırıltısı (BuildEnvironment'taki gölet: köyün sol arkası)
             var pond = new Vector3(-5.2f, 0.02f, size + 2.5f);
             var sp = FxKit.PS(root, pond, "pondsparkle", FxKit.Mat(FxKit.Star, true), true, 1f, 10);

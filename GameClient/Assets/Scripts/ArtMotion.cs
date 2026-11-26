@@ -5,7 +5,7 @@ namespace GameClient
     /// <summary>Görsel canlılık: bayrak dalgalanması, küre süzülmesi, kanat çırpma, duman. Oyun kuralına etkisi yoktur.</summary>
     public sealed class ArtMotion : MonoBehaviour
     {
-        public enum Kind { Bob, Spin, Flutter, Flap, Smoke, Sway }
+        public enum Kind { Bob, Spin, Flutter, Flap, Smoke, Sway, Wheel }
 
         public Kind Mode;
         public float Speed = 1f, Amount = 0.05f, Phase;
@@ -32,6 +32,9 @@ namespace GameClient
                     break;
                 case Kind.Spin:
                     transform.localRotation = baseRot * Quaternion.Euler(0f, t * 57.3f, 0f);
+                    break;
+                case Kind.Wheel: // yel değirmeni pervanesi, su çarkı
+                    transform.localRotation = baseRot * Quaternion.Euler(0f, 0f, t * 57.3f);
                     break;
                 case Kind.Flutter:
                     transform.localRotation = baseRot * Quaternion.Euler(0f, Mathf.Sin(t) * 18f, Mathf.Sin(t * 1.7f) * 6f);

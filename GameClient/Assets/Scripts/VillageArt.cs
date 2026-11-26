@@ -706,6 +706,9 @@ namespace GameClient
         }
 
         // ---------- Çevre (köy havası) ----------
+        /// <summary>Nehrin x konumu (z boyunca hafif kıvrılır); köyün sağ çitinin dışında.</summary>
+        public static float RiverX(float z, int size) => size + 6.2f + Mathf.Sin(z * 0.22f) * 1.3f + Mathf.Sin(z * 0.07f + 1f) * 0.8f;
+
         public static void BuildEnvironment(Transform parent, int size, int attackRows)
         {
             float cx = (size - 1) * 0.5f;
@@ -731,7 +734,9 @@ namespace GameClient
                 {
                     bool inPlot = x >= -1 && x <= size && z >= -1 && z <= size;
                     bool inZone = x >= -1 && x <= size && z < 0 && z >= -attackRows - 1;
-                    if (inPlot || inZone) continue;
+                    bool inRiver = Mathf.Abs(x - RiverX(z, size)) < 1.6f;              // nehir yatağı ve kıyısı
+                    bool inFarm = x >= 1 && x <= size - 2 && z >= size + 2 && z <= size + 6; // köyün arkasındaki tarlalar
+                    if (inPlot || inZone || inRiver || inFarm) continue;
                     int seed = x * 977 + z * 131;
                     float d = Mathf.Max(Mathf.Max(-1 - x, x - size), Mathf.Max(-attackRows - 1 - z, z - size));
                     float jx = (Rand(seed, 1) - 0.5f) * 0.6f, jz = (Rand(seed, 2) - 0.5f) * 0.6f;
@@ -787,6 +792,56 @@ namespace GameClient
                 float hgt = 7f + Rand(i, 93) * 6f, w = 9f + Rand(i, 94) * 5f;
                 Part(mtn, Shape.Cone, mp + new Vector3(0, hgt * 0.5f - 0.2f, 0), new Vector3(w, hgt, w * 0.8f), Color.Lerp(new Color(0.42f, 0.48f, 0.55f), new Color(0.52f, 0.58f, 0.62f), Rand(i, 95)));
                 Part(mtn, Shape.Cone, mp + new Vector3(0, hgt * 0.84f - 0.2f, 0), new Vector3(w * 0.34f, hgt * 0.32f, w * 0.28f), new Color(0.95f, 0.96f, 0.98f));
+            }
+
+            // ---------- nehir (sağda kıvrılarak akar) + su değirmeni ----------
+            var river = Group(parent, "river", Vector3.zero);
+            var water = Mat(new Color(0.24f, 0.5f, 0.74f), 0.95f, 0.08f);
+            var bank = DirtMat(new Color(0.62f, 0.55f, 0.4f), 2f);
+            for (int z = -attackRows - 12; z < size + 14; z++)
+            {
+                float x0 = RiverX(z, size), x1 = RiverX(z + 1, size);
+                var a = new Vector3(x0, 0f, z); var b = new Vector3(x1, 0f, z + 1);
+                var mid = (a + b) * 0.5f; float len = Vector3.Distance(a, b) + 0.1f;
+                float yaw = Mathf.Atan2(b.x - a.x, b.z - a.z) * Mathf.Rad2Deg;
+                Part(river, Shape.Box, mid + new Vector3(0f, -0.075f, 0f), new Vector3(2.6f, 0.03f, len), bank, new Vector3(0f, yaw, 0f));
+                Part(river, Shape.Box, mid + new Vector3(0f, -0.055f, 0f), new Vector3(1.8f, 0.03f, len), water, new Vector3(0f, yaw, 0f));
+                if ((z & 3) == 0) Part(river, Shape.Ball, mid + new Vector3(Rand(z, 401) > 0.5f ? 1.05f : -1.05f, 0.0f, 0f), new Vector3(0.3f, 0.14f, 0.25f), Color.Lerp(StoneDark, Stone, Rand(z, 402)));
+                if ((z % 5) == 2) for (int k = 0; k < 3; k++) Part(river, Shape.Cyl, mid + new Vector3(-1.1f + k * 0.07f, 0.12f, 0.1f * k), new Vector3(0.02f, 0.26f, 0.02f), new Color(0.35f, 0.55f, 0.22f)); // saz
+            }
+            var mill = Group(parent, "watermill", new Vector3(RiverX(size * 0.5f, size) - 1.9f, 0f, size * 0.5f));
+            if (ModelLibrary.Available)
+            {
+                ModelLibrary.Spawn(mill, "Kenney/Town/watermill", Vector3.zero, 90f, 0.55f);
+                var wheel = ModelLibrary.Spawn(mill, "Kenney/Town/wheel", new Vector3(0.62f, 0.32f, 0f), 90f, 0.55f);
+                if (wheel != null) Animate(wheel.gameObject, ArtMotion.Kind.Wheel, -0.9f, 0f);
+            }
+
+            // ---------- köyün arkasında tarlalar + yel değirmeni ----------
+            var farm = Group(parent, "farm", Vector3.zero);
+            var wheat = new Color(0.92f, 0.78f, 0.35f); var crop = new Color(0.45f, 0.68f, 0.3f);
+            for (int row = 0; row < 8; row++)
+            {
+                float z = size + 2.3f + row * 0.5f;
+                Part(farm, Shape.Box, new Vector3(cx - 0.5f, -0.06f, z), new Vector3(size - 3.5f, 0.04f, 0.42f), DirtMat(new Color(0.5f, 0.38f, 0.25f), 3f));
+                var cc = row < 4 ? wheat : crop;
+                for (int k = 0; k < (int)(size - 4); k++)
+                {
+                    var bush = Part(farm, Shape.Box, new Vector3(1.5f + k, 0.05f, z), new Vector3(0.7f, 0.16f + Rand(row * 31 + k, 5) * 0.08f, 0.26f), Color.Lerp(cc, Color.white, Rand(row * 17 + k, 6) * 0.15f));
+                    if (row < 4) Animate(bush, ArtMotion.Kind.Sway, 1.2f + Rand(k, row) * 0.4f, 0.04f, k * 0.3f + row); // rüzgârda dalgalanan buğday
+                }
+            }
+            // korkuluk
+            var scare = Group(farm, "scarecrow", new Vector3(cx + 2.2f, 0f, size + 4.2f));
+            Part(scare, Shape.Cyl, new Vector3(0f, 0.3f, 0f), new Vector3(0.04f, 0.6f, 0.04f), WoodDark);
+            Part(scare, Shape.Box, new Vector3(0f, 0.45f, 0f), new Vector3(0.4f, 0.04f, 0.04f), WoodDark);
+            Part(scare, Shape.Box, new Vector3(0f, 0.42f, 0f), new Vector3(0.18f, 0.2f, 0.1f), new Color(0.65f, 0.3f, 0.2f));
+            Part(scare, Shape.Ball, new Vector3(0f, 0.62f, 0f), Vector3.one * 0.13f, new Color(0.9f, 0.75f, 0.45f));
+            Part(scare, Shape.Cone, new Vector3(0f, 0.72f, 0f), new Vector3(0.22f, 0.1f, 0.22f), new Color(0.75f, 0.6f, 0.3f));
+            if (ModelLibrary.Available)
+            {
+                var wm = Group(parent, "windmill", new Vector3(-3.4f, 0f, size + 5.2f));
+                ModelLibrary.Spawn(wm, "Kenney/Town/windmill", Vector3.zero, 135f, 0.7f);
             }
 
             // saldırı alanı: toprak meydan + iki çadır + sancaklar
