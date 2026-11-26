@@ -25,20 +25,54 @@ namespace GameClient
         private bool Btn(Rect r, string text)
         {
             uiRects.Add(r);
-            return GUI.Button(r, text);
+            return GUI.Button(Pressed(r), text);
+        }
+
+        // ---------- Menü efektleri (kullanıcı isteği 27.11.2026) ----------
+        private bool uiPressing; private Vector2 uiPressPos;
+        private Tab animTab = (Tab)(-1); private float tabOpenTime, popupOpenTime; private int lastPopupCount;
+
+        /// <summary>Basılı tutulan düğme biraz içe göçer (dokunma geri bildirimi).</summary>
+        private Rect Pressed(Rect r)
+        {
+            if (!uiPressing || !r.Contains(uiPressPos)) return r;
+            float dx = r.width * 0.035f, dy = r.height * 0.06f;
+            return new Rect(r.x + dx, r.y + dy, r.width - 2f * dx, r.height - 2f * dy);
+        }
+
+        private void TrackPress()
+        {
+            var e = Event.current;
+            if (e.type == EventType.MouseDown) { uiPressing = true; uiPressPos = e.mousePosition; }
+            else if (e.type == EventType.MouseUp) uiPressing = false;
+        }
+
+        /// <summary>Pencere açılışı: 0,2 sn içinde hafif büyüyerek ve belirerek gelir.</summary>
+        private void PopIn(float openTime, float w, float h, Matrix4x4 baseM)
+        {
+            float k = Mathf.Clamp01((Time.unscaledTime - openTime) / 0.2f);
+            float ease = 1f - (1f - k) * (1f - k) * (1f - k);
+            if (ease >= 1f) return;
+            float sc = 0.9f + 0.1f * ease;
+            var c = new Vector3(w * 0.5f, h * 0.5f, 0f);
+            GUI.matrix = baseM * Matrix4x4.TRS(c, Quaternion.identity, Vector3.one) * Matrix4x4.Scale(new Vector3(sc, sc, 1f)) * Matrix4x4.TRS(-c, Quaternion.identity, Vector3.one);
+            GUI.color = new Color(1f, 1f, 1f, ease);
         }
 
         /// <summary>Seçili durumu altın renkle gösteren düğme.</summary>
         private bool SelBtn(Rect r, string text, bool on)
         {
             uiRects.Add(r);
-            return GUI.Button(r, text, on ? UiTheme.BtnOn : GUI.skin.button);
+            return GUI.Button(Pressed(r), text, on ? UiTheme.BtnOn : GUI.skin.button);
         }
 
         /// <summary>Büyük yuvarlak ana ekran düğmesi (renkli daire + yazı); badge = kırmızı ünlem.</summary>
         private bool RoundBtn(Rect r, string label, Color c, bool badge = false)
         {
             uiRects.Add(r);
+            var hit = r;
+            r = Pressed(r);
+            if (badge) { float pulse = 1f + Mathf.Sin(Time.unscaledTime * 5f) * 0.03f; r = new Rect(r.center.x - r.width * pulse * 0.5f, r.center.y - r.height * pulse * 0.5f, r.width * pulse, r.height * pulse); } // bildirimli düğme hafifçe atar
             UiTheme.Dot(new Rect(r.x - 3, r.y - 3, r.width + 6, r.height + 6), new Color(0.12f, 0.08f, 0.04f, 0.9f));
             UiTheme.Dot(r, c);
             UiTheme.Dot(new Rect(r.x + r.width * 0.18f, r.y + r.height * 0.08f, r.width * 0.64f, r.height * 0.4f), new Color(1f, 1f, 1f, 0.18f));
@@ -49,7 +83,7 @@ namespace GameClient
             // Tıklamayı doğrudan olaydan oku (görünmez stilli GUI.Button bazı durumlarda tıklama almıyor)
             // Basıldığı anda tetiklenir (mobil hissi; bırakma olayına bağlı kalmaz)
             var e = Event.current;
-            if (e.type == EventType.MouseDown && r.Contains(e.mousePosition)) { e.Use(); return true; }
+            if (e.type == EventType.MouseDown && hit.Contains(e.mousePosition)) { e.Use(); return true; }
             return false;
         }
 
@@ -57,7 +91,7 @@ namespace GameClient
         private bool PressBtn(Rect r, string text, GUIStyle style)
         {
             uiRects.Add(r);
-            GUI.Label(r, text, style);
+            GUI.Label(Pressed(r), text, style);
             var e = Event.current;
             if (e.type == EventType.MouseDown && r.Contains(e.mousePosition)) { e.Use(); return true; }
             return false;
@@ -105,12 +139,17 @@ namespace GameClient
             GUI.matrix = Matrix4x4.TRS(new Vector3(uiOffset.x, uiOffset.y, 0f), Quaternion.identity, new Vector3(uiScale, uiScale, 1f));
             uiRects.Clear();
             float w = sa.width / uiScale, h = sa.height / uiScale;
+            var baseM = GUI.matrix;
+            TrackPress();
+            if (popups.Count != lastPopupCount) { if (popups.Count > lastPopupCount) popupOpenTime = Time.unscaledTime; lastPopupCount = popups.Count; }
+            if (tab != animTab) { animTab = tab; tabOpenTime = Time.unscaledTime; }
 
-            if (popups.Count > 0) { DrawHud(w, h, false); DrawPopup(w, h); return; }
+            if (popups.Count > 0) { DrawHud(w, h, false); PopIn(popupOpenTime, w, h, baseM); DrawPopup(w, h); GUI.matrix = baseM; GUI.color = Color.white; return; }
             if (sim != null) { DrawHud(w, h, true); DrawBattleGui(w, h); return; }
             if (tab == Tab.Village) DrawJobTimers();
             DrawHud(w, h, false);
             if (LayoutMode && tab == Tab.Village) { DrawLayoutMode(w, h); return; }
+            if (tab != Tab.Village) PopIn(tabOpenTime, w, h, baseM);
             switch (tab)
             {
                 case Tab.Village: DrawVillage(w, h); break;
@@ -121,6 +160,7 @@ namespace GameClient
                 case Tab.TestArmy: DrawTestArmy(w, h); break;
                 default: DrawMenu(w, h); break;
             }
+            GUI.matrix = baseM; GUI.color = Color.white;
         }
 
         // ---------- Ortak ----------
@@ -367,11 +407,17 @@ namespace GameClient
         /// <summary>Element menüsü: araştırılmış elementler kuleye uygulanır (90 sn + biraz kaynak).</summary>
         private void DrawElementMenu(float x, float y, float iw, GridPos p, bool wall)
         {
-            // 2. satır: savunma elementi (Ateş/Buz/Zehir Kalkanı) — Duvar'da yalnızca bu
-            float dy = wall ? y : y + 22 + 92;
+            // savunma elementi (Ateş/Buz/Zehir Kalkanı) yalnızca Duvarda; Okçu Kulesi yalnızca saldırı elementi alır (27.11.2026)
+            if (wall)
+            {
+                g.DefElementBlock(p, TowerElement.Fire, out var dcost);
+                GUI.Label(new Rect(x, y, iw, 20), "<size=12>Uygulama: " + dcost + "  " + Dur(GameRules.ElementApplySeconds) + "   Duvara saldıran o elementteki askerler %35 az hasar verir</size>");
+                y += 24;
+            }
+            float dy = y;
             float dbw = (iw - 10) / 3f;
             var defs = new[] { TowerElement.Fire, TowerElement.Ice, TowerElement.Poison };
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; wall && i < 3; i++)
             {
                 var e = defs[i];
                 string block = g.DefElementBlock(p, e, out _);
@@ -447,6 +493,14 @@ namespace GameClient
                 int lvl = g.SoldierLevel(t);
                 bool locked = !g.SoldierUnlocked(t);
                 GUILayout.BeginHorizontal(GUILayout.Height(44));
+                { // askerin 3B önizlemesi (kendi seviyesindeki görünümüyle)
+                    var pv = PreviewIcons.Soldier(t, lvl);
+                    var pr = GUILayoutUtility.GetRect(44f, 44f, GUILayout.Width(44f), GUILayout.Height(44f));
+                    GUI.color = locked ? new Color(1f, 1f, 1f, 0.45f) : Color.white;
+                    if (pv != null) GUI.DrawTexture(pr, pv, ScaleMode.ScaleToFit, true);
+                    else UiTheme.Dot(new Rect(pr.x + 6f, pr.y + 6f, 32f, 32f), new Color(0.4f, 0.35f, 0.3f));
+                    GUI.color = Color.white;
+                }
                 if (GUILayout.Button((locked ? "<color=#ffb070>[" + (ResearchCatalog.FindSpecial(ResearchStat.SoldierUnlock, i) != null ? "Akademi araştırması" : "Sv " + d.UnlockLevel + "'de açılır") + "]</color> " : "") + "<b>" + d.Name + "</b>  <color=#ffd560>" + VillageArt.RankName(lvl) + "</color>  Sv " + lvl + "  adet " + g.Inventory.Get(t) + "  <color=#9fd0ff>" + GameRules.Housing(t) + " yer</color>" + (detailSoldier == i ? "  ▲" : "  ▼") + "\n<size=13>Can " + ContentCatalog.Scaled(d.Hp, lvl) + "  Hasar " + ContentCatalog.Scaled(d.Attack, lvl) + "  " + AtkSpeed(d.IntervalTicks) + "  Hız " + d.SpeedMilli + "</size>", UiTheme.Skin.label, GUILayout.Width(320)))
                     detailSoldier = detailSoldier == i ? -1 : i;
                 GUI.enabled = !locked;
@@ -614,7 +668,7 @@ namespace GameClient
                 case ResearchStat.TowerArmor: return "Kuleler %" + d.Permille + " daha az hasar alır";
                 case ResearchStat.SoldierUnlock: return "Yeni asker: " + d.Name;
                 case ResearchStat.TowerAttackElement: return "Kule elementi: " + d.Name;
-                case ResearchStat.TowerDefenseElement: return "Kule savunma elementi: " + d.Name;
+                case ResearchStat.TowerDefenseElement: return "Duvar savunma elementi: " + d.Name;
                 case ResearchStat.SoldierAttackElement: return "Asker saldırı elementi: " + d.Name;
                 case ResearchStat.SoldierDefenseElement: return "Asker savunma elementi: " + d.Name;
                 case ResearchStat.ProductionPct: return "Üretim +" + v;
@@ -801,7 +855,7 @@ namespace GameClient
                 sb.Append("• <b>").Append(ContentCatalog.ElementName(e)).Append("</b>").Append(rd != null ? " (Sv" + rd.Level + ")" : "").Append(g.ElementUnlocked(e) ? " <color=#8fe07a>açık</color>" : "").Append(": ").Append(ContentCatalog.ElementEffect(e)).Append("\n");
             }
             sb.Append("</size>\n<size=14><b>SAVUNMA VE ASKER ELEMENTLERİ</b> (Ateş, Buz, Zehir)</size>\n<size=13>");
-            sb.Append("• Kule savunma elementi: Ateş/Buz/Zehir Kalkanı (kuleye 90 sn ile uygulanır; Duvar da alır)\n");
+            sb.Append("• Duvar savunma elementi: Ateş/Buz/Zehir Kalkanı (yalnızca Duvara, 90 sn ile uygulanır; Okçu Kulesi savunma elementi almaz)\n");
             sb.Append("• Asker saldırı elementi: Ateş/Buz/Zehir Silahları — asker savunma elementi: Ateş/Buz/Zehir Zırhı (kışlada asker türüne seçilir)\n");
             sb.Append("</size>\n<size=14><b>KURALLAR</b></size>\n<size=13>");
             sb.Append("• Döngü: <color=#ff9a50>Ateş</color> > <color=#8fe07a>Zehir</color> > <color=#9fe0ff>Buz</color> > <color=#ff9a50>Ateş</color>\n");

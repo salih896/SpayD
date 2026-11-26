@@ -4,6 +4,7 @@ using GameCore.Combat;
 using GameCore.Economy;
 using GameCore.Game;
 using GameCore.Grid;
+using GameCore.Progression;
 using GameCore.Village;
 
 namespace GameClient
@@ -291,7 +292,9 @@ namespace GameClient
             var area = new Rect(10f, h - InvPanelH + 42f, sellZoneGui.x - 20f, InvPanelH - 50f);
             float cw = 112f, ch = area.height - 4f;
             var groups = InventoryGroups();
-            int count = invTab == 0 ? groups.Count : (invTab == 1 ? ShopBuildingOrder.Length : invTab == 2 ? BattleSim.TowerTypeCount : TrapCatalog.Count);
+            var shopTowers = new List<TowerType>(); // kaldırılmış eski kule türleri (Sv 999) listelenmez
+            for (int ti = 0; ti < BattleSim.TowerTypeCount; ti++) if (ContentCatalog.Tower((TowerType)ti).UnlockLevel <= ProgressionRules.MaxLevel) shopTowers.Add((TowerType)ti);
+            int count = invTab == 0 ? groups.Count : (invTab == 1 ? ShopBuildingOrder.Length : invTab == 2 ? shopTowers.Count : TrapCatalog.Count);
             float content = count * (cw + 6f);
             float maxScroll = Mathf.Max(0f, content - (area.width - 60f));
             invScroll = Mathf.Clamp(invScroll, 0f, maxScroll);
@@ -331,8 +334,8 @@ namespace GameClient
                 }
                 else if (invTab == 2)
                 {
-                    var tt = (TowerType)i; var d = ContentCatalog.Tower(tt);
-                    kind = DraftKind.Tower; type = i;
+                    var tt = shopTowers[i]; var d = ContentCatalog.Tower(tt);
+                    kind = DraftKind.Tower; type = (int)tt;
                     bool locked = g.Level < d.UnlockLevel;
                     title = d.Name;
                     sub = locked ? "Sv " + d.UnlockLevel + "'de açılır" : "Kule " + draft.TowerCount + "/" + g.MaxTowers + "\n" + GameRules.Scale(d.BuildCost, g.Config, g.Level, 100);
@@ -352,7 +355,25 @@ namespace GameClient
                 GUI.color = enabled ? Color.white : new Color(1f, 1f, 1f, 0.5f);
                 GUI.Box(cr, "", UiTheme.Parchment);
                 GUI.color = Color.white;
-                UiTheme.Dot(new Rect(cr.x + cw * 0.5f - 18f, cr.y + 6f, 36f, 36f), col);
+                // 3B önizleme (hazır değilse renkli daire)
+                Texture prev = null;
+                if (invTab == 0 && invItem != null)
+                {
+                    int lv = invItem.HasOrigin ? draft.LevelOf(invItem) : 1;
+                    if (invItem.Kind == DraftKind.Building) prev = PreviewIcons.Building(invItem.Building, lv);
+                    else if (invItem.Kind == DraftKind.Tower) prev = PreviewIcons.Tower(invItem.Tower, TowerElement.None, lv);
+                    else if (invItem.Kind == DraftKind.Trap) prev = PreviewIcons.Trap(invItem.Trap);
+                }
+                else if (invTab == 1) prev = PreviewIcons.Building((BuildingType)type, 1);
+                else if (invTab == 2) prev = PreviewIcons.Tower((TowerType)type, TowerElement.None, 1);
+                else if (invTab == 3) prev = PreviewIcons.Trap((TrapType)type);
+                if (prev != null)
+                {
+                    GUI.color = enabled ? Color.white : new Color(1f, 1f, 1f, 0.55f);
+                    GUI.DrawTexture(new Rect(cr.x + cw * 0.5f - 22f, cr.y + 1f, 44f, 44f), prev, ScaleMode.ScaleToFit, true);
+                    GUI.color = Color.white;
+                }
+                else UiTheme.Dot(new Rect(cr.x + cw * 0.5f - 18f, cr.y + 6f, 36f, 36f), col);
                 GUI.Label(new Rect(cr.x + 4f, cr.y + 42f, cw - 8f, 22f), "<b>" + title + "</b>", dark);
                 GUI.Label(new Rect(cr.x + 4f, cr.y + 62f, cw - 8f, ch - 62f), "<size=11>" + sub + "</size>", dark);
                 // basınca sürükleme başlar

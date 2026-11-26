@@ -432,12 +432,19 @@ namespace GameCore.Combat
 
         private readonly HashSet<GridPos> usedTraps = new HashSet<GridPos>();
 
+        /// <summary>Yalnızca görsel: bu adımlarda tetiklenen tuzaklar (istemci okuyup boşaltır; simülasyonu etkilemez).</summary>
+        public readonly List<(GridPos Cell, TrapType Type)> TrapEvents = new List<(GridPos, TrapType)>();
+
+        /// <summary>Tek seferlik tuzak (Patlayıcı) bu savaşta kullanıldı mı (görsel: modeli gizlemek için).</summary>
+        public bool TrapUsed(GridPos cell) => usedTraps.Contains(cell);
+
         /// <summary>Tuzak tetikleme (TrapCatalog). Uçanlar etkilenmez; yol malzemesi hasarı artırır; Patlayıcı savaş başına bir kez.</summary>
         private void ApplyTrap(SimSoldier s, GridPos cell)
         {
             if (s.Flying || !setup.Traps.TryGetValue(cell, out var trap)) return;
             var d = TrapCatalog.Get(trap);
             if (d == null || (d.OneShot && usedTraps.Contains(cell))) return;
+            if (TrapEvents.Count < 64) TrapEvents.Add((cell, trap)); // istemci okumazsa sınırsız büyümesin
             int bonus = RoadRules.TrapBonusPct(setup.Layout.GetRoadTier(cell));
             if (d.Damage > 0)
             {

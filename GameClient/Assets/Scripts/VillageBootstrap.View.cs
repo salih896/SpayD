@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using GameCore.Combat;
+using GameCore.Game;
 using GameCore.Grid;
 using GameCore.Village;
 
@@ -98,13 +99,16 @@ namespace GameClient
                         case CellKind.Road:
                             var open = new[] { IsRoad(x, y + 1), IsRoad(x + 1, y), IsRoad(x, y - 1) || layout.IsEntrance(p), IsRoad(x - 1, y) };
                             VillageArt.BuildRoad(viewRoot, c, layout.GetRoadTier(p), open, seed);
-                            if (view.Traps.TryGetValue(p, out var tr)) VillageArt.BuildTrap(viewRoot, c, tr);
+                            if (view.Traps.TryGetValue(p, out var tr) && !(sim != null && sim.TrapUsed(p))) VillageArt.BuildTrap(viewRoot, c, tr); // patlamış tuzak çizilmez
                             break;
                         case CellKind.Building:
                             if (IsDestroyed(p)) { VillageArt.BuildRubble(viewRoot, c, seed); break; }
                             {
                                 var bt = view.Buildings.TryGetValue(p, out var bs) ? bs.Type : BuildingType.VillagerHouse;
-                                VillageArt.BuildBuilding(viewRoot, bt, bs != null ? bs.Level : 1, seed, c);
+                                int bl = bs != null ? bs.Level : 1;
+                                var bT = VillageArt.BuildBuilding(viewRoot, bt, bl, seed, c);
+                                if (bT != null) FxKit.BuildingIdle(bT, bt, c, ModelLibrary.WorldHeight(bT), bl); // baca dumanı, pırıltı, kıvılcım...
+                                if (sim == null && g.IsUpgrading(JobKind.Building, p, SoldierType.Swordsman)) FxKit.Construction(viewRoot, c); // inşaat sürüyor
                             }
                             break;
                         case CellKind.Tower:
@@ -124,6 +128,7 @@ namespace GameClient
                                     if (el != TowerElement.None) VillageArt.ElementAura(viewRoot, c, el, ModelLibrary.WorldHeight(towerT) + 0.18f); // model yoksa eski aura
                                 }
                                 if (ts != null && ts.DefElement != TowerElement.None) FxKit.DefenseAura(towerT, ts.DefElement, c, ts.Type == TowerType.Wall ? 0.5f : 0.42f);
+                                if (sim == null && (g.IsUpgrading(JobKind.Tower, p, SoldierType.Swordsman) || g.IsUpgrading(JobKind.TowerElement, p, SoldierType.Swordsman))) FxKit.Construction(viewRoot, c);
                             }
                             break;
                     }

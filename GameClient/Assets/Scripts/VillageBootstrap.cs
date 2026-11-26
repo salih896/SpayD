@@ -176,10 +176,40 @@ namespace GameClient
 
         private void Step(int seconds)
         {
+            var before = new List<GridPos>();
+            foreach (var j in g.Jobs) if (j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.TowerElement || j.Kind == JobKind.Road) before.Add(j.Pos);
+            var armyBefore = new int[ContentCatalog.SoldierTypeCount];
+            for (int i = 0; i < armyBefore.Length; i++) armyBefore[i] = g.Inventory.Get((SoldierType)i);
             var ev = g.Advance(seconds, DayIndex);
             foreach (var e in ev) AddLog(e);
+            // eğitimi biten asker kışladan çıkar (yalnızca görsel; en çok 3 tanesi)
+            int shown = 0;
+            for (int i = 0; i < armyBefore.Length && shown < 3; i++)
+                if (g.Inventory.Get((SoldierType)i) > armyBefore[i]) { SoldierCameo((SoldierType)i); shown++; }
+            // biten inşaat/yükseltme: altın ışık sütunu (yalnızca görsel)
+            foreach (var p in before)
+            {
+                bool still = false;
+                foreach (var j in g.Jobs) if (j.Pos.Equals(p) && j.Kind != JobKind.Soldier) { still = true; break; }
+                if (!still) FxKit.LevelUpBurst(null, new Vector3(p.X, 0f, p.Y));
+            }
             FlushLevelUps();
             if (ev.Count > 0) dirty = true;
+        }
+
+        /// <summary>Yeni eğitilen asker: kışlanın önünde ışıkla belirir, birkaç adım yürür, sonra kaybolur.</summary>
+        private void SoldierCameo(SoldierType t)
+        {
+            if (sim != null) return;
+            GridPos? bp = null;
+            foreach (var kv in g.Buildings) if (kv.Value.Type == BuildingType.Barracks) { bp = kv.Key; break; }
+            if (bp == null) return;
+            var start = new Vector3(bp.Value.X + 0.35f, 0.05f, bp.Value.Y - 0.35f);
+            var tr = VillageArt.BuildSoldier(null, t, g.SoldierLevel(t));
+            tr.position = start;
+            tr.rotation = Quaternion.LookRotation(new Vector3(0.6f, 0f, -1f));
+            tr.gameObject.AddComponent<SoldierCameoMotion>();
+            FxKit.LevelUpBurst(null, start);
         }
 
         private void AddLog(string m)

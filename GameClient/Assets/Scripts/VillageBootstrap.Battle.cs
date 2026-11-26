@@ -88,13 +88,13 @@ namespace GameClient
             for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = g.SoldierLevel((SoldierType)i);
             int seed = 7000 + battleSeed++;
             var target = new TargetInfo { Name = "Kendi köyün (test)", Level = g.Level, Defense = g.MakeDefense(), Pool = default, Seed = seed };
-            if (testTowerElements) // Ayarlar: test saldırısında kulelere sırayla saldırı + savunma elementi (yalnızca bu savaşın kopyası)
+            if (testTowerElements) // Ayarlar: test saldırısında kulelere saldırı, duvarlara savunma elementi (yalnızca bu savaşın kopyası)
             {
                 int ei = 0;
                 foreach (var tw in target.Defense.Towers.Values)
                 {
                     if (tw.Type == TowerType.Archer) tw.Element = (TowerElement)(1 + ei % 6);
-                    tw.DefElement = (TowerElement)(2 + ei % 3);
+                    else if (tw.Type == TowerType.Wall) tw.DefElement = (TowerElement)(2 + ei % 3); // savunma elementi yalnızca Duvarda
                     ei++;
                 }
             }
@@ -127,6 +127,13 @@ namespace GameClient
                 tickAcc += Time.deltaTime * speed;
                 int n = 0;
                 while (tickAcc >= SimTickSeconds && n < 60 && !sim.Finished) { SnapshotSimPositions(); sim.Step(); tickAcc -= SimTickSeconds; n++; }
+                // tuzak tetiklenmeleri (yalnızca görsel); tek seferlik tuzak patlayınca modeli kaybolur
+                foreach (var te in sim.TrapEvents)
+                {
+                    FxKit.TrapTrigger(DynRoot(), te.Type, new Vector3(te.Cell.X, 0.15f, te.Cell.Y), Mathf.Max(1f, speed));
+                    if (TrapCatalog.Get(te.Type) != null && TrapCatalog.Get(te.Type).OneShot) dirty = true;
+                }
+                sim.TrapEvents.Clear();
                 if (n >= 60) tickAcc = 0f;
             }
             int alive = 0;

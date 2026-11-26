@@ -395,6 +395,196 @@ namespace GameClient
             ColorLife(s, Grad(c, c, c, 0.1f)); SizeLife(s, Curve(0f, 0.6f, 1f, 1.5f)); Speed(s, speed); Go(s);
         }
 
+        // ================= TUZAKLAR =================
+
+        /// <summary>Tuzak üstünde küçük sürekli efekt (uzaktan fark edilsin, göz yormasın).</summary>
+        public static void TrapIdle(Transform parent, TrapType t, Vector3 p)
+        {
+            switch (t)
+            {
+                case TrapType.Fire:
+                {
+                    var c = Colors(TowerElement.Fire);
+                    var f = PS(parent, p, "trapflame", Mat(Glow, true), true, 1f, 14);
+                    Life(f, 0.35f, 0.55f, 0.08f, 0.14f); Rate(f, 14f); Circle(f, 0.1f); Up(f, 0.3f, 0.55f);
+                    ColorLife(f, Grad(c.Core, c.Mid, c.Outer, 0.15f)); SizeLife(f, Curve(0f, 0.6f, 0.3f, 1f, 1f, 0.2f)); Go(f);
+                    break;
+                }
+                case TrapType.Poison:
+                {
+                    var c = Colors(TowerElement.Poison);
+                    var b = PS(parent, p, "trapbubble", Mat(Glow, true), true, 1f, 10);
+                    Life(b, 0.6f, 1f, 0.03f, 0.06f); Rate(b, 5f); Circle(b, 0.12f); Up(b, 0.12f, 0.25f);
+                    ColorLife(b, Grad(c.Core, c.Mid, c.Outer, 0.1f)); SizeLife(b, Curve(0f, 0.5f, 0.85f, 1f, 1f, 1.5f)); Go(b);
+                    break;
+                }
+                case TrapType.Frost:
+                {
+                    var c = Colors(TowerElement.Ice);
+                    var s = PS(parent, p + new Vector3(0f, 0.05f, 0f), "trapfrost", Mat(Star, true), true, 1f, 8);
+                    Life(s, 0.8f, 1.3f, 0.03f, 0.06f); Rate(s, 4f); Circle(s, 0.14f); Up(s, 0.05f, 0.15f); Spin(s, 90f);
+                    ColorLife(s, Grad(c.Core, c.Mid, c.Mid, 0.2f)); Go(s);
+                    break;
+                }
+                case TrapType.Shock:
+                {
+                    var c = Colors(TowerElement.Lightning);
+                    var a = PS(parent, p, "trapzap", Mat(Glow, true), true, 1f, 10);
+                    Life(a, 0.06f, 0.12f, 0.015f, 0.03f, 1.2f, 2.2f); Sphere(a, 0.05f, true);
+                    var em = a.emission; em.SetBursts(new[] { new ParticleSystem.Burst(0f, 3, 5, 99, 0.6f) });
+                    Stretch(a, 0.1f); ColorLife(a, Grad(c.Core, c.Mid, c.Outer, 0.01f)); Go(a);
+                    break;
+                }
+                case TrapType.Bomb:
+                {
+                    var c = Colors(TowerElement.Fire);
+                    var fuse = PS(parent, p + new Vector3(0.03f, 0.12f, 0f), "fuse", Mat(Glow, true), true, 1f, 10);
+                    Life(fuse, 0.15f, 0.3f, 0.015f, 0.03f, 0.3f, 0.8f); Rate(fuse, 16f); Sphere(fuse, 0.01f, true); Gravity(fuse, 0.5f);
+                    ColorLife(fuse, Grad(c.Core, c.Mid, c.Outer, 0.02f)); Go(fuse);
+                    break;
+                }
+            }
+        }
+
+        /// <summary>Tuzak tetiklenince (savaş): her türe özgü patlama/sıçrama.</summary>
+        public static void TrapTrigger(Transform parent, TrapType t, Vector3 p, float speed = 1f)
+        {
+            var ground = new Vector3(p.x, 0.05f, p.z);
+            switch (t)
+            {
+                case TrapType.Fire: Impact(parent, TowerElement.Fire, p, 0.7f, speed); break;
+                case TrapType.Poison: Impact(parent, TowerElement.Poison, p, 0.7f, speed); break;
+                case TrapType.Frost: Impact(parent, TowerElement.Ice, p, 0.85f, speed); break;
+                case TrapType.Shock:
+                    Lightning(parent, ground, ground + new Vector3(0f, 0.9f, 0f), Colors(TowerElement.Lightning).Mid, 0.15f);
+                    Impact(parent, TowerElement.Lightning, p, 0.7f, speed); break;
+                case TrapType.Bomb:
+                    Impact(parent, TowerElement.Fire, p + new Vector3(0f, 0.15f, 0f), 1.6f, speed);
+                    SmokePuff(parent, p + new Vector3(0f, 0.2f, 0f), new Color(0.2f, 0.18f, 0.17f), 9, 0.45f, speed);
+                    break;
+                case TrapType.Slippery:
+                {
+                    var w = new Color(0.55f, 0.85f, 1f);
+                    var sp = PS(parent, ground, "splash", Mat(Glow, true), false, 0.8f, 14);
+                    Life(sp, 0.3f, 0.55f, 0.04f, 0.07f, 0.8f, 1.6f); Sphere(sp, 0.05f, true); Burst(sp, 12); Gravity(sp, 1.4f);
+                    ColorLife(sp, Grad(Color.white, w, w, 0.02f)); Speed(sp, speed); Go(sp);
+                    GroundRing(parent, ground, Color.white, w, 0.7f, speed);
+                    break;
+                }
+                default: // Diken, Kapan: toz + metal kıvılcım
+                {
+                    var dust = Colors(TowerElement.None);
+                    SmokePuff(parent, ground, new Color(0.55f, 0.45f, 0.33f), 5, 0.22f, speed);
+                    var sp = PS(parent, ground + new Vector3(0f, 0.08f, 0f), "metal", Mat(Glow, true), false, 0.4f, 10);
+                    Life(sp, 0.12f, 0.25f, 0.02f, 0.035f, 1.2f, 2.2f); Sphere(sp, 0.04f, true); Burst(sp, 8); Stretch(sp, 0.07f);
+                    ColorLife(sp, Grad(Color.white, dust.Core, dust.Mid, 0.02f)); Speed(sp, speed); Go(sp);
+                    if (t == TrapType.Snare) GroundRing(parent, ground, new Color(0.85f, 0.85f, 0.9f), new Color(0.5f, 0.5f, 0.55f), 0.6f, speed);
+                    break;
+                }
+            }
+        }
+
+        // ================= YAPILAR =================
+
+        /// <summary>Yapıya göre sürekli efekt: baca dumanı, altın pırıltısı, demirci kıvılcımı, büyü ışıkları... top: yapının tepesi.</summary>
+        public static void BuildingIdle(Transform parent, BuildingType t, Vector3 basePos, float topY, int level)
+        {
+            var top = new Vector3(basePos.x, topY, basePos.z);
+            switch (t)
+            {
+                case BuildingType.VillagerHouse:
+                case BuildingType.Barracks:
+                {
+                    var sm = PS(parent, top + new Vector3(0.12f, 0.05f, 0.1f), "chimney", Mat(Smoke, false), true, 1f, 14);
+                    Life(sm, 1.6f, 2.4f, 0.12f, 0.2f); Rate(sm, 3f); Sphere(sm, 0.03f); Up(sm, 0.25f, 0.4f); Noise(sm, 0.12f, 0.6f); Spin(sm, 30f);
+                    var sc = new Color(0.78f, 0.76f, 0.74f);
+                    ColorLife(sm, Grad(sc, sc, new Color(0.6f, 0.6f, 0.6f), 0.15f)); SizeLife(sm, Curve(0f, 0.5f, 1f, 1.8f)); Go(sm);
+                    if (t == BuildingType.Barracks) Embers(parent, basePos + new Vector3(-0.3f, 0.35f, -0.3f), 4f);
+                    break;
+                }
+                case BuildingType.GoldMine:
+                case BuildingType.Bank:
+                    Glints(parent, top - new Vector3(0f, topY * 0.4f, 0f), new Color(1f, 0.85f, 0.3f), 0.35f, 2.2f + level * 0.05f);
+                    break;
+                case BuildingType.IronMine:
+                case BuildingType.IronDepot:
+                    Embers(parent, basePos + new Vector3(0.2f, 0.3f, -0.2f), 6f);
+                    break;
+                case BuildingType.StoneQuarry:
+                case BuildingType.StoneDepot:
+                {
+                    var d = PS(parent, basePos + new Vector3(0f, 0.12f, 0f), "dust", Mat(Smoke, false), true, 1f, 8);
+                    Life(d, 1.2f, 1.8f, 0.15f, 0.25f); Rate(d, 1.5f); Circle(d, 0.3f); Up(d, 0.05f, 0.15f); Spin(d, 20f);
+                    var dc = new Color(0.75f, 0.72f, 0.66f, 0.6f);
+                    ColorLife(d, Grad(dc, dc, dc, 0.3f)); SizeLife(d, Curve(0f, 0.6f, 1f, 1.4f)); Go(d);
+                    break;
+                }
+                case BuildingType.Forest:
+                case BuildingType.LumberDepot:
+                {
+                    var lf = PS(parent, top + new Vector3(0f, 0.1f, 0f), "leaves", Mat(Glow, false), true, 1f, 8);
+                    Life(lf, 2f, 3f, 0.04f, 0.07f); Rate(lf, 1.5f); Sphere(lf, 0.35f); Up(lf, -0.2f, -0.1f); Noise(lf, 0.25f, 0.7f);
+                    var a = new Color(0.55f, 0.8f, 0.3f); var b = new Color(0.95f, 0.75f, 0.25f);
+                    ColorLife(lf, Grad(a, a, b, 0.1f)); Go(lf);
+                    break;
+                }
+                case BuildingType.University:
+                {
+                    var c = Colors(TowerElement.Magic);
+                    var o = PS(parent, top, "academy", Mat(Star, true), true, 1f, 14);
+                    var om = o.main; om.simulationSpace = ParticleSystemSimulationSpace.Local;
+                    Life(o, 1.4f, 2f, 0.05f, 0.09f); Rate(o, 6f); Circle(o, 0.3f);
+                    var v = o.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.Local;
+                    v.x = new ParticleSystem.MinMaxCurve(0f); v.y = new ParticleSystem.MinMaxCurve(0.05f, 0.15f); v.z = new ParticleSystem.MinMaxCurve(0f);
+                    v.orbitalY = new ParticleSystem.MinMaxCurve(1.6f);
+                    Spin(o, 120f); ColorLife(o, Grad(c.Core, c.Mid, c.Outer, 0.15f)); Go(o);
+                    break;
+                }
+            }
+            if (level >= 10) Glints(parent, top, new Color(1f, 0.9f, 0.5f), 0.3f, 1f); // yüksek seviye: hafif parıltı
+        }
+
+        /// <summary>İnşaat/yükseltme sürüyor: toz bulutu + çekiç kıvılcımı.</summary>
+        public static void Construction(Transform parent, Vector3 basePos)
+        {
+            var d = PS(parent, basePos + new Vector3(0f, 0.08f, 0f), "builddust", Mat(Smoke, false), true, 1f, 12);
+            Life(d, 0.8f, 1.3f, 0.15f, 0.28f, 0.1f, 0.3f); Rate(d, 5f); Circle(d, 0.35f); Up(d, 0.1f, 0.25f); Spin(d, 30f);
+            var dc = new Color(0.72f, 0.62f, 0.48f, 0.7f);
+            ColorLife(d, Grad(dc, dc, dc, 0.2f)); SizeLife(d, Curve(0f, 0.5f, 1f, 1.5f)); Go(d);
+            var sp = PS(parent, basePos + new Vector3(0.2f, 0.45f, -0.2f), "hammer", Mat(Glow, true), true, 1f, 12);
+            Life(sp, 0.15f, 0.3f, 0.02f, 0.035f, 0.8f, 1.6f); Sphere(sp, 0.03f, true); Gravity(sp, 0.8f);
+            var em = sp.emission; em.SetBursts(new[] { new ParticleSystem.Burst(0f, 4, 6, 999, 0.55f) });
+            var c = Colors(TowerElement.Arrow);
+            ColorLife(sp, Grad(c.Core, c.Mid, c.Outer, 0.02f)); Go(sp);
+        }
+
+        /// <summary>Yükseltme bitti: altın ışık sütunu + yıldızlar.</summary>
+        public static void LevelUpBurst(Transform parent, Vector3 basePos)
+        {
+            var c = Colors(TowerElement.Arrow);
+            var col = PS(parent, basePos + new Vector3(0f, 0.1f, 0f), "lvlup", Mat(Star, true), false, 1.2f, 24);
+            Life(col, 0.7f, 1.1f, 0.06f, 0.12f, 0.6f, 1.4f); Circle(col, 0.3f); Burst(col, 20); Spin(col, 180f);
+            var v = col.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
+            v.x = new ParticleSystem.MinMaxCurve(0f); v.z = new ParticleSystem.MinMaxCurve(0f); v.y = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
+            ColorLife(col, Grad(c.Core, c.Mid, c.Outer, 0.05f)); Go(col);
+            GroundRing(parent, new Vector3(basePos.x, 0.05f, basePos.z), c.Core, c.Mid, 1.3f);
+        }
+
+        private static void Embers(Transform parent, Vector3 p, float rate)
+        {
+            var c = Colors(TowerElement.Fire);
+            var e = PS(parent, p, "embers", Mat(Glow, true), true, 1f, 12);
+            Life(e, 0.6f, 1.1f, 0.02f, 0.04f); Rate(e, rate); Sphere(e, 0.06f, true); Up(e, 0.3f, 0.6f); Noise(e, 0.2f);
+            ColorLife(e, Grad(c.Core, c.Mid, c.Outer, 0.05f)); Go(e);
+        }
+
+        private static void Glints(Transform parent, Vector3 p, Color c, float radius, float rate)
+        {
+            var g = PS(parent, p, "glint", Mat(Star, true), true, 1f, 8);
+            Life(g, 0.5f, 0.8f, 0.08f, 0.14f); Rate(g, rate); Sphere(g, radius);
+            ColorLife(g, Grad(Color.white, c, c, 0.3f)); SizeLife(g, Curve(0f, 0f, 0.4f, 1f, 1f, 0f)); Go(g);
+        }
+
         // ================= YILDIRIM =================
 
         /// <summary>Parlayan zikzak yıldırım (dış renkli + iç beyaz çizgi + küçük dal). dur sn sonra silinir.</summary>

@@ -535,12 +535,12 @@ namespace GameClient
                 if (!open[i]) continue;
                 bool alongX = dx[i] != 0;
                 var dir = new Vector3(dx[i], 0, dz[i]);
-                Part(parent, Shape.Box, c + dir * 0.36f + new Vector3(0, y, 0), alongX ? new Vector3(0.28f, th, 0.56f) : new Vector3(0.56f, th, 0.28f), m);
+                Part(parent, Shape.Box, c + dir * 0.39f + new Vector3(0, y, 0), alongX ? new Vector3(0.22f, th, 0.56f) : new Vector3(0.56f, th, 0.22f), m); // merkezle çakışmaz (titreme yok)
                 if (tier == RoadTier.Iron)
                 {
                     var perp = alongX ? Vector3.forward : Vector3.right;
                     foreach (var sgn in new[] { -1f, 1f })
-                        Part(parent, Shape.Box, c + dir * 0.36f + perp * 0.25f * sgn + new Vector3(0, 0.06f, 0), alongX ? new Vector3(0.28f, 0.04f, 0.03f) : new Vector3(0.03f, 0.04f, 0.28f), Iron);
+                        Part(parent, Shape.Box, c + dir * 0.39f + perp * 0.25f * sgn + new Vector3(0, 0.06f, 0), alongX ? new Vector3(0.22f, 0.04f, 0.03f) : new Vector3(0.03f, 0.04f, 0.22f), Iron);
                 }
             }
             if (tier == RoadTier.Crystal)
@@ -588,6 +588,9 @@ namespace GameClient
 
         public static void BuildTrap(Transform parent, Vector3 c, TrapType t)
         {
+            var g = Group(parent, "trap_" + t, new Vector3(0f, 0.015f, 0f)); // yol taşlarıyla aynı yükseklikte titremesin
+            parent = g;
+            FxKit.TrapIdle(g, t, c + new Vector3(0f, 0.08f, 0f));
             switch (t)
             {
                 case TrapType.Spikes:
