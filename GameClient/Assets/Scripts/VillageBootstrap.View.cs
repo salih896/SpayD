@@ -115,6 +115,7 @@ namespace GameClient
                                 int bl = bs != null ? bs.Level : 1;
                                 var bT = VillageArt.BuildBuilding(viewRoot, bt, bl, seed, c);
                                 if (bT != null) FxKit.BuildingIdle(bT, bt, c, ModelLibrary.WorldHeight(bT), bl); // baca dumanı, pırıltı, kıvılcım...
+                                if (bT != null && DayCycle.Night > 0.5f) FxKit.NightGlow(bT, c + new Vector3(0f, ModelLibrary.WorldHeight(bT) * 0.45f, -0.3f)); // gece pencere ışığı
                                 if (sim == null && g.IsUpgrading(JobKind.Building, p, SoldierType.Swordsman)) FxKit.Construction(viewRoot, c); // inşaat sürüyor
                             }
                             break;

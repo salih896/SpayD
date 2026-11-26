@@ -25,6 +25,7 @@ namespace GameClient
         public static void Setup(Camera c, Light s)
         {
             cam = c; sun = s;
+            DayCycle.Setup(c, s); // gerçek saate göre şafak / gündüz / gün batımı / gece
             if (vol == null)
             {
                 var go = new GameObject("PostFx");

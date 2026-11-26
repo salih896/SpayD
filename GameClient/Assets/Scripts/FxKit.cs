@@ -236,6 +236,15 @@ namespace GameClient
             Up(up, 0.3f, 0.6f); ColorLife(up, Grad(c.Core, c.Mid, c.Outer, 0.2f)); Go(up);
         }
 
+        /// <summary>Gece: binanın penceresinde titrek sıcak ışık.</summary>
+        public static void NightGlow(Transform parent, Vector3 p, float size = 0.55f)
+        {
+            Halo(parent, p, new Color(1f, 0.72f, 0.35f), size, 3.5f);
+            var f = PS(parent, p, "windowflicker", Mat(Glow, true), true, 1f, 4);
+            Life(f, 0.3f, 0.6f, size * 0.25f, size * 0.4f); Rate(f, 4f);
+            ColorLife(f, Grad(new Color(1f, 0.9f, 0.6f), new Color(1f, 0.7f, 0.3f), new Color(1f, 0.5f, 0.2f), 0.2f)); Go(f);
+        }
+
         /// <summary>Atımlı yumuşak parlama (tek büyük parçacık sürekli yenilenir).</summary>
         private static void Halo(Transform parent, Vector3 pos, Color c, float size, float rate = 2.5f)
         {

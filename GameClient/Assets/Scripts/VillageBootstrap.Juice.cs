@@ -192,9 +192,12 @@ namespace GameClient
         // ---------- zafer kutlaması ----------
         private bool celebrate;
 
+        private float resultTime;
+
         private void OnBattleFinishedFx(bool victory)
         {
             celebrate = victory;
+            resultTime = Time.unscaledTime;
             var center = new Vector3((layout.Size - 1) * 0.5f, 0f, (layout.Size - 1) * 0.5f);
             if (victory) { FxKit.Confetti(DynRoot(), center + Vector3.up * 2.5f); Banner("ZAFER!", new Color(0.55f, 1f, 0.45f)); Shake(0.12f, 0.4f); }
             else Banner("YENİLGİ", new Color(1f, 0.45f, 0.35f));

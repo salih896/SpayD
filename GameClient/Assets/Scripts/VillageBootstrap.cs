@@ -154,6 +154,7 @@ namespace GameClient
         private void Update()
         {
             HandleInput();
+            if (DayCycle.NightChanged) { DayCycle.NightChanged = false; dirty = true; } // gece pencere ışıkları
             if (sim != null) StepBattle();
             else TickGame();
             if (dirty) Rebuild();

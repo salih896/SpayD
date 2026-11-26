@@ -820,6 +820,7 @@ namespace GameClient
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 26), stats); y += 28;
             if (Btn(new Rect(r.x + 10, y, 160, 34), "Kaydet")) { LastSave(); Toast("Kaydedildi"); }
             if (Btn(new Rect(r.x + 180, y, 230, 34), "Grafik: " + (GraphicsFx.High ? "Yüksek" : "Düşük (pil dostu)"))) GraphicsFx.High = !GraphicsFx.High;
+            if (Btn(new Rect(r.x + 420, y, 250, 34), "Gün/Gece: " + (DayCycle.RealTime ? "Gerçek saat" : "Hep gündüz"))) DayCycle.RealTime = !DayCycle.RealTime;
             y += 42;
             GUI.Label(new Rect(r.x + 10, y, r.width - 20, 24), "— TEST ARAÇLARI (zaman/kaynak hızlandırma) —"); y += 28;
             float x = r.x + 10;
@@ -934,20 +935,54 @@ namespace GameClient
         private void DrawResult(float w, float h)
         {
             var r = lastResult;
-            var box = new Rect(w * 0.5f - 220f, h * 0.5f - 170f, 440f, 340f);
+            float t = Time.unscaledTime - resultTime;
+            // pencere: büyüyerek gelir
+            float k = Mathf.Clamp01(t / 0.25f), ease = 1f - (1f - k) * (1f - k) * (1f - k);
+            var baseM = GUI.matrix;
+            var ctr = new Vector3(w * 0.5f, h * 0.5f, 0f);
+            float sc = 0.85f + 0.15f * ease;
+            GUI.matrix = baseM * Matrix4x4.TRS(ctr, Quaternion.identity, Vector3.one) * Matrix4x4.Scale(new Vector3(sc, sc, 1f)) * Matrix4x4.TRS(-ctr, Quaternion.identity, Vector3.one);
+            GUI.color = new Color(1f, 1f, 1f, ease);
+            var box = new Rect(w * 0.5f - 230f, h * 0.5f - 185f, 460f, 370f);
             uiRects.Add(box);
             GUI.Box(box, "", UiTheme.Parchment);
-            var head = new GUIStyle(UiTheme.Title) { fontSize = 30, normal = { textColor = r.Victory ? new Color(0.25f, 0.55f, 0.15f) : new Color(0.7f, 0.15f, 0.1f) } };
-            GUI.Label(new Rect(box.x, box.y + 12, box.width, 40), (testBattle ? "TEST: " : "") + (r.Victory ? "ZAFER!" : "YENİLGİ"), head);
+            var head = new GUIStyle(UiTheme.Title) { fontSize = 32, normal = { textColor = r.Victory ? new Color(0.25f, 0.55f, 0.15f) : new Color(0.7f, 0.15f, 0.1f) } };
+            GUI.Label(new Rect(box.x, box.y + 10, box.width, 42), (testBattle ? "TEST: " : "") + (r.Victory ? "ZAFER!" : "YENİLGİ"), head);
+            // yıldızlar sırayla parlayarak yerine oturur
             for (int i = 0; i < 3; i++)
-                UiTheme.Dot(new Rect(box.x + box.width * 0.5f - 66 + i * 46, box.y + 56, 40, 40), i < r.Stars ? new Color(1f, 0.82f, 0.2f) : new Color(0.55f, 0.48f, 0.40f));
-            float y = box.y + 104f;
-            Line(box, ref y, "Genel hasar: %" + r.OverallDamagePct + (testBattle ? "   (test: ödül yok)" : "   XP: +" + (lastOutcome != null ? lastOutcome.XpGained : r.Xp)));
+            {
+                float st = t - 0.35f - i * 0.3f;
+                bool won = i < r.Stars;
+                float pop = won ? (st <= 0f ? 0f : st < 0.18f ? Mathf.Lerp(0f, 1.35f, st / 0.18f) : Mathf.Lerp(1.35f, 1f, Mathf.Clamp01((st - 0.18f) / 0.15f))) : 1f;
+                float size = 54f * (won ? pop : 0.85f);
+                var c = new Vector2(box.x + box.width * 0.5f - 64f + i * 64f, box.y + 86f + (i == 1 ? -8f : 0f));
+                var sr = new Rect(c.x - size * 0.5f, c.y - size * 0.5f, size, size);
+                GUI.color = won ? new Color(1f, 0.82f, 0.2f, ease) : new Color(0.45f, 0.38f, 0.3f, 0.7f * ease);
+                if (size > 1f) GUI.DrawTexture(sr, FxKit.Star, ScaleMode.ScaleToFit, true);
+                if (won && st > 0f && st < 0.5f)
+                {
+                    GUI.color = new Color(1f, 0.95f, 0.7f, (0.5f - st) * 2f * ease); // parıltı
+                    float gs = size * 1.9f;
+                    GUI.DrawTexture(new Rect(c.x - gs * 0.5f, c.y - gs * 0.5f, gs, gs), FxKit.Glow, ScaleMode.ScaleToFit, true);
+                }
+            }
+            GUI.color = new Color(1f, 1f, 1f, ease);
+            float y = box.y + 124f;
+            int shownPct = Mathf.RoundToInt(Mathf.Lerp(0f, r.OverallDamagePct, Mathf.Clamp01((t - 0.2f) / 0.9f))); // sayarak artar
+            Line(box, ref y, "Genel hasar: %" + shownPct + (testBattle ? "   (test: ödül yok)" : "   XP: +" + (lastOutcome != null ? lastOutcome.XpGained : r.Xp)));
             Line(box, ref y, "Yağma: " + (r.Loot.Wood + r.Loot.Stone + r.Loot.Gold + r.Loot.Iron > 0 ? r.Loot.ToString() : "yok"));
             Line(box, ref y, "Ölü " + BattleResult.Total(r.LostDead) + "  Yaralı " + BattleResult.Total(r.LostInjured) + "  Feda " + BattleResult.Total(r.LostSacrificed));
             Line(box, ref y, "Dönen asker: " + BattleResult.Total(r.Returned));
             if (lastOutcome != null && lastOutcome.LevelUps.Count > 0) Line(box, ref y, "SEVİYE ATLADIN → Sv " + g.Level);
-            if (GUI.Button(new Rect(box.x + box.width * 0.5f - 80f, box.y + box.height - 56f, 160f, 42f), "Tamam", UiTheme.BtnGreen)) CloseBattle();
+            bool again = !testBattle;
+            var okR = new Rect(box.x + box.width * 0.5f - (again ? 168f : 80f), box.y + box.height - 56f, 160f, 42f);
+            if (GUI.Button(Pressed(okR), "Köye Dön", UiTheme.BtnGreen)) { GUI.matrix = baseM; GUI.color = Color.white; CloseBattle(); return; }
+            if (again)
+            {
+                var agR = new Rect(box.x + box.width * 0.5f + 8f, box.y + box.height - 56f, 160f, 42f);
+                if (GUI.Button(Pressed(agR), "Yeni Saldırı", UiTheme.BtnRed)) { GUI.matrix = baseM; GUI.color = Color.white; CloseBattle(); targetSeed++; targets = null; tab = Tab.Attack; return; }
+            }
+            GUI.matrix = baseM; GUI.color = Color.white;
         }
 
         private static void Line(Rect box, ref float y, string text)
