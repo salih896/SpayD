@@ -102,17 +102,62 @@ namespace GameClient
             root.localScale = Vector3.one * 1.6f; // binaların yanında seçilebilsin
             var body = new GameObject("body").transform;
             body.SetParent(root, false);
-            var shirt = VillagerShirts[i % VillagerShirts.Length];
-            VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.07f, 0f), new Vector3(0.09f, 0.07f, 0.09f), VillageArt.WoodDark);       // pantolon
-            VillageArt.Part(body, VillageArt.Shape.Capsule, new Vector3(0f, 0.19f, 0f), new Vector3(0.12f, 0.1f, 0.1f), shirt);                // gövde
-            VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(0f, 0.31f, 0f), new Vector3(0.09f, 0.09f, 0.09f), VillageArt.Skin);       // baş
-            VillageArt.Part(body, VillageArt.Shape.Cone, new Vector3(0f, 0.37f, 0f), new Vector3(0.13f, 0.05f, 0.13f), new Color(0.82f, 0.70f, 0.40f)); // hasır şapka
+            // sevimli köylüler (kullanıcı isteği 27.11.2026 "1i kız 1i erkek, köylü gibi giydir"): iri baş, nokta gözler,
+            // pembe yanaklar; çiftler kız (önlüklü elbise, örgülü saç, başörtüsü), tekler erkek (keten gömlek, yelek, hasır şapka)
+            bool girl = i % 2 == 0;
+            var cloth = VillagerShirts[i % VillagerShirts.Length];
+            var linen = new Color(0.92f, 0.86f, 0.72f);
+            var hair = (i / 2) % 2 == 0 ? new Color(0.42f, 0.25f, 0.12f) : new Color(0.75f, 0.52f, 0.25f);
+            var shoe = new Color(0.3f, 0.2f, 0.12f);
+            foreach (var sx in new[] { -0.03f, 0.03f }) VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(sx, 0.012f, 0.008f), new Vector3(0.035f, 0.024f, 0.05f), shoe); // ayakkabılar
+            if (girl)
+            {
+                VillageArt.Part(body, VillageArt.Shape.Cone, new Vector3(0f, 0.1f, 0f), new Vector3(0.17f, 0.2f, 0.17f), cloth);                                  // etek
+                VillageArt.Part(body, VillageArt.Shape.Capsule, new Vector3(0f, 0.16f, 0f), new Vector3(0.1f, 0.1f, 0.085f), cloth);                             // korsaj
+                VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.08f, 0.05f), new Vector3(0.075f, 0.1f, 0.008f), Color.white, new Vector3(-22f, 0f, 0f)); // önlük
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.135f, 0f), new Vector3(0.1f, 0.006f, 0.09f), Color.white);                          // önlük bağı
+            }
+            else
+            {
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.06f, 0f), new Vector3(0.085f, 0.07f, 0.075f), new Color(0.45f, 0.32f, 0.2f));        // pantolon
+                VillageArt.Part(body, VillageArt.Shape.Capsule, new Vector3(0f, 0.15f, 0f), new Vector3(0.105f, 0.12f, 0.09f), linen);                            // keten gömlek
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.15f, 0f), new Vector3(0.112f, 0.06f, 0.095f), cloth);                               // yelek
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.115f, 0f), new Vector3(0.11f, 0.01f, 0.095f), new Color(0.35f, 0.22f, 0.12f));      // kemer
+            }
+            // baş: iri, sevimli
+            VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(0f, 0.27f, 0f), new Vector3(0.13f, 0.125f, 0.13f), VillageArt.Skin);
+            foreach (var sx in new[] { -0.025f, 0.025f })
+            {
+                VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(sx, 0.276f, 0.058f), new Vector3(0.018f, 0.022f, 0.012f), VillageArt.Dark);              // göz
+                VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(sx * 1.75f, 0.254f, 0.052f), new Vector3(0.02f, 0.012f, 0.01f), new Color(1f, 0.6f, 0.6f)); // yanak
+            }
+            if (girl)
+            {
+                VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(0f, 0.29f, -0.012f), new Vector3(0.138f, 0.12f, 0.13f), hair);                          // saç
+                foreach (var sx in new[] { -0.058f, 0.058f })
+                {
+                    VillageArt.Part(body, VillageArt.Shape.Capsule, new Vector3(sx, 0.215f, -0.015f), new Vector3(0.03f, 0.08f, 0.03f), hair);                   // örgü
+                    VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(sx, 0.18f, -0.015f), new Vector3(0.025f, 0.018f, 0.025f), cloth);                   // kurdele
+                }
+                VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(0f, 0.315f, -0.008f), new Vector3(0.142f, 0.075f, 0.135f), new Color(0.88f, 0.3f, 0.3f)); // başörtüsü
+            }
+            else
+            {
+                VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(0f, 0.3f, -0.014f), new Vector3(0.136f, 0.09f, 0.128f), hair);                           // saç
+                var straw = new Color(0.86f, 0.74f, 0.42f);
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.33f, 0f), new Vector3(0.21f, 0.01f, 0.21f), straw);                                 // hasır şapka kenarı
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.355f, 0f), new Vector3(0.1f, 0.05f, 0.1f), straw);
+                VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.34f, 0f), new Vector3(0.104f, 0.012f, 0.104f), new Color(0.75f, 0.2f, 0.18f));     // şapka bandı
+            }
+            VillageArt.Part(body, VillageArt.Shape.Capsule, new Vector3(-0.062f, 0.15f, 0f), new Vector3(0.028f, 0.07f, 0.028f), linen, new Vector3(0f, 0f, -12f)); // sol kol
+            VillageArt.Part(body, VillageArt.Shape.Ball, new Vector3(-0.07f, 0.11f, 0f), Vector3.one * 0.025f, VillageArt.Skin);
             var arm = new GameObject("arm").transform;
             arm.SetParent(body, false);
-            arm.localPosition = new Vector3(0.07f, 0.24f, 0f);
-            VillageArt.Part(arm, VillageArt.Shape.Cyl, new Vector3(0f, -0.05f, 0.02f), new Vector3(0.03f, 0.05f, 0.03f), shirt);
-            VillageArt.Part(arm, VillageArt.Shape.Cyl, new Vector3(0f, -0.06f, 0.08f), new Vector3(0.015f, 0.06f, 0.015f), VillageArt.Wood, new Vector3(90f, 0f, 0f)); // çekiç sapı
-            VillageArt.Part(arm, VillageArt.Shape.Box, new Vector3(0f, -0.06f, 0.14f), new Vector3(0.05f, 0.03f, 0.03f), VillageArt.Iron);     // çekiç başı
+            arm.localPosition = new Vector3(0.062f, 0.19f, 0f);
+            VillageArt.Part(arm, VillageArt.Shape.Capsule, new Vector3(0f, -0.035f, 0f), new Vector3(0.028f, 0.07f, 0.028f), linen);
+            VillageArt.Part(arm, VillageArt.Shape.Ball, new Vector3(0f, -0.075f, 0.005f), Vector3.one * 0.025f, VillageArt.Skin);                                // el
+            VillageArt.Part(arm, VillageArt.Shape.Cyl, new Vector3(0f, -0.075f, 0.05f), new Vector3(0.012f, 0.045f, 0.012f), VillageArt.Wood, new Vector3(90f, 0f, 0f)); // çekiç sapı
+            VillageArt.Part(arm, VillageArt.Shape.Box, new Vector3(0f, -0.075f, 0.095f), new Vector3(0.04f, 0.025f, 0.025f), VillageArt.Iron);                    // çekiç başı
             // başlangıç: bir yol karesi
             var roads = layout.CellsOf(CellKind.Road);
             var start = roads.Count > 0 ? roads[villagerRng.Next(roads.Count)] : new GridPos(layout.Size / 2, 1);
