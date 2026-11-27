@@ -180,29 +180,30 @@ namespace GameClient
             switch (t)
             {
                 case SoldierType.Swordsman:
-                    return new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 15 ? "shield_badge_color" : (L >= 6 ? "shield_badge" : "shield_round"), Attack = "Melee_1H_Attack_Chop,Melee_1H_Attack_Slice_Diagonal,Melee_1H_Attack_Slice_Horizontal", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = w };
+                    // Uzun Kılıç (kullanıcı isteği 27.11.2026): kalkansız, iki elle tutulan uzun kılıç ve iki el saldırıları
+                    return new Look { Model = "Knight", Right = L >= 15 ? "sword_2handed_color" : "sword_2handed", Attack = "Melee_2H_Attack_Chop,Melee_2H_Attack_Slice,Melee_2H_Attack_Spin", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 0.62f, Tint = w };
                 case SoldierType.Archer:
-                    return new Look { Model = "Ranger", Left = "bow_withString", Right = null, Attack = "Ranged_Bow_Release", Idle = "Ranged_Bow_Idle", Walk = "Walking_B", Height = 0.7f, Tint = w };
+                    return new Look { Model = "Ranger", Left = "bow_withString", Right = null, Attack = "Ranged_Bow_Release", Idle = "Ranged_Bow_Idle", Walk = "Walking_B", Height = 0.6f, Tint = w };
                 case SoldierType.Mage:
-                    return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Walking_A", Height = 0.7f, Tint = w };
+                    return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Walking_A", Height = 0.6f, Tint = w };
                 case SoldierType.Goblin:
-                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice,Melee_Dualwield_Attack_Chop", Idle = "Idle_A", Walk = "Walking_C", Height = 0.48f, Tint = w };
+                    return new Look { Model = "Rogue", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice,Melee_Dualwield_Attack_Chop", Idle = "Idle_A", Walk = "Walking_C", Height = 0.42f, Tint = w };
                 case SoldierType.Spearman:
-                    return new Look { Model = "Rogue_Hooded", Right = "staff", Left = L >= 10 ? "shield_spikes_color" : "shield_spikes", Attack = "Melee_2H_Attack_Stab,Melee_2H_Attack_Slice", Idle = "Idle_A", Walk = "Walking_A", Height = 0.72f, Tint = new Color(1f, 0.92f, 0.8f) };
+                    return new Look { Model = "Rogue_Hooded", Right = "staff", Left = L >= 10 ? "shield_spikes_color" : "shield_spikes", Attack = "Melee_2H_Attack_Stab,Melee_2H_Attack_Slice", Idle = "Idle_A", Walk = "Walking_A", Height = 0.62f, Tint = new Color(1f, 0.92f, 0.8f) };
                 case SoldierType.Giant:
-                    return new Look { Model = "Barbarian", Right = "axe_2handed", Attack = "Melee_2H_Attack_Chop,Melee_2H_Attack_Slice,Melee_2H_Attack_Chop,Melee_2H_Attack_Spin", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 1.1f, Tint = new Color(1f, 0.9f, 0.85f) };
+                    return new Look { Model = "Barbarian", Right = "axe_2handed", Attack = "Melee_2H_Attack_Chop,Melee_2H_Attack_Slice,Melee_2H_Attack_Chop,Melee_2H_Attack_Spin", Idle = "Melee_2H_Idle", Walk = "Walking_A", Height = 0.92f, Tint = new Color(1f, 0.9f, 0.85f) };
                 case SoldierType.Fairy:
-                    return new Look { Model = "Mage", Right = "wand", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Idle_B", Height = 0.42f, Tint = new Color(1f, 0.8f, 0.95f) };
+                    return new Look { Model = "Mage", Right = "wand", Attack = "Ranged_Magic_Shoot", Idle = "Idle_B", Walk = "Idle_B", Height = 0.36f, Tint = new Color(1f, 0.8f, 0.95f) };
                 case SoldierType.Shieldbearer:
-                    return new Look { Model = "Knight", Right = "axe_1handed", Left = "shield_square_color", Attack = "Melee_Block_Attack,Melee_1H_Attack_Chop", Idle = "Melee_Blocking", Walk = "Walking_A", Height = 0.78f, Tint = new Color(0.82f, 0.9f, 1f) };
+                    return new Look { Model = "Knight", Right = "axe_1handed", Left = "shield_square_color", Attack = "Melee_Block_Attack,Melee_1H_Attack_Chop", Idle = "Melee_Blocking", Walk = "Walking_A", Height = 0.66f, Tint = new Color(0.82f, 0.9f, 1f) };
                 case SoldierType.Assassin:
-                    return new Look { Model = "Rogue_Hooded", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice", Idle = "Idle_A", Walk = "Walking_C", Height = 0.66f, Tint = new Color(0.45f, 0.4f, 0.55f) };
+                    return new Look { Model = "Rogue_Hooded", Right = "dagger", Left = "dagger", Attack = "Melee_Dualwield_Attack_Stab,Melee_Dualwield_Attack_Slice", Idle = "Idle_A", Walk = "Walking_C", Height = 0.58f, Tint = new Color(0.45f, 0.4f, 0.55f) };
                 case SoldierType.Healer:
-                    return new Look { Model = "Mage", Right = "staff", Left = "spellbook_open", Attack = "Ranged_Magic_Spellcasting", Idle = "Idle_B", Walk = "Walking_A", Height = 0.7f, Tint = new Color(1f, 1f, 0.82f) };
+                    return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Spellcasting", Idle = "Idle_B", Walk = "Walking_A", Height = 0.6f, Tint = w }; // Şaman: kalkana benzeyen kitap kalktı
                 case SoldierType.Crossbowman:
-                    return new Look { Model = "Ranger", Right = "crossbow_2handed", Attack = "Ranged_2H_Shoot", Idle = "Ranged_2H_Aiming", Walk = "Walking_B", Height = 0.7f, Tint = new Color(0.95f, 0.85f, 0.7f) };
+                    return new Look { Model = "Ranger", Right = "crossbow_2handed", Attack = "Ranged_2H_Shoot", Idle = "Ranged_2H_Aiming", Walk = "Walking_B", Height = 0.6f, Tint = new Color(0.95f, 0.85f, 0.7f) };
                 case SoldierType.Bomber:
-                    return new Look { Model = "Barbarian", Right = "smokebomb", Attack = "Throw", Idle = "Idle_A", Walk = "Walking_C", Height = 0.68f, Tint = new Color(0.9f, 0.62f, 0.5f) };
+                    return new Look { Model = "Barbarian", Right = "smokebomb", Attack = "Throw", Idle = "Idle_A", Walk = "Walking_C", Height = 0.6f, Tint = new Color(0.9f, 0.62f, 0.5f) };
                 default:
                     return new Look { Model = null };
             }
@@ -229,6 +230,12 @@ namespace GameClient
             var body = Character(root, look, L, t == SoldierType.Fairy ? 0f : look.Height * 1.25f, t == SoldierType.Archer || t == SoldierType.Mage || t == SoldierType.Fairy || t == SoldierType.Crossbowman || t == SoldierType.Healer ? 0.3f : 0.45f);
             if (body == null) { Object.Destroy(root.gameObject); return null; }
             if (t == SoldierType.Goblin) Goblinize(root, body, look.Height);
+            if (t == SoldierType.Healer) Shamanize(body, look.Height);
+            if (t == SoldierType.Swordsman) // uzun kılıç: bıçak %35 daha uzun
+            {
+                var hand = ModelLibrary.FindDeep(body, "handslot.r");
+                if (hand != null && hand.childCount > 0) hand.GetChild(hand.childCount - 1).localScale = new Vector3(1.1f, 1.35f, 1.1f);
+            }
             if (t == SoldierType.Fairy) VillageArt.FairyWings(root, look.Height);
             VillageArt.LevelEffectsPublic(root, L, t == SoldierType.Giant ? 1.8f : 1f, look.Height * 1.05f);
             return root;
@@ -274,6 +281,44 @@ namespace GameClient
             VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0f, h * 0.55f, -h * 0.2f), new Vector3(0.17f, 0.19f, 0.13f) * s, VillageArt.Mat(new Color(0.6f, 0.47f, 0.3f)));
             VillageArt.Part(root, VillageArt.Shape.Cyl, new Vector3(0f, h * 0.76f, -h * 0.2f), new Vector3(0.05f, 0.04f, 0.05f) * s, VillageArt.Mat(new Color(0.45f, 0.32f, 0.2f)));
             VillageArt.Part(root, VillageArt.Shape.Ball, new Vector3(0.05f * s, h * 0.8f, -h * 0.2f), Vector3.one * 0.035f * s, VillageArt.Mat(new Color(1f, 0.82f, 0.2f), 0.8f, 0.6f)); // taşan altın
+        }
+
+        /// <summary>
+        /// Şifacı = şaman (kullanıcı isteği 27.11.2026 "shaman gibi giydir"): büyücü şapkası ve pelerini yok; deri/keten giysi,
+        /// tüylü başlık bandı ve diş kolye.
+        /// </summary>
+        private static void Shamanize(Transform body, float h)
+        {
+            foreach (var r in body.GetComponentsInChildren<Renderer>(true))
+            {
+                if (!r.name.StartsWith("Mage_")) continue; // asa değil
+                if (r.name.Contains("Hat") || r.name.Contains("Cape")) { r.enabled = false; continue; }
+                if (r.name.Contains("Head")) continue; // yüz dokusu kalsın
+                var col = r.name.Contains("Arm") ? new Color(0.62f, 0.42f, 0.26f) : r.name.Contains("Leg") ? new Color(0.36f, 0.26f, 0.17f) : new Color(0.5f, 0.56f, 0.3f);
+                var mats = r.sharedMaterials;
+                for (int i = 0; i < mats.Length; i++) mats[i] = VillageArt.Mat(col);
+                r.sharedMaterials = mats;
+            }
+            var headBone = ModelLibrary.FindDeep(body, "head");
+            if (headBone == null) return;
+            var g = new GameObject("shamanHead").transform;
+            g.SetParent(headBone, false);
+            var ls = headBone.lossyScale;
+            g.localScale = new Vector3(1f / Mathf.Max(ls.x, 1e-5f), 1f / Mathf.Max(ls.y, 1e-5f), 1f / Mathf.Max(ls.z, 1e-5f));
+            float k = h / 0.48f;
+            VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, 0.1f * k, -0.01f * k), new Vector3(0.2f, 0.03f, 0.19f) * k, VillageArt.Mat(new Color(0.7f, 0.2f, 0.15f))); // başlık bandı
+            var fc = new[] { new Color(0.95f, 0.95f, 0.9f), new Color(0.2f, 0.55f, 0.75f), new Color(0.95f, 0.75f, 0.2f), new Color(0.2f, 0.55f, 0.75f), new Color(0.95f, 0.95f, 0.9f) };
+            for (int i = 0; i < 5; i++) // arkaya yelpaze tüyler
+            {
+                float a = (i - 2) * 22f;
+                VillageArt.Part(g, VillageArt.Shape.Capsule, new Vector3(Mathf.Sin(a * Mathf.Deg2Rad) * 0.06f * k, 0.17f * k, -0.07f * k), new Vector3(0.03f, 0.13f, 0.012f) * k, VillageArt.Mat(fc[i]), new Vector3(-15f, 0f, -a));
+            }
+            // diş kolye (boyun çevresi)
+            for (int i = 0; i < 7; i++)
+            {
+                float a = (i - 3) * 22f * Mathf.Deg2Rad;
+                VillageArt.Part(g, VillageArt.Shape.Cone, new Vector3(Mathf.Sin(a) * 0.065f * k, -0.1f * k, Mathf.Cos(a) * 0.055f * k), new Vector3(0.018f, 0.035f, 0.018f) * k, VillageArt.Mat(new Color(0.95f, 0.92f, 0.82f)), new Vector3(180f, 0f, 0f));
+            }
         }
 
         /// <summary>KayKit karakteri: boy, silahlar, renk tonu, animasyon (ModelRig holder üstünde). Model yoksa null.</summary>
@@ -359,7 +404,7 @@ namespace GameClient
                 r.sharedMaterials = mats;
             }
             float mh = FixSkinnedBounds(mount, out float baseY);
-            float targetH = dragon ? 0.75f : 0.62f;
+            float targetH = dragon ? 1.0f : 0.74f; // binicili: binek insan boyuna orantılı (kullanıcı isteği 27.11.2026 "boyları orantılı yap")
             float k = mh > 0.001f ? targetH * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)) / mh : 1f;
             mount.localScale *= k;
             mount.localPosition -= new Vector3(0f, baseY * k, 0f); // ayaklar yere
@@ -374,8 +419,8 @@ namespace GameClient
             }
 
             var riderLook = dragon
-                ? new Look { Model = "Barbarian", Right = "axe_1handed", Attack = "Melee_1H_Attack_Chop,Melee_1H_Attack_Slice_Horizontal", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = new Color(1f, 0.85f, 0.75f) }
-                : new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 12 ? "shield_badge_color" : "shield_badge", Attack = "Melee_1H_Attack_Slice_Horizontal,Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.5f, Tint = Color.white };
+                ? new Look { Model = "Barbarian", Right = "axe_1handed", Attack = "Melee_1H_Attack_Chop,Melee_1H_Attack_Slice_Horizontal", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.52f, Tint = new Color(1f, 0.85f, 0.75f) }
+                : new Look { Model = "Knight", Right = "sword_1handed", Left = L >= 12 ? "shield_badge_color" : "shield_badge", Attack = "Melee_1H_Attack_Slice_Horizontal,Melee_1H_Attack_Chop", Idle = "Jump_Idle", Walk = "Jump_Idle", Height = 0.52f, Tint = Color.white };
             var rider = VillageArt.Group(root, "rider", new Vector3(0f, (dragon ? DragonSeat : HorseSeat) * targetH, dragon ? DragonSeatZ : HorseSeatZ));
             Character(rider, riderLook, L, 0f);
             root.gameObject.AddComponent<MultiRig>();

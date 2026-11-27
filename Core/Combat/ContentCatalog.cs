@@ -15,7 +15,7 @@ namespace GameCore.Combat
         private static readonly SoldierDef[] Soldiers =
         {
             // Dengeli ön hat
-            new SoldierDef { Type = SoldierType.Swordsman, Name = "Kılıçlı", Hp = 70, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 3, Cost = new ResourceCost(40) },
+            new SoldierDef { Type = SoldierType.Swordsman, Name = "Uzun Kılıç", Hp = 70, Attack = 14, IntervalTicks = 8, RangeMilli = 1500, SpeedMilli = 70, ArmorPct = 10, TrainSeconds = 120, UnlockLevel = 3, Cost = new ResourceCost(40) },
             // Uzaktan, kırılgan
             new SoldierDef { Type = SoldierType.Archer, Name = "Okçu", Hp = 60, Attack = 17, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 180, UnlockLevel = 3, Cost = new ResourceCost(45) },
             // Alan hasarı, ateşe dirençli
@@ -42,7 +42,7 @@ namespace GameCore.Combat
             // Şifacı: saldırmaz, 2 hücredeki askerleri iyileştirir (uzaktan durur)
             new SoldierDef { Type = SoldierType.Healer, Name = "Şifacı", Hp = 140, Attack = 0, IntervalTicks = 10, RangeMilli = 2000, SpeedMilli = 70, TrainSeconds = 420, UnlockLevel = 14, Cost = new ResourceCost(120, 80) },
             // Arbaletli: uzun menzil, kulelere bonus
-            new SoldierDef { Type = SoldierType.Crossbowman, Name = "Arbaletli", Hp = 90, Attack = 26, IntervalTicks = 12, RangeMilli = 3000, SpeedMilli = 60, TrainSeconds = 360, UnlockLevel = 19, Cost = new ResourceCost(150, 90, 40) },
+            new SoldierDef { Type = SoldierType.Crossbowman, Name = "Arbaletli", Hp = 90, Attack = 26, IntervalTicks = 36, RangeMilli = 3000, SpeedMilli = 60, TrainSeconds = 360, UnlockLevel = 19, Cost = new ResourceCost(150, 90, 40) },
             // Bombacı: yapıya ulaşınca patlar (büyük alan hasarı), kendisi ölür
             new SoldierDef { Type = SoldierType.Bomber, Name = "Bombacı", Hp = 110, Attack = 200, IntervalTicks = 10, RangeMilli = 1500, SpeedMilli = 110, SplashMilli = 1500, TrainSeconds = 360, UnlockLevel = 24, Cost = new ResourceCost(160, 100, 50) },
         };

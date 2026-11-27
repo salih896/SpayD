@@ -99,7 +99,7 @@ namespace GameClient
         {
             var root = new GameObject("Villager" + i).transform;
             root.SetParent(villagerRoot, false);
-            root.localScale = Vector3.one * 1.6f; // binaların yanında seçilebilsin
+            root.localScale = Vector3.one * 1.75f; // binaların yanında seçilebilsin
             var body = new GameObject("body").transform;
             body.SetParent(root, false);
             // sevimli köylüler (kullanıcı isteği 27.11.2026 "1i kız 1i erkek, köylü gibi giydir"): iri baş, nokta gözler,

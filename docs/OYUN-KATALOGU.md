@@ -6,7 +6,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 | Asker | Açılış | Can | Hasar | Aralık | Menzil | Hız | Özellik | Eğitim maliyeti | Eğitim |
 |---|---|---|---|---|---|---|---|---|---|
-| Kılıçlı | Sv2 | 70 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
+| Uzun Kılıç | Sv2 | 70 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 17 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
 | Goblin | Sv4 | 35 | 13 | 6 | 1,5 | 0,16 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,04 | Zırh %30 | 60 odun, 15 taş | 5 dk |
@@ -17,7 +17,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 | Mancınık | Sv17 | 140 | 70 | 35 | 2,0 | 0,03 | Kuşatma, alan 1,5 | 220 odun, 140 taş, 60 altın | 10 dk |
 | Ejderha Binicisi | Sv21 | 420 | 34 | 12 | 2,0 | 0,09 | Uçar, alan 1,0, ateş direnci %50 | 260 odun, 200 taş, 110 altın | 10 dk |
 
-**Orduda kapladığı yer:** Kılıçlı/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer). Yolda: askerler 3 şeride dağılır, üst üste binmez (Dev ve Mancınık 2 şerit); birbirini engellemez.
+**Orduda kapladığı yer:** Uzun Kılıç/Okçu/Goblin 1, Mızraklı/Peri 2, Büyücü/Atlı 3, Dev 5, Mancınık 6, Ejderha Binicisi 10. Ordu kapasitesi = 20 + 4 × kışla seviyeleri toplamı (yer). Yolda: askerler 3 şeride dağılır, üst üste binmez (Dev ve Mancınık 2 şerit); birbirini engellemez.
 
 **Geliştirme:** Kışlaya dokununca açılan pencerede tür başına yapılır; işçi + kaynak (eğitim maliyeti × 8 × seviye çarpanı) + süre gerekir. Süre eğitim süresiyle orantılıdır (Goblin hızlı, Dev/Mancınık/Ejderha yavaş). Hedef seviye, kışla seviyesini ve oyuncu seviyesini aşamaz.
 
@@ -25,7 +25,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 
 | Asker | Sv2 | Sv3 | Sv8 |
 |---|---|---|---|
-| Kılıçlı | Kalkan: gelen hasar −%20 | Öfke: canı yarının altındayken hasar +%30 | Girdap: saldırıları çevreye de vurur |
+| Uzun Kılıç | Kalkan: gelen hasar −%20 | Öfke: canı yarının altındayken hasar +%30 | Girdap: saldırıları çevreye de vurur |
 | Okçu | Kartal Gözü: menzil +%25 | Çift Ok: her 3. atış 2 kat | Kule Avcısı: kulelere +%40 |
 | Büyücü | Geniş Alan: alan büyür | Taş Eritme: kulelere +%25 | Meteor: her 5. büyü 3 kat |
 | Goblin | Çevik: hız +%20 | Yağmacı: kaynak binalarına +%50 | Kaçak: gelen hasar −%30 |
@@ -52,7 +52,7 @@ Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer
 | Kalkanlı | Sv4 | 380 | 8 | 10 | 1,5 | 50 | Zırh %40; kuleler önce onu hedefler | 3 |
 | Suikastçı | Sv9 | 80 | 26 | 8 | 1,5 | 140 | Önce kuleler | 2 |
 | Şifacı | Sv14 | 140 | 0 | 10 | 2,0 | 70 | 2 hücredeki askerleri 2 sn'de bir %5 iyileştirir | 3 |
-| Arbaletli | Sv19 | 90 | 26 | 12 | 3,0 | 60 | Kulelere +%40 | 2 |
+| Arbaletli | Sv19 | 90 | 26 | 36 | 3,0 | 60 | Kulelere +%40 | 2 |
 | Bombacı | Sv24 | 110 | 200 | — | 1,5 | 110 | Yapıya ulaşınca alan 1,5'te patlar, ölür | 2 |
 
 **Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, savunma elementi (Ateş/Buz/Zehir Kalkanı) yalnızca Duvara, element menüsünden verilir; Okçu Kulesi yalnızca saldırı elementi alır.
