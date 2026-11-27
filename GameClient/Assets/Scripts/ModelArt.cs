@@ -401,22 +401,87 @@ namespace GameClient
         private static Transform T(Transform p, string piece, Vector3 pos, float yaw = 0f, float s = 1f) => ModelLibrary.Spawn(p, "Kenney/Town/" + piece, pos, yaw, s);
         private static Transform C(Transform p, string piece, Vector3 pos, float yaw = 0f, float s = 1f) => ModelLibrary.Spawn(p, "Kenney/Castle/" + piece, pos, yaw, s);
 
-        /// <summary>Tek hücrelik ev: dört duvar (kat başına), kapı önde, çatı üstte.</summary>
-        private static void House(Transform g, float s, bool stone, int floors, string roof, bool chimney, string banner)
+        /// <summary>
+        /// Tek hücrelik ev gövdesi: kat başına dört duvar (zemin kapılı), çatı üstte. woodUpper: üst katlar ahşap;
+        /// roofTint: çatıyı renklendirir; window: pencere parçası (ör. "-window-round"). Gövde grubunu döndürür.
+        /// </summary>
+        private static Transform House(Transform g, float s, bool stone, int floors, string roof, bool chimney, string banner,
+            bool woodUpper = false, Color? roofTint = null, string window = "-window-shutters", Vector3 offset = default)
         {
-            var h = VillageArt.Group(g, "house", Vector3.zero, 0f, s);
-            string w = stone ? "wall" : "wall-wood";
+            var h = VillageArt.Group(g, "house", offset, 0f, s);
             for (int f = 0; f < floors; f++)
+            {
+                string w = stone && !(woodUpper && f > 0) ? "wall" : "wall-wood";
                 for (int k = 0; k < 4; k++)
                 {
-                    string piece = f == 0 && k == 1 ? w + "-door" : (k % 2 == 0 ? w + "-window-shutters" : w);
+                    string piece = f == 0 && k == 1 ? w + "-door" : (k % 2 == 0 ? w + window : w);
                     T(h, piece, new Vector3(0f, f, 0f), k * 90f);
                 }
-            T(h, roof, new Vector3(0f, floors, 0f));
+            }
+            var r = T(h, roof, new Vector3(0f, floors, 0f));
+            if (r != null && roofTint.HasValue) Paint(r, roofTint.Value); // doku rengini ezen düz boya (yeşil doku çarpımla kırmızı olmaz)
             if (chimney) T(h, "chimney", new Vector3(0f, floors, 0f), 180f);
             if (banner != null) { T(h, banner, Vector3.zero, 90f); T(h, banner, Vector3.zero, 180f); }
+            return h;
         }
 
+        /// <summary>Kenney parçasını düz renge boyar: dokuyu beyazla değiştirip temel rengi verir (çatı rengi için).</summary>
+        private static void Paint(Transform t, Color c)
+        {
+            var mpb = new MaterialPropertyBlock();
+            foreach (var r in t.GetComponentsInChildren<Renderer>())
+            {
+                r.GetPropertyBlock(mpb);
+                mpb.SetTexture("_BaseMap", Texture2D.whiteTexture);
+                mpb.SetTexture("_MainTex", Texture2D.whiteTexture);
+                mpb.SetColor("_BaseColor", c);
+                mpb.SetColor("_Color", c);
+                r.SetPropertyBlock(mpb);
+            }
+        }
+
+        // kısa yardımcılar (basit şekiller)
+        private static GameObject P(Transform g, VillageArt.Shape sh, Vector3 pos, Vector3 size, Color c, Vector3 e = default) => VillageArt.Part(g, sh, pos, size, c, e);
+        private static GameObject PM(Transform g, VillageArt.Shape sh, Vector3 pos, Vector3 size, Material m, Vector3 e = default) => VillageArt.Part(g, sh, pos, size, m, e);
+
+        /// <summary>Üst üste dizilmiş kütükler (3-2-1 piramit), uçları açık renk halkalı.</summary>
+        private static void LogPile(Transform g, Vector3 at, int rows, float len)
+        {
+            for (int r = 0; r < rows; r++)
+                for (int k = 0; k < rows - r; k++)
+                {
+                    var pos = at + new Vector3(0f, 0.045f + r * 0.075f, (k - (rows - r - 1) * 0.5f) * 0.085f);
+                    P(g, VillageArt.Shape.Cyl, pos, new Vector3(0.08f, len * 0.5f, 0.08f), VillageArt.Wood, new Vector3(0f, 0f, 90f));
+                    foreach (var sx in new[] { -1f, 1f })
+                        P(g, VillageArt.Shape.Cyl, pos + new Vector3(sx * len * 0.5f, 0f, 0f), new Vector3(0.065f, 0.006f, 0.065f), VillageArt.WoodLight, new Vector3(0f, 0f, 90f));
+                }
+        }
+
+        /// <summary>Fener direği: tahta direk + sıcak ışıklı fener.</summary>
+        private static void LampPost(Transform g, Vector3 at, int seed)
+        {
+            P(g, VillageArt.Shape.Cyl, at + new Vector3(0f, 0.16f, 0f), new Vector3(0.025f, 0.32f, 0.025f), VillageArt.WoodDark);
+            P(g, VillageArt.Shape.Box, at + new Vector3(0.04f, 0.31f, 0f), new Vector3(0.08f, 0.015f, 0.015f), VillageArt.WoodDark);
+            var lamp = PM(g, VillageArt.Shape.Box, at + new Vector3(0.075f, 0.27f, 0f), new Vector3(0.045f, 0.06f, 0.045f), VillageArt.Mat(new Color(1f, 0.82f, 0.45f), 0.4f, 2.2f));
+            VillageArt.Animate(lamp, ArtMotion.Kind.Bob, 2.5f, 0.004f, seed);
+        }
+
+        /// <summary>Çit: önde alçak tahta çit (ortada giriş aralığı).</summary>
+        private static void YardFence(Transform g, float z, float half)
+        {
+            for (float x = -half; x <= half + 0.001f; x += 0.15f)
+            {
+                if (Mathf.Abs(x) < 0.12f) continue; // giriş aralığı
+                P(g, VillageArt.Shape.Box, new Vector3(x, 0.06f, z), new Vector3(0.025f, 0.12f, 0.025f), VillageArt.WoodLight);
+            }
+            foreach (var sx in new[] { -1f, 1f })
+                P(g, VillageArt.Shape.Box, new Vector3(sx * (half + 0.12f) * 0.5f, 0.08f, z), new Vector3(half - 0.12f, 0.018f, 0.015f), VillageArt.WoodLight);
+        }
+
+        /// <summary>
+        /// Binalar (kullanıcı isteği 27.11.2026: "tüm yapıların görünüş ve yapısını değiştir, daha güzel yapılar"):
+        /// her bina kendine özgü bir yapı; seviye (tier) arttıkça kat, süs ve ayrıntı eklenir. Ön yüz -z (kamera tarafı).
+        /// </summary>
         public static Transform TryBuildBuilding(Transform parent, BuildingType t, int level, int seed, Vector3 pos)
         {
             if (!ModelLibrary.Available) return null;
@@ -425,56 +490,223 @@ namespace GameClient
             switch (t)
             {
                 case BuildingType.VillagerHouse:
-                    House(g, 0.62f, tier >= 1, tier >= 2 ? 2 : 1, tier >= 3 ? "roof-high-point" : "roof-point", tier >= 1, null);
-                    break;
-                case BuildingType.Barracks:
-                    House(g, 0.7f, true, tier >= 2 ? 2 : 1, "roof-high-point", false, "banner-red");
-                    break;
-                case BuildingType.University:
-                    House(g, 0.6f, true, tier >= 3 ? 3 : 2, "roof-high-point", tier >= 1, "banner-green");
-                    break;
-                case BuildingType.Bank:
-                    House(g, 0.64f, true, tier >= 2 ? 2 : 1, "roof-point", true, "banner-green");
-                    T(g, "lantern", new Vector3(-0.38f, 0f, -0.36f), 0f, 0.35f);
-                    break;
-                case BuildingType.Forest:
+                {
+                    // taş zeminli kır evi; üst kat ahşap, sıcak kırmızı (yüksek seviyede mavi) çatı, baca, çitli ön bahçe
+                    int floors = tier >= 2 ? 2 : 1;
+                    var roofC = tier >= 3 ? new Color(0.36f, 0.48f, 0.78f) : new Color(0.82f, 0.36f, 0.24f);
+                    House(g, 0.56f, tier >= 1, floors, tier >= 3 ? "roof-high-point" : "roof-point", true, null, true, roofC, offset: new Vector3(0f, 0f, 0.06f));
+                    YardFence(g, -0.4f, 0.42f);
+                    LampPost(g, new Vector3(-0.36f, 0f, -0.3f), seed);
+                    LogPile(g, new Vector3(0.36f, 0f, -0.12f), 2, 0.18f); // yakacak odun
+                    foreach (var x in new[] { -0.2f, 0.2f }) // çiçek saksıları
                     {
-                        var trees = new[] { "tree", "tree-high", "tree-crooked", "tree-high-round" };
-                        for (int i = 0; i < 4; i++)
-                            T(g, trees[(seed + i) % 4], new Vector3((VillageArt.Rand(seed, i) - 0.5f) * 0.55f, 0f, (VillageArt.Rand(seed, i + 9) - 0.5f) * 0.55f), VillageArt.Rand(seed, i + 3) * 360f, 0.26f + VillageArt.Rand(seed, i + 20) * 0.08f);
-                        C(g, "tree-trunk", new Vector3(0.25f, 0f, -0.28f), 0f, 0.3f);
+                        P(g, VillageArt.Shape.Box, new Vector3(x, 0.04f, -0.3f), new Vector3(0.1f, 0.06f, 0.06f), VillageArt.WoodDark);
+                        P(g, VillageArt.Shape.Ball, new Vector3(x, 0.09f, -0.3f), new Vector3(0.1f, 0.06f, 0.06f), x < 0 ? new Color(0.95f, 0.45f, 0.6f) : new Color(0.98f, 0.85f, 0.3f));
+                    }
+                    if (tier >= 2) P(g, VillageArt.Shape.Box, new Vector3(0.3f, 0.06f, 0.3f), new Vector3(0.2f, 0.02f, 0.07f), VillageArt.Wood); // bank
+                    if (tier >= 4) // altın rüzgârgülü
+                    {
+                        float top = 0.56f * floors + 0.62f;
+                        P(g, VillageArt.Shape.Cyl, new Vector3(0f, top, 0.06f), new Vector3(0.012f, 0.12f, 0.012f), VillageArt.GoldC);
+                        var vane = PM(g, VillageArt.Shape.Box, new Vector3(0f, top + 0.1f, 0.06f), new Vector3(0.12f, 0.03f, 0.005f), VillageArt.Mat(VillageArt.GoldC, 0.85f, 0.3f));
+                        VillageArt.Animate(vane, ArtMotion.Kind.Spin, 0.6f);
                     }
                     break;
+                }
+                case BuildingType.Barracks:
+                {
+                    // taş kışla: düz çatı + mazgallar, kırmızı sancaklar, kalkan arması; önde talim kuklası ve silah rafı
+                    int floors = tier >= 2 ? 2 : 1;
+                    const float s = 0.64f;
+                    House(g, s, true, floors, "roof-flat", false, "banner-red", false, new Color(0.42f, 0.42f, 0.47f), "-window-stone", new Vector3(0f, 0f, 0.05f));
+                    float top = s * floors + 0.03f;
+                    for (int i = 0; i < 12; i++) // mazgallar (çevre boyunca)
+                    {
+                        int side = i / 3; float u = (i % 3 - 1) * 0.2f;
+                        var m = side == 0 ? new Vector3(u, top, -0.29f) : side == 1 ? new Vector3(0.29f, top, u + 0.05f) : side == 2 ? new Vector3(u, top, 0.39f) : new Vector3(-0.29f, top, u + 0.05f);
+                        P(g, VillageArt.Shape.Box, m, new Vector3(0.1f, 0.09f, 0.1f), VillageArt.StoneLight);
+                    }
+                    // kalkan arması (ön duvar)
+                    P(g, VillageArt.Shape.Cyl, new Vector3(0f, s * floors * 0.62f, -0.275f), new Vector3(0.16f, 0.01f, 0.16f), new Color(0.7f, 0.15f, 0.12f), new Vector3(90f, 0f, 0f));
+                    PM(g, VillageArt.Shape.Ball, new Vector3(0f, s * floors * 0.62f, -0.285f), new Vector3(0.05f, 0.05f, 0.03f), VillageArt.Mat(VillageArt.GoldC, 0.85f, 0.2f));
+                    // talim kuklası
+                    var dummy = new Vector3(-0.34f, 0f, -0.34f);
+                    P(g, VillageArt.Shape.Cyl, dummy + new Vector3(0f, 0.14f, 0f), new Vector3(0.025f, 0.28f, 0.025f), VillageArt.WoodDark);
+                    P(g, VillageArt.Shape.Box, dummy + new Vector3(0f, 0.22f, 0f), new Vector3(0.18f, 0.025f, 0.025f), VillageArt.WoodDark);
+                    P(g, VillageArt.Shape.Capsule, dummy + new Vector3(0f, 0.2f, 0f), new Vector3(0.09f, 0.08f, 0.07f), new Color(0.82f, 0.72f, 0.5f));
+                    P(g, VillageArt.Shape.Ball, dummy + new Vector3(0f, 0.31f, 0f), Vector3.one * 0.07f, new Color(0.82f, 0.72f, 0.5f));
+                    // silah rafı: çerçeve + 3 mızrak
+                    var rack = new Vector3(0.33f, 0f, -0.34f);
+                    P(g, VillageArt.Shape.Box, rack + new Vector3(0f, 0.14f, 0f), new Vector3(0.18f, 0.02f, 0.03f), VillageArt.WoodDark);
+                    foreach (var dx in new[] { -0.08f, 0.08f }) P(g, VillageArt.Shape.Box, rack + new Vector3(dx, 0.09f, 0f), new Vector3(0.02f, 0.18f, 0.02f), VillageArt.WoodDark);
+                    for (int i = 0; i < 3; i++)
+                    {
+                        P(g, VillageArt.Shape.Cyl, rack + new Vector3(-0.05f + i * 0.05f, 0.16f, 0.01f), new Vector3(0.012f, 0.16f, 0.012f), VillageArt.WoodLight);
+                        PM(g, VillageArt.Shape.Cone, rack + new Vector3(-0.05f + i * 0.05f, 0.34f, 0.01f), new Vector3(0.03f, 0.05f, 0.03f), VillageArt.Mat(VillageArt.Iron, 0.85f));
+                    }
+                    if (tier >= 3) // köşe gözetleme kulesi
+                    {
+                        var wt = new Vector3(0.36f, 0f, 0.38f);
+                        P(g, VillageArt.Shape.Cyl, wt + new Vector3(0f, 0.36f, 0f), new Vector3(0.16f, 0.72f, 0.16f), VillageArt.Stone);
+                        P(g, VillageArt.Shape.Cone, wt + new Vector3(0f, 0.82f, 0f), new Vector3(0.22f, 0.2f, 0.22f), VillageArt.RoofRed);
+                    }
+                    break;
+                }
+                case BuildingType.University:
+                {
+                    // Akademi: yuvarlak pencereli taş bina, mor sivri çatı, yan gözlemevi kubbesi + teleskop, tepede süzülen kristal
+                    int floors = tier >= 3 ? 3 : 2;
+                    const float s = 0.52f;
+                    House(g, s, true, floors, "roof-high-point", false, "banner-green", false, new Color(0.5f, 0.32f, 0.8f), "-window-round", new Vector3(-0.08f, 0f, 0.06f));
+                    var ob = new Vector3(0.3f, 0f, -0.24f); // gözlemevi
+                    P(g, VillageArt.Shape.Cyl, ob + new Vector3(0f, 0.12f, 0f), new Vector3(0.26f, 0.24f, 0.26f), VillageArt.StoneLight);
+                    P(g, VillageArt.Shape.Ball, ob + new Vector3(0f, 0.25f, 0f), new Vector3(0.25f, 0.22f, 0.25f), new Color(0.55f, 0.62f, 0.75f));
+                    P(g, VillageArt.Shape.Cyl, ob + new Vector3(-0.06f, 0.36f, -0.04f), new Vector3(0.035f, 0.11f, 0.035f), VillageArt.GoldC, new Vector3(-35f, 0f, 30f));
+                    float top = s * floors + 0.72f; // tepede süzülen kristal
+                    var crys = VillageArt.Group(g, "crystal", new Vector3(-0.08f, top, 0.06f));
+                    var cm = VillageArt.Mat(new Color(0.75f, 0.55f, 1f), 0.95f, 1.6f);
+                    PM(crys, VillageArt.Shape.Pyramid, new Vector3(0f, 0.05f, 0f), new Vector3(0.08f, 0.1f, 0.08f), cm);
+                    PM(crys, VillageArt.Shape.Pyramid, new Vector3(0f, -0.05f, 0f), new Vector3(0.08f, 0.1f, 0.08f), cm, new Vector3(180f, 0f, 0f));
+                    VillageArt.Animate(crys.gameObject, ArtMotion.Kind.Bob, 2f, 0.03f, seed);
+                    var bc = new[] { new Color(0.7f, 0.2f, 0.2f), new Color(0.2f, 0.4f, 0.7f), new Color(0.25f, 0.55f, 0.3f), new Color(0.75f, 0.6f, 0.2f) };
+                    for (int i = 0; i < 4; i++) P(g, VillageArt.Shape.Box, new Vector3(-0.36f, 0.02f + i * 0.03f, -0.34f), new Vector3(0.12f - i * 0.01f, 0.028f, 0.09f), bc[i], new Vector3(0f, i * 12f, 0f)); // kitap yığını
+                    if (tier >= 2) LampPost(g, new Vector3(0.05f, 0f, -0.38f), seed);
+                    break;
+                }
+                case BuildingType.Bank:
+                {
+                    // banka: taş gövde, önde dört sütun ve üçgen alınlık, yüksek seviyede altın kubbe; yanlarda altın sikke kuleleri
+                    int floors = tier >= 2 ? 2 : 1;
+                    const float s = 0.58f;
+                    House(g, s, true, floors, "roof-flat", false, null, false, new Color(0.9f, 0.87f, 0.8f), "-window-stone", new Vector3(0f, 0f, 0.08f));
+                    float h = s * floors;
+                    var marble = new Color(0.93f, 0.9f, 0.84f);
+                    P(g, VillageArt.Shape.Box, new Vector3(0f, 0.025f, -0.3f), new Vector3(0.7f, 0.05f, 0.18f), marble); // basamak
+                    foreach (var x in new[] { -0.27f, -0.09f, 0.09f, 0.27f })
+                        P(g, VillageArt.Shape.Cyl, new Vector3(x, 0.05f + h * 0.45f, -0.32f), new Vector3(0.06f, h * 0.45f, 0.06f), marble);
+                    P(g, VillageArt.Shape.Box, new Vector3(0f, h + 0.06f, -0.3f), new Vector3(0.72f, 0.05f, 0.14f), marble); // saçak
+                    P(g, VillageArt.Shape.Roof, new Vector3(0f, h + 0.14f, -0.3f), new Vector3(0.72f, 0.12f, 0.14f), marble); // alınlık
+                    PM(g, VillageArt.Shape.Cyl, new Vector3(0f, h + 0.13f, -0.375f), new Vector3(0.06f, 0.005f, 0.06f), VillageArt.Mat(VillageArt.GoldC, 0.9f, 0.4f), new Vector3(90f, 0f, 0f)); // sikke arması
+                    var gold = VillageArt.Mat(VillageArt.GoldC, 0.9f, 0.35f);
+                    foreach (var x in new[] { -0.38f, 0.38f }) // sikke kuleleri
+                        for (int i = 0; i < 3 + tier; i++)
+                            PM(g, VillageArt.Shape.Cyl, new Vector3(x + (i % 2) * 0.01f, 0.012f + i * 0.022f, -0.12f), new Vector3(0.07f, 0.01f, 0.07f), gold);
+                    if (tier >= 3) PM(g, VillageArt.Shape.Ball, new Vector3(0f, h + 0.06f, 0.08f), new Vector3(0.3f, 0.24f, 0.3f), gold); // altın kubbe
+                    break;
+                }
+                case BuildingType.Forest:
+                {
+                    var trees = new[] { "tree", "tree-high", "tree-crooked", "tree-high-round" };
+                    for (int i = 0; i < 4; i++)
+                        T(g, trees[(seed + i) % 4], new Vector3((VillageArt.Rand(seed, i) - 0.5f) * 0.55f, 0f, VillageArt.Rand(seed, i + 9) * 0.6f - 0.1f), VillageArt.Rand(seed, i + 3) * 360f, 0.26f + VillageArt.Rand(seed, i + 20) * 0.08f);
+                    var stump = new Vector3(-0.28f, 0f, -0.3f); // oduncu köşesi: balta saplanmış kütük + kesilmiş odun
+                    P(g, VillageArt.Shape.Cyl, stump + new Vector3(0f, 0.05f, 0f), new Vector3(0.14f, 0.05f, 0.14f), VillageArt.Wood);
+                    P(g, VillageArt.Shape.Cyl, stump + new Vector3(0f, 0.101f, 0f), new Vector3(0.12f, 0.003f, 0.12f), VillageArt.WoodLight);
+                    P(g, VillageArt.Shape.Cyl, stump + new Vector3(0.02f, 0.17f, 0f), new Vector3(0.012f, 0.08f, 0.012f), VillageArt.WoodDark, new Vector3(0f, 0f, -20f));
+                    PM(g, VillageArt.Shape.Box, stump + new Vector3(-0.005f, 0.11f, 0f), new Vector3(0.05f, 0.035f, 0.008f), VillageArt.Mat(VillageArt.Iron, 0.9f), new Vector3(0f, 0f, -20f));
+                    LogPile(g, new Vector3(0.22f, 0f, -0.32f), 2 + Mathf.Min(1, tier / 2), 0.22f);
+                    break;
+                }
                 case BuildingType.LumberDepot:
-                    T(g, "stall", new Vector3(0f, 0f, 0.05f), 90f, 1.1f);
-                    for (int i = 0; i < 3; i++) C(g, "tree-log", new Vector3(-0.15f + i * 0.15f, 0.02f, -0.22f), 0f, 0.35f);
-                    T(g, "cart", new Vector3(0.3f, 0f, 0.22f), 30f, 0.45f);
+                {
+                    // kereste deposu: dört direkli eğik çatılı sundurma, altında kütük ve kalas yığınları, döner testereli tezgâh
+                    float roofY = 0.46f + tier * 0.02f;
+                    foreach (var x in new[] { -0.36f, 0.36f })
+                        foreach (var z in new[] { -0.3f, 0.32f })
+                        {
+                            float hh = roofY - (z > 0 ? 0f : 0.08f);
+                            P(g, VillageArt.Shape.Box, new Vector3(x, hh * 0.5f, z), new Vector3(0.04f, hh, 0.04f), VillageArt.WoodDark);
+                        }
+                    P(g, VillageArt.Shape.Box, new Vector3(0f, roofY - 0.04f, 0.01f), new Vector3(0.86f, 0.03f, 0.74f), new Color(0.48f, 0.3f, 0.17f), new Vector3(-6.5f, 0f, 0f));
+                    for (int i = 0; i < 6; i++) // çatı tahtası çizgileri
+                        P(g, VillageArt.Shape.Box, new Vector3(-0.36f + i * 0.144f, roofY - 0.02f, 0.01f), new Vector3(0.01f, 0.012f, 0.74f), VillageArt.WoodDark, new Vector3(-6.5f, 0f, 0f));
+                    LogPile(g, new Vector3(-0.14f, 0f, 0.12f), 3 + Mathf.Min(1, tier / 2), 0.36f);
+                    for (int i = 0; i < 4 + tier; i++) // kalaslar
+                        P(g, VillageArt.Shape.Box, new Vector3(0.24f, 0.015f + i * 0.025f, 0.12f), new Vector3(0.16f, 0.02f, 0.4f), Color.Lerp(VillageArt.WoodLight, VillageArt.Wood, (i % 3) * 0.3f));
+                    var bench = new Vector3(0.05f, 0f, -0.3f);
+                    P(g, VillageArt.Shape.Box, bench + new Vector3(0f, 0.1f, 0f), new Vector3(0.28f, 0.03f, 0.12f), VillageArt.Wood);
+                    foreach (var dx in new[] { -0.11f, 0.11f }) P(g, VillageArt.Shape.Box, bench + new Vector3(dx, 0.05f, 0f), new Vector3(0.025f, 0.1f, 0.1f), VillageArt.WoodDark);
+                    var saw = PM(g, VillageArt.Shape.Cyl, bench + new Vector3(0f, 0.15f, 0f), new Vector3(0.11f, 0.004f, 0.11f), VillageArt.Mat(new Color(0.8f, 0.82f, 0.86f), 0.9f), new Vector3(90f, 0f, 0f));
+                    VillageArt.Animate(saw, ArtMotion.Kind.Wheel, 4f, 0f);
+                    T(g, "cart", new Vector3(-0.36f, 0f, -0.36f), 30f, 0.35f);
                     break;
+                }
                 case BuildingType.StoneQuarry:
-                    C(g, "rocks-large", new Vector3(0.05f, 0f, 0.1f), seed % 360, 0.55f);
-                    C(g, "rocks-small", new Vector3(-0.25f, 0f, -0.2f), 0f, 0.5f);
-                    T(g, "cart", new Vector3(0.28f, 0f, -0.22f), -30f, 0.4f);
+                {
+                    // taş ocağı: kaya yüzü, kesilmiş bloklar, iskele, kazma, el arabası
+                    C(g, "rocks-large", new Vector3(0.05f, 0f, 0.16f), seed % 360, 0.55f);
+                    C(g, "rocks-small", new Vector3(-0.3f, 0f, 0.05f), 40f, 0.45f);
+                    for (int i = 0; i < 3 + Mathf.Min(2, tier); i++)
+                        P(g, VillageArt.Shape.Box, new Vector3(-0.25f + (i % 3) * 0.13f, 0.045f + (i / 3) * 0.09f, -0.26f), new Vector3(0.11f, 0.09f, 0.11f), Color.Lerp(VillageArt.StoneLight, VillageArt.Stone, (i % 2) * 0.5f));
+                    foreach (var x in new[] { 0.18f, 0.38f }) P(g, VillageArt.Shape.Box, new Vector3(x, 0.22f, -0.05f), new Vector3(0.025f, 0.44f, 0.025f), VillageArt.WoodLight);
+                    P(g, VillageArt.Shape.Box, new Vector3(0.28f, 0.3f, -0.05f), new Vector3(0.24f, 0.02f, 0.1f), VillageArt.Wood);
+                    P(g, VillageArt.Shape.Cyl, new Vector3(0.12f, 0.08f, -0.33f), new Vector3(0.012f, 0.09f, 0.012f), VillageArt.WoodDark, new Vector3(0f, 0f, 60f));
+                    PM(g, VillageArt.Shape.Box, new Vector3(0.05f, 0.12f, -0.33f), new Vector3(0.012f, 0.1f, 0.015f), VillageArt.Mat(VillageArt.Iron, 0.85f), new Vector3(0f, 0f, -25f));
+                    T(g, "cart", new Vector3(0.33f, 0f, -0.32f), -30f, 0.35f);
                     break;
+                }
                 case BuildingType.StoneDepot:
-                    T(g, "stall-red", new Vector3(0f, 0f, 0.05f), 90f, 1.1f);
-                    C(g, "rocks-small", new Vector3(-0.2f, 0f, -0.25f), 30f, 0.45f);
-                    C(g, "rocks-small", new Vector3(0.2f, 0f, -0.25f), 160f, 0.4f);
+                {
+                    // taş deposu: alçak taş duvarlı avlu, düzgün taş blok yığınları, tahta vinç ve sallanan asılı blok
+                    var wallC = VillageArt.Stone;
+                    P(g, VillageArt.Shape.Box, new Vector3(0f, 0.07f, 0.4f), new Vector3(0.84f, 0.14f, 0.07f), wallC);
+                    foreach (var x in new[] { -0.41f, 0.41f }) P(g, VillageArt.Shape.Box, new Vector3(x, 0.07f, 0.06f), new Vector3(0.07f, 0.14f, 0.7f), wallC);
+                    int layers = 2 + Mathf.Min(2, tier);
+                    for (int l = 0; l < layers; l++)
+                        for (int k = 0; k < 6 - l; k++)
+                            P(g, VillageArt.Shape.Box, new Vector3(-0.28f + (k % 3) * 0.13f + l * 0.03f, 0.04f + l * 0.08f, 0.2f - (k / 3) * 0.14f), new Vector3(0.12f, 0.075f, 0.12f), Color.Lerp(VillageArt.StoneLight, VillageArt.Stone, ((k + l) % 3) * 0.35f));
+                    var crane = new Vector3(0.24f, 0f, -0.1f);
+                    P(g, VillageArt.Shape.Box, crane + new Vector3(0f, 0.32f, 0f), new Vector3(0.04f, 0.64f, 0.04f), VillageArt.WoodDark);
+                    P(g, VillageArt.Shape.Box, crane + new Vector3(-0.12f, 0.62f, 0f), new Vector3(0.3f, 0.035f, 0.035f), VillageArt.WoodDark);
+                    P(g, VillageArt.Shape.Box, crane + new Vector3(0.05f, 0.5f, 0f), new Vector3(0.03f, 0.2f, 0.03f), VillageArt.WoodDark, new Vector3(0f, 0f, 45f));
+                    var hook = VillageArt.Group(g, "hook", crane + new Vector3(-0.25f, 0.6f, 0f));
+                    P(hook, VillageArt.Shape.Cyl, new Vector3(0f, -0.1f, 0f), new Vector3(0.006f, 0.1f, 0.006f), new Color(0.85f, 0.78f, 0.6f));
+                    P(hook, VillageArt.Shape.Box, new Vector3(0f, -0.24f, 0f), new Vector3(0.1f, 0.07f, 0.1f), VillageArt.StoneLight);
+                    VillageArt.Animate(hook.gameObject, ArtMotion.Kind.Sway, 1.2f, 0.06f, seed);
+                    T(g, "cart", new Vector3(-0.3f, 0f, -0.34f), 20f, 0.35f);
                     break;
+                }
                 case BuildingType.GoldMine:
                 case BuildingType.IronMine:
+                {
+                    // maden: kaya tepe, tahta destekli maden ağzı, raylar ve vagon, cevher yığını, fener
+                    bool goldMine = t == BuildingType.GoldMine;
+                    C(g, "rocks-large", new Vector3(0f, 0f, 0.18f), seed % 360, 0.62f);
+                    var mouth = new Vector3(0f, 0f, -0.06f);
+                    P(g, VillageArt.Shape.Box, mouth + new Vector3(0f, 0.13f, 0.02f), new Vector3(0.22f, 0.26f, 0.06f), new Color(0.06f, 0.05f, 0.05f)); // karanlık ağız
+                    foreach (var x in new[] { -0.13f, 0.13f }) P(g, VillageArt.Shape.Box, mouth + new Vector3(x, 0.14f, 0f), new Vector3(0.04f, 0.28f, 0.05f), VillageArt.Wood);
+                    P(g, VillageArt.Shape.Box, mouth + new Vector3(0f, 0.29f, 0f), new Vector3(0.34f, 0.045f, 0.06f), VillageArt.Wood);
+                    foreach (var x in new[] { -0.05f, 0.05f }) PM(g, VillageArt.Shape.Box, new Vector3(x, 0.012f, -0.24f), new Vector3(0.012f, 0.012f, 0.4f), VillageArt.Mat(VillageArt.Iron, 0.8f));
+                    for (int i = 0; i < 5; i++) P(g, VillageArt.Shape.Box, new Vector3(0f, 0.006f, -0.06f - i * 0.085f), new Vector3(0.16f, 0.012f, 0.03f), VillageArt.WoodDark);
+                    T(g, "cart-high", new Vector3(0f, 0f, -0.3f), 0f, 0.36f);
+                    var ore = goldMine ? VillageArt.Mat(VillageArt.GoldC, 0.9f, 0.5f) : VillageArt.Mat(new Color(0.55f, 0.6f, 0.68f), 0.85f);
+                    for (int i = 0; i < 5 + tier; i++) // cevher yığını
+                        PM(g, VillageArt.Shape.Ball, new Vector3(0.3f + (i % 3 - 1) * 0.05f, 0.03f + (i / 3) * 0.04f, -0.3f + (i % 2) * 0.04f), Vector3.one * 0.06f, ore);
+                    LampPost(g, new Vector3(-0.32f, 0f, -0.3f), seed);
+                    break;
+                }
+                case BuildingType.IronDepot:
+                {
+                    // demir deposu: arkada bacalı taş demirhane (önde parlayan ocak), önde örs, külçe yığını, fıçılar
+                    House(g, 0.5f, true, 1, "roof-point", true, null, false, new Color(0.32f, 0.34f, 0.4f), "-window-small", new Vector3(0f, 0f, 0.16f));
+                    PM(g, VillageArt.Shape.Box, new Vector3(-0.12f, 0.12f, -0.095f), new Vector3(0.12f, 0.1f, 0.02f), VillageArt.Mat(new Color(1f, 0.45f, 0.1f), 0.5f, 2.6f)); // ocak ağzı
+                    var anvil = new Vector3(0.05f, 0f, -0.3f);
+                    P(g, VillageArt.Shape.Cyl, anvil + new Vector3(0f, 0.05f, 0f), new Vector3(0.08f, 0.05f, 0.08f), VillageArt.Wood);
+                    var steel = VillageArt.Mat(new Color(0.25f, 0.26f, 0.3f), 0.8f);
+                    PM(g, VillageArt.Shape.Box, anvil + new Vector3(0f, 0.12f, 0f), new Vector3(0.14f, 0.04f, 0.06f), steel);
+                    PM(g, VillageArt.Shape.Cone, anvil + new Vector3(0.09f, 0.12f, 0f), new Vector3(0.04f, 0.06f, 0.04f), steel, new Vector3(0f, 0f, -90f));
+                    var ingot = VillageArt.Mat(new Color(0.62f, 0.66f, 0.74f), 0.9f, 0.1f);
+                    int rows = 2 + Mathf.Min(2, tier);
+                    for (int r = 0; r < rows; r++)
+                        for (int k = 0; k < rows - r; k++)
+                            PM(g, VillageArt.Shape.Box, new Vector3(0.3f, 0.02f + r * 0.035f, -0.32f + (k - (rows - r - 1) * 0.5f) * 0.07f), new Vector3(0.12f, 0.03f, 0.06f), ingot);
+                    foreach (var bp in new[] { new Vector3(-0.34f, 0f, -0.28f), new Vector3(-0.36f, 0f, -0.14f) })
                     {
-                        C(g, "rocks-large", new Vector3(0f, 0f, 0.12f), 0f, 0.55f);
-                        T(g, "cart-high", new Vector3(0.25f, 0f, -0.22f), -20f, 0.4f);
-                        T(g, "lantern", new Vector3(-0.3f, 0f, -0.3f), 0f, 0.32f);
-                        var ore = t == BuildingType.GoldMine ? VillageArt.GoldC : VillageArt.Iron;
-                        for (int i = 0; i < 4; i++)
-                            VillageArt.Part(g, VillageArt.Shape.Ball, new Vector3(-0.12f + i * 0.08f, 0.33f + (i % 2) * 0.05f, -0.05f), new Vector3(0.07f, 0.06f, 0.07f), VillageArt.Mat(ore, 0.9f, t == BuildingType.GoldMine ? 0.3f : 0f));
+                        P(g, VillageArt.Shape.Cyl, bp + new Vector3(0f, 0.08f, 0f), new Vector3(0.11f, 0.08f, 0.11f), VillageArt.Wood);
+                        foreach (var hy in new[] { 0.03f, 0.13f }) PM(g, VillageArt.Shape.Cyl, bp + new Vector3(0f, hy, 0f), new Vector3(0.115f, 0.008f, 0.115f), VillageArt.Mat(VillageArt.Iron, 0.7f));
                     }
                     break;
-                case BuildingType.IronDepot:
-                    T(g, "stall-green", new Vector3(0f, 0f, 0.05f), 90f, 1.1f);
-                    T(g, "cart-high", new Vector3(-0.25f, 0f, -0.22f), 20f, 0.4f);
-                    break;
+                }
                 default:
                     Object.Destroy(g.gameObject);
                     return null;
