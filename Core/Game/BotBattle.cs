@@ -20,7 +20,15 @@ namespace GameCore.Game
         {
             var sim = new BattleSim(defense, stock, levels, seed);
             if (mods != null) sim.AttackerMods = mods;
-            int size = defense.Layout.Size;
+            DeployAll(sim, defense.Layout.Size);
+            int guard = BattleSim.TimeLimitTicks + 5;
+            while (!sim.Finished && guard-- > 0) sim.Step();
+            return sim;
+        }
+
+        /// <summary>Botun yerleştirmesi: tüm askerler başta, sırayla alana yayılır (Run ve istemcideki "Savunmayı İzle" aynı kuralı kullanır).</summary>
+        public static void DeployAll(BattleSim sim, int size)
+        {
             int i = 0;
             foreach (var t in Order)
             {
@@ -31,9 +39,6 @@ namespace GameCore.Game
                     sim.Deploy(t, (i * 3) % size, 1 + (i % VillageLayoutRows), out err);
                 }
             }
-            int guard = BattleSim.TimeLimitTicks + 5;
-            while (!sim.Finished && guard-- > 0) sim.Step();
-            return sim;
         }
 
         private const int VillageLayoutRows = 4;

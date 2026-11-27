@@ -102,7 +102,7 @@ namespace GameClient
             int pct = LiveDamagePct();
             int[] marks = { 50, 75, 90, 100 };
             string[] names = { "★ %50", "★ %75  ZAFER!", "★★ %90", "★★★ %100" };
-            for (int m = lastStarMark; m < marks.Length; m++)
+            for (int m = lastStarMark; !Watching && m < marks.Length; m++) // izlemede saldırganın yıldızı duyurulmaz
             {
                 if (pct < marks[m]) break;
                 Banner(names[m], new Color(1f, 0.85f, 0.25f));
@@ -225,8 +225,12 @@ namespace GameClient
 
         private float resultTime;
 
+        /// <summary>Savunmayı İzle oturumu (saldıran bot; sonuç savunanın gözünden).</summary>
+        private bool Watching => testBattle && curTarget != null && curTarget.Name == "Savunma izleme";
+
         private void OnBattleFinishedFx(bool victory)
         {
+            if (Watching) { resultTime = Time.unscaledTime; Banner(victory ? "KÖYÜN DÜŞTÜ" : "SAVUNMA DAYANDI!", victory ? new Color(1f, 0.45f, 0.35f) : new Color(0.55f, 1f, 0.45f)); return; }
             celebrate = victory;
             resultTime = Time.unscaledTime;
             var center = new Vector3((layout.Size - 1) * 0.5f, 0f, (layout.Size - 1) * 0.5f);

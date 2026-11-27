@@ -265,6 +265,7 @@ namespace GameClient
                 var r = new Rect(8, 98, 214, 32);
                 GUI.Label(r, "<size=12>Son baskın: %" + rr.Result.OverallDamagePct + " " + (rr.Result.Victory ? "kaybettin" : "savundun") + "</size>", rr.Result.Victory ? UiTheme.PillBad : UiTheme.Pill);
                 uiRects.Add(r);
+                if (Btn(new Rect(226, 98, 64, 32), "<size=12>İzle</size>")) StartDefenseWatch(); // baskıncıyı şimdiki köyüne karşı izle
             }
             DrawStatusLine(w, h);
         }
@@ -948,7 +949,9 @@ namespace GameClient
             uiRects.Add(box);
             GUI.Box(box, "", UiTheme.Parchment);
             var head = new GUIStyle(UiTheme.Title) { fontSize = 32, normal = { textColor = r.Victory ? new Color(0.25f, 0.55f, 0.15f) : new Color(0.7f, 0.15f, 0.1f) } };
-            GUI.Label(new Rect(box.x, box.y + 10, box.width, 42), (testBattle ? "TEST: " : "") + (r.Victory ? "ZAFER!" : "YENİLGİ"), head);
+            string title = Watching ? (r.Victory ? "KÖYÜN DÜŞTÜ" : "SAVUNMA DAYANDI") : (testBattle ? "TEST: " : "") + (r.Victory ? "ZAFER!" : "YENİLGİ");
+            if (Watching) head.normal.textColor = r.Victory ? new Color(0.7f, 0.15f, 0.1f) : new Color(0.25f, 0.55f, 0.15f); // savunanın gözünden
+            GUI.Label(new Rect(box.x, box.y + 10, box.width, 42), title, head);
             // yıldızlar sırayla parlayarak yerine oturur
             for (int i = 0; i < 3; i++)
             {

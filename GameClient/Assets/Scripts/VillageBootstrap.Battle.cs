@@ -79,6 +79,31 @@ namespace GameClient
             }
         }
 
+        /// <summary>
+        /// Savunmayı İzle: günlük baskındaki türden bir bot saldırgan (aynı ordu, seviye, araştırma) şimdiki köyüne saldırır;
+        /// oyuncu yalnızca izler. Test savaşı gibi: ödül/kayıp yok. Zayıf noktaları görmek için.
+        /// </summary>
+        private void StartDefenseWatch()
+        {
+            int lv = g.Level;
+            if (lv < RaidSimulator.MinLevel) { Toast("Baskınlar Sv" + RaidSimulator.MinLevel + "'te başlar"); return; }
+            var levels = new Dictionary<SoldierType, int>();
+            for (int i = 0; i < ContentCatalog.SoldierTypeCount; i++) levels[(SoldierType)i] = GameRules.ExpectedStructureLevel(lv);
+            int ap = TargetGenerator.ExpectedAttackResearchPermille(lv);
+            int seed = 9001 + battleSeed++;
+            var target = new TargetInfo { Name = "Savunma izleme", Level = lv, Defense = g.MakeDefense(), Pool = default, Seed = seed };
+            sim = new BattleSim(target.Defense, RaidSimulator.RaiderArmy(lv), levels, seed) { AttackerMods = new CombatMods { SoldierDamage = ap, SoldierHp = ap } };
+            BotBattle.DeployAll(sim, target.Defense.Layout.Size);
+            curTarget = target;
+            testBattle = true;
+            battleOver = false; lastResult = null; lastOutcome = null; lastAlive = -1; tickAcc = 0f;
+            DestroyDyn();
+            tab = Tab.Village;
+            dirty = true;
+            ResetCamera();
+            Toast("İZLE: baskıncı köyüne saldırıyor — sonuç sayılmaz");
+        }
+
         private void StartTestBattle()
         {
             var stock = new Dictionary<SoldierType, int>();
