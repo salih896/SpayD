@@ -430,7 +430,7 @@ namespace GameClient
                 { string err; if (g.TryApplyDefElement(p, e, out err)) { Toast(ContentCatalog.ElementName(e) + " savunması uygulanıyor"); towerElemMenu = false; } else Toast(err); }
             }
             if (wall) return;
-            var els = new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning };
+            var els = new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning, TowerElement.Ballista };
             g.ElementBlock(p, TowerElement.Arrow, out var cost);
             GUI.Label(new Rect(x, y, iw, 20), "<size=12>Uygulama: " + cost + "  " + Dur(GameRules.ElementApplySeconds) + "   (önce Akademi > Element ağacı Sv1'de araştır)</size>");
             y += 22;
@@ -855,7 +855,7 @@ namespace GameClient
         private void DrawElementInfo(Rect r)
         {
             var sb = new StringBuilder("<size=14><b>KULE SALDIRI ELEMENTLERİ</b> (Okçu Kulesi; Akademi > Element ağacında araştır, kuleye 90 sn ile uygula)</size>\n<size=13>");
-            foreach (var e in new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning })
+            foreach (var e in new[] { TowerElement.Arrow, TowerElement.Fire, TowerElement.Ice, TowerElement.Poison, TowerElement.Magic, TowerElement.Lightning, TowerElement.Ballista })
             {
                 var rd = ResearchCatalog.FindSpecial(ResearchStat.TowerAttackElement, (int)e);
                 sb.Append("• <b>").Append(ContentCatalog.ElementName(e)).Append("</b>").Append(rd != null ? " (Sv" + rd.Level + ")" : "").Append(g.ElementUnlocked(e) ? " <color=#8fe07a>açık</color>" : "").Append(": ").Append(ContentCatalog.ElementEffect(e)).Append("\n");

@@ -10,7 +10,7 @@ namespace GameCore.Combat
     public enum TowerType { Archer = 0, Mage = 1, Wall = 2, Elf = 3, Cannon = 4, Ice = 5, Lightning = 6 }
 
     /// <summary>Okçu Kulesi elementi: önce Akademi Element ağacı Sv1'de araştırılır, sonra kuleye kısa süre + az kaynakla uygulanır.</summary>
-    public enum TowerElement { None = 0, Arrow = 1, Fire = 2, Ice = 3, Poison = 4, Magic = 5, Lightning = 6 }
+    public enum TowerElement { None = 0, Arrow = 1, Fire = 2, Ice = 3, Poison = 4, Magic = 5, Lightning = 6, Ballista = 7 }
     public enum BuildingType
     {
         Forest = 0, LumberDepot = 1, StoneQuarry = 2, StoneDepot = 3, GoldMine = 4, Bank = 5,

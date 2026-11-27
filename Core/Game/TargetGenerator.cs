@@ -188,6 +188,7 @@ namespace GameCore.Game
             if (playerLevel >= 12) avail.Add(TowerElement.Poison);
             if (playerLevel >= 15) avail.Add(TowerElement.Magic);
             if (playerLevel >= 18) avail.Add(TowerElement.Lightning);
+            if (playerLevel >= 22) avail.Add(TowerElement.Ballista);
             if (playerLevel >= 12) avail.Remove(TowerElement.None);
             spec.Element = avail[index % avail.Count];
             return spec;

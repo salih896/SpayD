@@ -143,6 +143,28 @@ namespace GameCore.Tests
         }
 
         [Test]
+        public void Goblin_IgnoresTraps_Assassin_BreaksThem()
+        {
+            // approved #101: Goblin tuzaktan etkilenmez; Suikastçı tuzağı hasar almadan bozar, arkadan gelen etkilenmez
+            var setup = Basic();
+            setup.Traps[P(5, 0)] = TrapType.Spikes;
+            var gob = new BattleSim(setup, new Dictionary<SoldierType, int> { { SoldierType.Goblin, 1 } }, null, 1);
+            gob.Deploy(SoldierType.Goblin, 5, 1, out _);
+            for (int i = 0; i < 30; i++) gob.Step();
+            Assert.AreEqual(gob.Soldiers[0].MaxHp, gob.Soldiers[0].Hp, "Goblin tuzaktan hasar almaz");
+            Assert.IsFalse(gob.TrapUsed(P(5, 0)));
+
+            var sim = new BattleSim(setup, new Dictionary<SoldierType, int> { { SoldierType.Assassin, 1 }, { SoldierType.Swordsman, 1 } }, null, 1);
+            sim.Deploy(SoldierType.Assassin, 5, 1, out _);
+            for (int i = 0; i < 30; i++) sim.Step();
+            Assert.AreEqual(sim.Soldiers[0].MaxHp, sim.Soldiers[0].Hp, "Suikastçı tuzaktan hasar almaz");
+            Assert.IsTrue(sim.TrapUsed(P(5, 0)), "tuzak bozuldu");
+            sim.Deploy(SoldierType.Swordsman, 5, 1, out _);
+            for (int i = 0; i < 60; i++) sim.Step();
+            Assert.AreEqual(sim.Soldiers[1].MaxHp, sim.Soldiers[1].Hp, "bozuk tuzak arkadan geleni etkilemez");
+        }
+
+        [Test]
         public void FireTrap_BurnsGroundSoldier()
         {
             var setup = Basic();

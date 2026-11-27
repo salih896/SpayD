@@ -242,6 +242,63 @@ namespace GameClient
         private float CelebrateHop(int i) => celebrate ? Mathf.Abs(Mathf.Sin(Time.time * 7f + i * 0.9f)) * 0.18f : 0f;
     }
 
+    /// <summary>
+    /// Balista kulesinin hedef alma ve atış animasyonu (yalnızca görsel): hedefe doğru döner (hedef yoksa yavaşça tarar);
+    /// Fire ile kollar ileri fırlar, ok kaybolur, gövde geri teper; sonra kollar yeniden gerilir ve yeni ok yuvasına kayar.
+    /// </summary>
+    public sealed class BallistaAim : MonoBehaviour
+    {
+        public Transform Body, ArmL, ArmR, StringT, Bolt;
+        private Vector3? target;
+        private float fireT = -100f, reload = 2.5f, scanPhase;
+        private Vector3 boltRest;
+        private const float Drawn = 32f, Released = 4f, ArmLen = 0.46f;
+
+        private void Start() { if (Bolt != null) boltRest = Bolt.localPosition; scanPhase = Random.value * 6f; }
+
+        public void AimAt(Vector3? world) => target = world;
+
+        public void Fire(float reloadSeconds) { fireT = Time.time; reload = Mathf.Max(0.6f, reloadSeconds); }
+
+        private void Update()
+        {
+            Quaternion want;
+            if (target.HasValue)
+            {
+                var d = target.Value - transform.position; d.y = 0f;
+                want = d.sqrMagnitude > 1e-4f ? Quaternion.LookRotation(d) : transform.rotation;
+            }
+            else want = Quaternion.Euler(0f, 180f + Mathf.Sin(Time.time * 0.35f + scanPhase) * 70f, 0f); // tarama
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, want, (target.HasValue ? 220f : 30f) * Time.deltaTime);
+
+            float t = Time.time - fireT;
+            float release = reload * 0.12f, drawStart = reload * 0.3f, drawEnd = reload * 0.72f;
+            float k; // 0 = gergin, 1 = boşalmış
+            if (t < 0.07f) k = t / 0.07f;
+            else if (t < drawStart) k = 1f;
+            else if (t < drawEnd) k = 1f - Mathf.SmoothStep(0f, 1f, (t - drawStart) / (drawEnd - drawStart));
+            else k = 0f;
+            float ang = Mathf.Lerp(Drawn, Released, k);
+            if (ArmL != null) ArmL.localRotation = Quaternion.Euler(0f, -ang, 0f);
+            if (ArmR != null) ArmR.localRotation = Quaternion.Euler(0f, ang, 0f);
+            if (StringT != null && ArmL != null && ArmR != null)
+            {
+                var a = ArmL.localPosition + ArmL.localRotation * new Vector3(-ArmLen, 0f, 0f);
+                var b = ArmR.localPosition + ArmR.localRotation * new Vector3(ArmLen, 0f, 0f);
+                StringT.localPosition = (a + b) * 0.5f;
+                var sc = StringT.localScale; sc.x = Vector3.Distance(a, b); StringT.localScale = sc;
+            }
+            if (Bolt != null) // yeni ok: gerildikten sonra arkadan yuvasına kayar
+            {
+                bool show = t < 0.05f || t > drawEnd;
+                if (Bolt.gameObject.activeSelf != show) Bolt.gameObject.SetActive(show);
+                float slide = t > drawEnd && t < drawEnd + release ? 1f - (t - drawEnd) / release : 0f;
+                Bolt.localPosition = boltRest + new Vector3(0f, 0f, -0.3f * slide);
+            }
+            if (Body != null) Body.localPosition = new Vector3(0f, 0f, t < 0.3f ? -0.12f * Mathf.Sin(Mathf.Clamp01(t / 0.3f) * Mathf.PI) : 0f); // geri tepme
+        }
+    }
+
     /// <summary>Kısa "geri tepme": modeli bir an basık ve büyük gösterip yerine yumuşakça döndürür.</summary>
     public sealed class KickAnim : MonoBehaviour
     {

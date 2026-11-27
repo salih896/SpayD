@@ -260,6 +260,7 @@ namespace GameCore.Progression
             "6|20|4|Zehir Silahları|SoldierAttackElement|4",
             "6|21|1|Element Ustalığı 21|ElementMastery|8",
             "6|22|1|Element Ustalığı 22|ElementMastery|8",
+            "6|22|2|Balista|TowerAttackElement|7",
             "6|23|1|Element Ustalığı 23|ElementMastery|8",
             "6|24|1|Element Ustalığı 24|ElementMastery|8",
             "6|25|1|Element Ustalığı 25|ElementMastery|8",

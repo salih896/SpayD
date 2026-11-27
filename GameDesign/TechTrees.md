@@ -294,7 +294,7 @@ Amaç: Kule saldırı ve savunma elementleri, asker saldırı ve savunma element
 | 19 | Element Ustalığı 19 [ElementMastery:8] | — | — | Buz Zırhı [SoldierDefenseElement:3] |
 | 20 | Element Ustalığı 20 [ElementMastery:8] | — | — | Zehir Silahları [SoldierAttackElement:4] |
 | 21 | Element Ustalığı 21 [ElementMastery:8] | — | — | — |
-| 22 | Element Ustalığı 22 [ElementMastery:8] | — | — | — |
+| 22 | Element Ustalığı 22 [ElementMastery:8] | Balista [TowerAttackElement:7] | — | — |
 | 23 | Element Ustalığı 23 [ElementMastery:8] | — | — | — |
 | 24 | Element Ustalığı 24 [ElementMastery:8] | — | — | — |
 | 25 | Element Ustalığı 25 [ElementMastery:8] | — | — | Zehir Zırhı [SoldierDefenseElement:4] |
@@ -304,6 +304,6 @@ Amaç: Kule saldırı ve savunma elementleri, asker saldırı ve savunma element
 | 29 | Element Ustalığı 29 [ElementMastery:8] | — | — | — |
 | 30 | Element Ustalığı 30 [ElementMastery:8] | — | — | — |
 
-- Kule saldırı elementleri (Okçu Kulesine uygulanır): Ok, Ateş, Buz, Zehir, Büyü, Şimşek.
+- Kule saldırı elementleri (Okçu Kulesine uygulanır): Ok, Ateş, Buz, Zehir, Büyü, Şimşek, Balista.
 - Kule savunma elementleri ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
 - Döngü: Ateş > Zehir > Buz > Ateş. Zayıf elementle saldıran %40 az hasar verir (üstün olana ek hasar yok). Direnç: bir elemente karşı güçlendirilmiş (aynı savunma elementli) hedef o elementten %35 az hasar alır. Ok, Büyü, Şimşek nötrdür.

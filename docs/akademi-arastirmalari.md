@@ -293,6 +293,7 @@ Toplam: 263 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 20 | 4 | Zehir Silahları | Asker saldırı elementi |
 | 21 | 1 | Element Ustalığı 21 | Asker ve kule hasarı +%0,8 |
 | 22 | 1 | Element Ustalığı 22 | Asker ve kule hasarı +%0,8 |
+| 22 | 2 | Balista | Okçu Kulesi elementi |
 | 23 | 1 | Element Ustalığı 23 | Asker ve kule hasarı +%0,8 |
 | 24 | 1 | Element Ustalığı 24 | Asker ve kule hasarı +%0,8 |
 | 25 | 1 | Element Ustalığı 25 | Asker ve kule hasarı +%0,8 |

@@ -1201,6 +1201,7 @@ namespace GameClient
                 case TowerElement.Poison: return new Color(0.45f, 0.95f, 0.25f);
                 case TowerElement.Magic: return new Color(0.75f, 0.35f, 1f);
                 case TowerElement.Lightning: return new Color(1f, 0.97f, 0.55f);
+                case TowerElement.Ballista: return new Color(0.78f, 0.6f, 0.38f);
                 default: return Color.white;
             }
         }

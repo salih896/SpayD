@@ -71,7 +71,7 @@ namespace GameClient
         {
             var list = new List<GameObject>();
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>())
-                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null && r.GetComponentInParent<KickAnim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
+                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null && r.GetComponentInParent<KickAnim>() == null && r.GetComponentInParent<BallistaAim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
             if (list.Count > 1) StaticBatchingUtility.Combine(list.ToArray(), root);
         }
 

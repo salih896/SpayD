@@ -87,7 +87,7 @@ namespace GameClient
     public sealed class ModelRig : MonoBehaviour, ISoldierAnim
     {
         private Animation anim;
-        private string idle, walk, current;
+        private string idle, walk, current, reload;
         private string[] attacks = new string[0];
         private int atkIdx;
         private float strideCells, walkSpeedNow = 1f, impactFrac;
@@ -97,9 +97,11 @@ namespace GameClient
         /// <param name="attackClips">virgülle ayrılmış saldırı klipleri (sırayla oynar)</param>
         /// <param name="stride">bir yürüme döngüsünde alınan yol (kare); 0 = hız uyarlaması yok</param>
         /// <param name="impact">darbe anı, klip süresinin oranı</param>
-        public void Setup(Animation a, string idleClip, string walkClip, string attackClips, float stride, float impact = 0.45f)
+        public void Setup(Animation a, string idleClip, string walkClip, string attackClips, float stride, float impact = 0.45f, string reloadClip = null)
         {
             anim = a; idle = idleClip; walk = walkClip; strideCells = stride; impactFrac = impact;
+            reload = reloadClip != null && anim[reloadClip] != null ? reloadClip : null; // atıştan sonra doldurma (Arbaletli)
+            if (reload != null) anim[reload].wrapMode = WrapMode.Once;
             var list = new List<string>();
             if (!string.IsNullOrEmpty(attackClips))
                 foreach (var raw in attackClips.Split(','))
@@ -134,6 +136,14 @@ namespace GameClient
             st.time = 0f;
             float dur = len / st.speed;
             attackEnd = Time.time + dur;
+            if (reload != null && maxDur - dur > 0.25f)
+            {
+                // atıştan hemen sonra yeni oku yerleştirme; kalan süreye sığdırılır
+                var rs = anim.CrossFadeQueued(reload, 0.08f, QueueMode.CompleteOthers);
+                float rl = anim[reload].length, room = maxDur - dur;
+                rs.speed = rl > room ? rl / room : 1f;
+                attackEnd += rl / rs.speed;
+            }
             current = clip;
             return dur * impactFrac;
         }
@@ -167,7 +177,7 @@ namespace GameClient
     {
         private struct Look
         {
-            public string Model, Right, Left, Attack, Idle, Walk;
+            public string Model, Right, Left, Attack, Idle, Walk, Reload;
             public float Height;
             public Color Tint;
         }
@@ -201,7 +211,7 @@ namespace GameClient
                 case SoldierType.Healer:
                     return new Look { Model = "Mage", Right = "staff", Attack = "Ranged_Magic_Spellcasting", Idle = "Idle_B", Walk = "Walking_A", Height = 0.6f, Tint = w }; // Şaman: kalkana benzeyen kitap kalktı
                 case SoldierType.Crossbowman:
-                    return new Look { Model = "Ranger", Right = "crossbow_2handed", Attack = "Ranged_2H_Shoot", Idle = "Ranged_2H_Aiming", Walk = "Walking_B", Height = 0.6f, Tint = new Color(0.95f, 0.85f, 0.7f) };
+                    return new Look { Model = "Ranger", Right = "crossbow_2handed", Attack = "Ranged_2H_Shoot", Reload = "Ranged_2H_Reload", Idle = "Ranged_2H_Aiming", Walk = "Walking_B", Height = 0.6f, Tint = new Color(0.95f, 0.85f, 0.7f) };
                 case SoldierType.Bomber:
                     return new Look { Model = "Barbarian", Right = "smokebomb", Attack = "Throw", Idle = "Idle_A", Walk = "Walking_C", Height = 0.6f, Tint = new Color(0.9f, 0.62f, 0.5f) };
                 default:
@@ -341,7 +351,7 @@ namespace GameClient
             foreach (var f in AnimFiles)
                 foreach (var clip in ModelLibrary.Clips(f))
                     if (clip != null && !clip.name.StartsWith("__preview__") && anim.GetClip(clip.name) == null) { clip.legacy = true; anim.AddClip(clip, clip.name); }
-            holder.gameObject.AddComponent<ModelRig>().Setup(anim, look.Idle, look.Walk, look.Attack, stride * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)), impact);
+            holder.gameObject.AddComponent<ModelRig>().Setup(anim, look.Idle, look.Walk, look.Attack, stride * (1f + Mathf.Min(0.12f, (L - 1) * 0.004f)), impact, look.Reload);
             return body;
         }
 
@@ -1087,6 +1097,43 @@ namespace GameClient
                     }
                     crown = y + 0.8f; y += 1.15f;
                     break;
+                case TowerElement.Ballista:
+                {
+                    // Balista Kulesi (kullanıcı isteği 27.11.2026): kare taş kule, demir döner tabla üstünde hedefe dönen dev balista;
+                    // atışta kollar ileri fırlar, gövde geri teper, sonra kollar gerilir ve yeni ok yerleşir (BallistaAim)
+                    Stack("tower-square-base", 1.01f);
+                    for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-square-mid", 1.01f);
+                    Stack("tower-square-top", 0.5f);
+                    y = Tint(g, new Color(0.66f, 0.6f, 0.52f), 0.8f);
+                    var wood = M(VillageArt.Wood, 0f, 0.3f);
+                    var woodD = M(VillageArt.WoodDark, 0f, 0.3f);
+                    VillageArt.Part(g, VillageArt.Shape.Cyl, new Vector3(0f, y + 0.04f, 0f), new Vector3(0.75f, 0.08f, 0.75f), iron); // döner tabla
+                    var aim = VillageArt.Group(g, "ballista", new Vector3(0f, y + 0.08f, 0f), 0f, 1.3f);
+                    var body = VillageArt.Group(aim, "body", Vector3.zero);
+                    VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.12f, 0f), new Vector3(0.18f, 0.24f, 0.18f), woodD);           // ayak
+                    VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.29f, 0.05f), new Vector3(0.15f, 0.09f, 1.05f), wood);          // kundak
+                    VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.338f, 0.05f), new Vector3(0.045f, 0.012f, 1f), iron);          // ok oluğu
+                    VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.29f, 0.5f), new Vector3(0.26f, 0.13f, 0.11f), iron);           // yay yuvası
+                    VillageArt.Part(body, VillageArt.Shape.Cyl, new Vector3(0f, 0.29f, -0.44f), new Vector3(0.09f, 0.32f, 0.09f), iron, new Vector3(0f, 0f, 90f)); // vinç
+                    foreach (var sx in new[] { -1f, 1f }) VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(sx * 0.17f, 0.24f, -0.44f), new Vector3(0.025f, 0.12f, 0.025f), woodD); // vinç kolu
+                    var arms = new Transform[2];
+                    for (int k = 0; k < 2; k++)
+                    {
+                        float sx = k == 0 ? -1f : 1f;
+                        arms[k] = VillageArt.Group(body, k == 0 ? "armL" : "armR", new Vector3(sx * 0.11f, 0.3f, 0.48f));
+                        VillageArt.Part(arms[k], VillageArt.Shape.Box, new Vector3(sx * 0.23f, 0f, 0f), new Vector3(0.46f, 0.055f, 0.065f), woodD);
+                        VillageArt.Part(arms[k], VillageArt.Shape.Ball, new Vector3(sx * 0.46f, 0f, 0f), Vector3.one * 0.07f, iron);
+                    }
+                    var str = VillageArt.Part(body, VillageArt.Shape.Box, new Vector3(0f, 0.3f, 0.3f), new Vector3(1f, 0.014f, 0.014f), new Color(0.92f, 0.88f, 0.78f));
+                    var bolt = VillageArt.Group(body, "bolt", new Vector3(0f, 0.36f, 0.12f));
+                    VillageArt.Part(bolt, VillageArt.Shape.Cyl, Vector3.zero, new Vector3(0.035f, 0.72f, 0.035f), VillageArt.WoodLight, new Vector3(90f, 0f, 0f));
+                    VillageArt.Part(bolt, VillageArt.Shape.Cone, new Vector3(0f, 0f, 0.4f), new Vector3(0.07f, 0.12f, 0.07f), iron, new Vector3(90f, 0f, 0f));
+                    foreach (var a in new[] { 0f, 90f }) VillageArt.Part(bolt, VillageArt.Shape.Box, new Vector3(0f, 0f, -0.31f), new Vector3(0.1f, 0.004f, 0.1f), VillageArt.RoofRed, new Vector3(0f, 0f, a)); // tüyler
+                    var ba = aim.gameObject.AddComponent<BallistaAim>();
+                    ba.Body = body; ba.ArmL = arms[0]; ba.ArmR = arms[1]; ba.StringT = str.transform; ba.Bolt = bolt;
+                    crown = y + 0.55f; y += 0.6f;
+                    break;
+                }
                 default: // Şimşek
                     Stack("tower-hexagon-base", 1.31f);
                     for (int i = 0; i < 1 + tier / 2; i++) Stack("tower-hexagon-mid", 0.46f);

@@ -432,18 +432,29 @@ namespace GameCore.Combat
 
         private readonly HashSet<GridPos> usedTraps = new HashSet<GridPos>();
 
-        /// <summary>Yalnızca görsel: bu adımlarda tetiklenen tuzaklar (istemci okuyup boşaltır; simülasyonu etkilemez).</summary>
+        private readonly HashSet<GridPos> brokenTraps = new HashSet<GridPos>();
+
+        /// <summary>Yalnızca görsel: bu adımlarda tetiklenen tuzaklar (istemci okuyup boşaltır; simülasyonu etkilemez). Type = None: Suikastçı tuzağı bozdu.</summary>
         public readonly List<(GridPos Cell, TrapType Type)> TrapEvents = new List<(GridPos, TrapType)>();
 
         /// <summary>Tek seferlik tuzak (Patlayıcı) bu savaşta kullanıldı mı (görsel: modeli gizlemek için).</summary>
-        public bool TrapUsed(GridPos cell) => usedTraps.Contains(cell);
+        public bool TrapUsed(GridPos cell) => usedTraps.Contains(cell) || brokenTraps.Contains(cell);
 
-        /// <summary>Tuzak tetikleme (TrapCatalog). Uçanlar etkilenmez; yol malzemesi hasarı artırır; Patlayıcı savaş başına bir kez.</summary>
+        /// <summary>Tuzaktan etkilenmeyenler: uçanlar ve Goblin (kullanıcı kararı 27.11.2026, approved #101).</summary>
+        private static bool TrapImmune(SimSoldier o) => o.Flying || o.Type == SoldierType.Goblin;
+
+        /// <summary>Tuzak tetikleme (TrapCatalog). Uçanlar ve Goblin etkilenmez, Suikastçı bozar; yol malzemesi hasarı artırır; Patlayıcı savaş başına bir kez.</summary>
         private void ApplyTrap(SimSoldier s, GridPos cell)
         {
-            if (s.Flying || !setup.Traps.TryGetValue(cell, out var trap)) return;
+            if (TrapImmune(s) || brokenTraps.Contains(cell) || !setup.Traps.TryGetValue(cell, out var trap)) return;
             var d = TrapCatalog.Get(trap);
             if (d == null || (d.OneShot && usedTraps.Contains(cell))) return;
+            if (s.Type == SoldierType.Assassin) // Suikastçı tuzağı etkilenmeden bozar (approved #101)
+            {
+                brokenTraps.Add(cell);
+                if (TrapEvents.Count < 64) TrapEvents.Add((cell, TrapType.None));
+                return;
+            }
             if (TrapEvents.Count < 64) TrapEvents.Add((cell, trap)); // istemci okumazsa sınırsız büyümesin
             int bonus = RoadRules.TrapBonusPct(setup.Layout.GetRoadTier(cell));
             if (d.Damage > 0)
@@ -455,7 +466,7 @@ namespace GameCore.Combat
                     for (int i = 0; i < soldiers.Count; i++)
                     {
                         var o = soldiers[i];
-                        if (o.Alive && !o.Flying && CombatMath.DistSq(cell.X * 1000, cell.Y * 1000, o.X, o.Y) <= r2) Hit(o, CombatMath.ReduceByArmor(dmg, o.ArmorPct));
+                        if (o.Alive && !TrapImmune(o) && CombatMath.DistSq(cell.X * 1000, cell.Y * 1000, o.X, o.Y) <= r2) Hit(o, CombatMath.ReduceByArmor(dmg, o.ArmorPct));
                     }
                 }
                 else Hit(s, CombatMath.ReduceByArmor(dmg, s.ArmorPct));
@@ -480,7 +491,7 @@ namespace GameCore.Combat
                     for (int j = 0; j < soldiers.Count; j++)
                     {
                         var o = soldiers[j];
-                        if (!o.Alive || o.Flying || hit.Contains(o.Id)) continue;
+                        if (!o.Alive || TrapImmune(o) || hit.Contains(o.Id)) continue;
                         long dd = CombatMath.DistSq(cur.X, cur.Y, o.X, o.Y);
                         if (dd < best) { best = dd; next = o; }
                     }

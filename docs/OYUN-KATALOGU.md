@@ -8,7 +8,7 @@ Can/hasar Sv1 değeri. Hedef: Goblin önce kaynak depoları, Atlı Kılıçlı �
 |---|---|---|---|---|---|---|---|---|---|
 | Uzun Kılıç | Sv2 | 70 | 14 | 8 | 1,5 | 0,07 | Zırh %10, en yakın yapıya saldırır | 40 odun | 2 dk |
 | Okçu | Sv3 | 60 | 17 | 10 | 2,0 | 0,07 | Uzaktan, kırılgan, en yakın yapı | 45 odun | 3 dk |
-| Goblin | Sv4 | 35 | 13 | 6 | 1,5 | 0,16 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar | 20 odun | 2 dk |
+| Goblin | Sv4 | 35 | 13 | 6 | 1,5 | 0,16 | Çok hızlı, önce kaynak depoları, sonra diğer yapılar; tuzaklardan etkilenmez | 20 odun | 2 dk |
 | Mızraklı | Sv5 | 150 | 12 | 10 | 2,0 | 0,04 | Zırh %30 | 60 odun, 15 taş | 5 dk |
 | Büyücü | Sv7 | 50 | 43 | 18 | 2,0 | 0,06 | Alan hasarı 1,5, ateş direnci %25 | 70 odun, 30 taş | 5 dk |
 | Atlı Kılıçlı | Sv9 | 260 | 22 | 10 | 1,5 | 0,15 | Zırh %20, atlı, önce kuleler, sonra diğer yapılar | 90 odun, 60 taş | 10 dk |
@@ -52,7 +52,7 @@ Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer
 | Kalkanlı | Sv4 | 380 | 8 | 10 | 1,5 | 50 | Zırh %40; kuleler önce onu hedefler | 3 |
 | Suikastçı | Sv9 | 80 | 26 | 8 | 1,5 | 140 | Önce kuleler | 2 |
 | Şifacı | Sv14 | 140 | 0 | 10 | 2,0 | 70 | 2 hücredeki askerleri 2 sn'de bir %5 iyileştirir | 3 |
-| Arbaletli | Sv19 | 90 | 26 | 36 | 3,0 | 60 | Kulelere +%40 | 2 |
+| Arbaletli | Sv19 | 90 | 26 | 36 | 3,0 | 60 | Kulelere +%40 | 5 |
 | Bombacı | Sv24 | 110 | 200 | — | 1,5 | 110 | Yapıya ulaşınca alan 1,5'te patlar, ölür | 2 |
 
 **Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, savunma elementi (Ateş/Buz/Zehir Kalkanı) yalnızca Duvara, element menüsünden verilir; Okçu Kulesi yalnızca saldırı elementi alır.

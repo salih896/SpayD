@@ -92,7 +92,7 @@ namespace GameCore.Combat
                 Type = TowerType.Archer, Name = name, Hp = a.Hp, Attack = a.Attack * atkPct / 100, IntervalTicks = interval, RangeMilli = a.RangeMilli,
                 CanHitAir = true, UnlockLevel = a.UnlockLevel, BuildCost = a.BuildCost
             };
-            var d = new TowerDef[7];
+            var d = new TowerDef[8];
             d[0] = a;
             d[1] = E(TowerElement.Arrow, "Okçu Kulesi (Ok)", 130, 4); d[1].CritPct = 20; d[1].CritMultPct = 200;               // yüksek hasar, kritik, hızlı
             d[2] = E(TowerElement.Fire, "Okçu Kulesi (Ateş)", 260, 25); d[2].SplashMilli = 1200; d[2].BurnTicks = 30; d[2].BurnPermille = 40; // alan + yanma, çok yavaş
@@ -100,6 +100,8 @@ namespace GameCore.Combat
             d[4] = E(TowerElement.Poison, "Okçu Kulesi (Zehir)", 70, 8); d[4].PoisonTicks = 40; d[4].PoisonPermille = 30; d[4].WeakenPct = 30; // zayıflatma + zamanla hasar
             d[5] = E(TowerElement.Magic, "Okçu Kulesi (Büyü)", 130, 9); d[5].BonusVsAirPct = 100; d[5].ArmorPiercePct = 30;      // uçanlara büyük bonus
             d[6] = E(TowerElement.Lightning, "Okçu Kulesi (Şimşek)", 120, 12); d[6].ChainCount = 2;                             // 2 askere sıçrar
+            // Balista (kullanıcı kararı 27.11.2026, approved #101): çok yüksek hasar ve menzil, çok yavaş atış
+            d[7] = E(TowerElement.Ballista, "Okçu Kulesi (Balista)", 380, 30); d[7].RangeMilli = a.RangeMilli * 150 / 100; d[7].ArmorPiercePct = 40;
             return d;
         }
 
@@ -112,6 +114,7 @@ namespace GameCore.Combat
             {
                 case TowerElement.Arrow: return "Ok"; case TowerElement.Fire: return "Ateş"; case TowerElement.Ice: return "Buz";
                 case TowerElement.Poison: return "Zehir"; case TowerElement.Magic: return "Büyü"; case TowerElement.Lightning: return "Şimşek";
+                case TowerElement.Ballista: return "Balista";
                 default: return "Yok";
             }
         }
@@ -126,6 +129,7 @@ namespace GameCore.Combat
                 case TowerElement.Poison: return "Zehirler (zamanla hasar), askerin hasarını %30 düşürür";
                 case TowerElement.Magic: return "Uçanlara +%100 hasar, zırhı kısmen deler";
                 case TowerElement.Lightning: return "Vurduğu askerin yanındaki 2 askere sıçrar";
+                case TowerElement.Ballista: return "Çok yüksek hasar (x3,8), %50 uzun menzil, zırhı deler; çok yavaş atış";
                 default: return "Elementsiz okçu";
             }
         }
