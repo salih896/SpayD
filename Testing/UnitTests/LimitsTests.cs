@@ -200,16 +200,8 @@ namespace GameCore.Tests
             string err;
             var road = P(5, 3);
             Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Araştırma yok");
-            Assert.IsFalse(g.TryStartRoadResearch(out err), "Akademi yok");
-            g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
-            int wood = g.Wallet.Get(ResourceType.Wood);
-            Assert.IsTrue(g.TryStartRoadResearch(out err), err);
-            Assert.AreEqual(wood - RoadRules.ResearchCost.Wood, g.Wallet.Get(ResourceType.Wood));
-            g.Advance(RoadRules.ResearchDurationSeconds - 1, 0);
-            Assert.IsFalse(g.RoadResearchDone);
-            var ev = g.Advance(1, 0);
-            Assert.IsTrue(g.RoadResearchDone);
-            Assert.IsTrue(ev.Exists(e => e.Contains("Yol geliştirme")));
+            StringAssert.Contains("Yol Geliştirme 1", err);
+            foreach (var d in ResearchCatalog.All) if (d.Stat == ResearchStat.RoadTier && d.Permille <= 1) g.Research.ForceComplete(d.Id); // yalnızca 1. basamak (Taş)
 
             // Sv10: Taş basamağı açık (işçi + süre)
             Assert.IsTrue(g.TryUpgradeRoad(road, out err), err);
@@ -220,6 +212,9 @@ namespace GameCore.Tests
             Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Altın+Tahta Sv15");
             StringAssert.Contains("Sv 15", err);
             g.TotalXp = XpFor(30);
+            Assert.IsFalse(g.TryUpgradeRoad(road, out err), "Sv30 olsa da 2. basamak araştırması yok");
+            StringAssert.Contains("Yol Geliştirme 2", err);
+            foreach (var d in ResearchCatalog.All) if (d.Stat == ResearchStat.RoadTier && d.Permille <= 4) g.Research.ForceComplete(d.Id);
             foreach (var next in new[] { RoadTier.Reinforced, RoadTier.Iron, RoadTier.Crystal })
             {
                 Assert.IsTrue(g.TryUpgradeRoad(road, out err), next + ": " + err);
@@ -237,20 +232,27 @@ namespace GameCore.Tests
             g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
             string err;
             g.Research.ForceComplete(House1);
-            Assert.IsTrue(g.TryStartRoadResearch(out err), err);
+            foreach (var d in ResearchCatalog.All) if (d.Stat == ResearchStat.RoadTier && d.Permille <= 1) g.Research.ForceComplete(d.Id);
             g.Advance(100, 0);
             string text = GameSave.Save(g, 9);
             var h = GameSave.Load(text, ResourceConfig.CreateDefault(), out _);
             Assert.IsTrue(h.Research.IsDone(House1));
-            Assert.AreEqual(g.RoadResearchRemaining, h.RoadResearchRemaining);
+            Assert.IsTrue(h.RoadTierResearched(RoadTier.Stone));
+            Assert.IsFalse(h.RoadTierResearched(RoadTier.Reinforced));
+            // 27.11.2026 öncesi kayıt: tek yol/tuzak araştırması (yapılmış ya da süren) → ağaçtaki tüm basamaklar / tuzak hakları
+            var mig = GameSave.Load(text + "rr 1 -1\ntrr 0 500\n", ResourceConfig.CreateDefault(), out _);
+            Assert.IsTrue(mig.RoadTierResearched(RoadTier.Crystal));
+            Assert.AreEqual(6, mig.MaxTraps);
             Assert.AreEqual(2, h.MaxVillagerHouses);
             Assert.AreEqual(text, GameSave.Save(h, 9));
 
             // eski kayıt: alınmış Akademi görevleri aynı hakkı veren araştırmaya çevrilir
-            var old = GameSave.Load(text + "aq a_house2\naq a_tower1\nrdone 4-15-4\n", ResourceConfig.CreateDefault(), out _);
+            var old = GameSave.Load(text + "aq a_house2\naq a_tower1\n", ResourceConfig.CreateDefault(), out _);
             Assert.IsTrue(old.Research.IsDone(House2));
             Assert.IsTrue(old.Research.IsDone(TowerR[1]), "a_tower1 → Kule Hakkı II (Sv6)");
-            Assert.IsTrue(old.Research.IsDone(TowerR[3]), "eski 4-15-4 → Savunma Kule Hakkı IV");
+            // eski katalog (rv 1) kimliği: 4-15-4 → Savunma Kule Hakkı IV (güncel katalogda 4-15-4 artık Yol Geliştirme II)
+            var v1 = GameSave.Load(text.Replace("rv 2", "rv 1") + "rdone 4-15-4\n", ResourceConfig.CreateDefault(), out _);
+            Assert.IsTrue(v1.Research.IsDone(TowerR[3]), "eski 4-15-4 → Savunma Kule Hakkı IV");
             Assert.AreEqual(3, old.MaxVillagerHouses);
         }
     }

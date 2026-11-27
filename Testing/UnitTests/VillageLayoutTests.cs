@@ -277,13 +277,5 @@ namespace GameCore.Tests
             Assert.IsFalse(v.TryUpgradeRoad(P(2, 2), out _));         // en üstte
             Assert.IsFalse(v.TryUpgradeRoad(P(8, 8), out _));         // yol değil
         }
-
-        [Test]
-        public void UpgradeGate_RequiresResearch_AtAnyLevel()
-        {
-            Assert.IsFalse(RoadRules.CanUpgrade(false, out var r));
-            StringAssert.Contains("araştırma", r);
-            Assert.IsTrue(RoadRules.CanUpgrade(true, out _));
-        }
     }
 }

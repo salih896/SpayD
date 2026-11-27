@@ -56,8 +56,6 @@ namespace GameCore.Game
                 sb.AppendLine("raid " + rr.Day + " " + (rr.Result.Victory ? 1 : 0) + " " + rr.Result.Stars + " " + rr.Result.OverallDamagePct + " "
                     + lo.Wood + " " + lo.Stone + " " + lo.Gold + " " + lo.Iron + " " + rr.TowersDamaged);
             }
-            sb.AppendLine("rr " + (g.RoadResearchDone ? 1 : 0) + " " + g.RoadResearchRemaining);
-            sb.AppendLine("trr " + (g.TrapResearchDone ? 1 : 0) + " " + g.TrapResearchRemaining);
             foreach (var j in g.Jobs) sb.AppendLine("job " + (int)j.Kind + " " + j.Pos.X + " " + j.Pos.Y + " " + (int)j.Soldier + " " + j.TargetLevel + " " + j.RemainingSeconds + " " + j.Branch);
             return sb.ToString();
         }
@@ -76,6 +74,7 @@ namespace GameCore.Game
                 var entRows = new List<int[]>();
                 var towerRows = new List<int[]>();
                 var doneRows = new List<string>(); int researchVersion = 1;
+                bool oldRoadResearch = false, oldTrapResearch = false; // 27.11.2026 öncesi tek araştırmalar → ağaçtaki yeni araştırmalar
                 var buildRows = new List<int[]>();
                 var daily = new List<string>();
                 int dailyDay = -1;
@@ -130,8 +129,8 @@ namespace GameCore.Game
                             };
                             break;
                         case "aq": { var rid = LegacyAcademyResearch(p[1]); if (rid != null) g.Research.ForceComplete(rid); } break; // eski görev kaydı → aynı hakkı veren araştırma
-                        case "rr": g.RoadResearchDone = p[1] == "1"; g.RoadResearchRemaining = int.Parse(p[2]); break;
-                        case "trr": g.TrapResearchDone = p[1] == "1"; g.TrapResearchRemaining = int.Parse(p[2]); break;
+                        case "rr": oldRoadResearch = p[1] == "1" || int.Parse(p[2]) > 0; break;   // yapılmış ya da süren (ödenmiş) eski araştırma
+                        case "trr": oldTrapResearch = p[1] == "1" || int.Parse(p[2]) > 0; break;
                         case "job":
                             g.Jobs.Add(new UpgradeJob { Kind = (JobKind)int.Parse(p[1]), Pos = new GridPos(int.Parse(p[2]), int.Parse(p[3])), Soldier = (SoldierType)int.Parse(p[4]), TargetLevel = int.Parse(p[5]), RemainingSeconds = int.Parse(p[6]), Branch = p.Length > 7 ? int.Parse(p[7]) : 0 });
                             break;
@@ -147,6 +146,9 @@ namespace GameCore.Game
                     string nid = researchVersion >= ResearchCatalogVersion && GameCore.Progression.ResearchCatalog.Get(id) != null ? id : LegacyResearch(id);
                     if (nid != null && GameCore.Progression.ResearchCatalog.Get(nid) != null) g.Research.ForceComplete(nid);
                 }
+                // eski Yol geliştirme / Tuzak Ustalığı: tüm yol basamağı ve tuzak hakkı araştırmaları tamamlanmış sayılır
+                foreach (var d in GameCore.Progression.ResearchCatalog.All)
+                    if ((oldRoadResearch && d.Stat == GameCore.Progression.ResearchStat.RoadTier) || (oldTrapResearch && d.Stat == GameCore.Progression.ResearchStat.TrapSlot)) g.Research.ForceComplete(d.Id);
                 foreach (var r in towerRows)
                 {
                     var pos = new GridPos(r[0], r[1]);

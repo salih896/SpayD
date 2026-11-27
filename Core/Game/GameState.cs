@@ -77,12 +77,11 @@ namespace GameCore.Game
         public RaidReport LastRaid;
         public long LastUnixSeconds;
         /// <summary>Yol geliştirme araştırması: tamamlandı mı, sürüyorsa kalan saniye (-1 = başlamadı).</summary>
-        public bool RoadResearchDone;
-        public int RoadResearchRemaining = -1;
+        /// <summary>Yol bir sonraki basamağa geliştirilebilir mi: Köy Gelişimi'nde o basamağın Yol Geliştirme araştırması (27.11.2026).</summary>
+        public bool RoadTierResearched(RoadTier next) => Research.IsDone(ResearchCatalog.FindSpecial(ResearchStat.RoadTier, RoadRules.Rank(next))?.Id ?? "");
         /// <summary>Tuzak Ustalığı araştırması (tuzak hakkı 4 → 6).</summary>
-        public bool TrapResearchDone;
-        public int TrapResearchRemaining = -1;
-        public int MaxTraps => TrapResearchDone ? GameRules.ResearchTrapSlots : GameRules.StartTrapSlots;
+        /// <summary>Tuzak hakkı: başta 4, Savunma ağacında Tuzak Hakkı I-II ile en çok 6 (27.11.2026).</summary>
+        public int MaxTraps => Math.Min(GameRules.ResearchTrapSlots, GameRules.StartTrapSlots + Research.Total(ResearchStat.TrapSlot));
 
         public GameState(ResourceConfig cfg)
         {
@@ -187,27 +186,16 @@ namespace GameCore.Game
         }
 
         // ---------- Yol geliştirme ----------
-        public bool TryStartRoadResearch(out string error)
-        {
-            error = null;
-            if (RoadResearchDone) { error = "Yol geliştirme araştırması zaten tamamlandı"; return false; }
-            if (RoadResearchRemaining > 0) { error = "Araştırma sürüyor"; return false; }
-            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
-            if (!Wallet.TrySpend(RoadRules.ResearchCost, Level, SpendArea.Research, out error)) return false;
-            RoadResearchRemaining = RoadRules.ResearchDurationSeconds;
-            return true;
-        }
-
-        /// <summary>Yol geliştirme: araştırma + seviye şartı + işçi + kaynak; süre dolunca basamak yükselir (JobKind.Road).</summary>
+        /// <summary>Yol geliştirme: basamağın araştırması + seviye şartı + işçi + kaynak; süre dolunca basamak yükselir (JobKind.Road).</summary>
         public bool TryUpgradeRoad(GridPos p, out string error)
         {
-            if (!RoadRules.CanUpgrade(RoadResearchDone, out error)) return false;
             if (Layout.Get(p) != CellKind.Road) { error = "Geliştirmek için bir yola dokun"; return false; }
             var cur = Layout.GetRoadTier(p);
             if (RoadRules.IsMax(cur)) { error = "Bu yol zaten en üst seviyede (Kristal)"; return false; }
             if (IsUpgrading(JobKind.Road, p, SoldierType.Swordsman)) { error = "Bu yol zaten geliştiriliyor"; return false; }
             var next = RoadRules.Next(cur);
             if (Level < RoadRules.MinLevel(next)) { error = RoadRules.Name(next) + " yol Sv " + RoadRules.MinLevel(next) + "'te açılır"; return false; }
+            if (!RoadTierResearched(next)) { error = "Akademi: Köy Gelişimi'nde Yol Geliştirme " + RoadRules.Rank(next) + " (" + RoadRules.Name(next) + ") araştırması gerekli"; return false; }
             if (FreeBuilders <= 0) { error = "Boş işçi yok"; return false; }
             var cost = RoadRules.UpgradeCost(next);
             if (!Wallet.TrySpend(cost, Level, SpendArea.Upgrade, out error)) return false;
@@ -217,16 +205,6 @@ namespace GameCore.Game
             return true;
         }
 
-        public bool TryStartTrapResearch(out string error)
-        {
-            error = null;
-            if (TrapResearchDone) { error = "Tuzak Ustalığı zaten tamamlandı"; return false; }
-            if (TrapResearchRemaining > 0) { error = "Araştırma sürüyor"; return false; }
-            if (CountBuildings(BuildingType.University) == 0) { error = "Önce Akademi'yi kur"; return false; }
-            if (!Wallet.TrySpend(GameRules.TrapResearchCost, Level, SpendArea.Research, out error)) return false;
-            TrapResearchRemaining = GameRules.TrapResearchSeconds;
-            return true;
-        }
         /// <summary>Ordu kapasitesi (yer birimi). Asker türüne göre 1-10 yer kaplar (GameRules.Housing).</summary>
         public int ArmyCapacity => GameRules.ArmyCapacity(BarracksLevelSum());
         /// <summary>Kullanılan yer: hazır askerler + eğitim sırası.</summary>
@@ -372,16 +350,6 @@ namespace GameCore.Game
             int trained = Queue.Advance(seconds, Inventory);
             if (trained > 0) { Quests.Report(QuestEvent.SoldiersTrained, trained, lvl); events.Add(trained + " asker eğitildi"); }
 
-            if (TrapResearchRemaining > 0)
-            {
-                TrapResearchRemaining -= seconds;
-                if (TrapResearchRemaining <= 0) { TrapResearchRemaining = -1; TrapResearchDone = true; events.Add("Tuzak Ustalığı tamamlandı: 6 tuzak hakkı"); }
-            }
-            if (RoadResearchRemaining > 0)
-            {
-                RoadResearchRemaining -= seconds;
-                if (RoadResearchRemaining <= 0) { RoadResearchRemaining = -1; RoadResearchDone = true; events.Add("Yol geliştirme araştırması tamamlandı"); }
-            }
 
             Research.BonusSlots = Math.Max(0, CountBuildings(BuildingType.University) - 1);
             foreach (var d in Research.Advance(seconds))
@@ -538,7 +506,7 @@ namespace GameCore.Game
             int lvl = Level;
             if (lvl < d.UnlockLevel) { error = d.Name + " tuzağı Sv " + d.UnlockLevel + "'te açılır"; return false; }
             if (!Traps.ContainsKey(p) && Traps.Count >= MaxTraps)
-            { error = "Tuzak hakkı " + MaxTraps + (TrapResearchDone ? "" : " (Akademi'de Tuzak Ustalığı ile " + GameRules.ResearchTrapSlots + ")"); return false; }
+            { error = "Tuzak hakkı " + MaxTraps + (MaxTraps < GameRules.ResearchTrapSlots ? " (Akademi: Savunma'da Tuzak Hakkı ile " + GameRules.ResearchTrapSlots + ")" : ""); return false; }
             var cost = GameRules.Scale(d.Cost, Config, lvl, 100);
             if (!Wallet.TrySpend(cost, lvl, SpendArea.Building, out error)) return false;
             Traps[p] = t;

@@ -69,42 +69,43 @@ Amaç: Kaynak üretimi, depolama ve ek kaynak yapıları (her kaynak yapısı en
 
 # 2. SAVUNMA AĞACI
 
-Amaç: Kule hasarı, kule canı ve ek kule hakları.
+Amaç: Kule hasarı, kule canı, ek kule ve tuzak hakları.
 
-| Seviye | Araştırma 1 | Araştırma 4 |
-|---|---|---|
-| 1 | Keskin Oklar I [TowerDamage:25] | — |
-| 2 | Sağlam Kuleler I [TowerHp:25] | — |
-| 3 | Keskin Oklar II [TowerDamage:25] | Kule Hakkı I [TowerSlot:1] |
-| 4 | Sağlam Kuleler II [TowerHp:25] | — |
-| 5 | Keskin Oklar III [TowerDamage:25] | — |
-| 6 | Sağlam Kuleler III [TowerHp:25] | Kule Hakkı II [TowerSlot:1] |
-| 7 | Keskin Oklar IV [TowerDamage:25] | — |
-| 8 | Sağlam Kuleler IV [TowerHp:25] | — |
-| 9 | Keskin Oklar V [TowerDamage:25] | — |
-| 10 | Sağlam Kuleler V [TowerHp:25] | Kule Hakkı III [TowerSlot:1] |
-| 11 | Keskin Oklar VI [TowerDamage:25] | — |
-| 12 | Sağlam Kuleler VI [TowerHp:25] | — |
-| 13 | Keskin Oklar VII [TowerDamage:25] | — |
-| 14 | Sağlam Kuleler VII [TowerHp:25] | — |
-| 15 | Keskin Oklar VIII [TowerDamage:25] | Kule Hakkı IV [TowerSlot:1] |
-| 16 | Sağlam Kuleler VIII [TowerHp:25] | — |
-| 17 | Keskin Oklar IX [TowerDamage:25] | — |
-| 18 | Sağlam Kuleler IX [TowerHp:25] | — |
-| 19 | Keskin Oklar X [TowerDamage:25] | — |
-| 20 | Sağlam Kuleler X [TowerHp:25] | Kule Hakkı V [TowerSlot:1] |
-| 21 | Keskin Oklar XI [TowerDamage:25] | — |
-| 22 | Sağlam Kuleler XI [TowerHp:25] | — |
-| 23 | Keskin Oklar XII [TowerDamage:25] | — |
-| 24 | Sağlam Kuleler XII [TowerHp:25] | — |
-| 25 | Keskin Oklar XIII [TowerDamage:25] | — |
-| 26 | Sağlam Kuleler XIII [TowerHp:25] | — |
-| 27 | Keskin Oklar XIV [TowerDamage:25] | — |
-| 28 | Sağlam Kuleler XIV [TowerHp:25] | — |
-| 29 | Keskin Oklar XV [TowerDamage:25] | — |
-| 30 | Sağlam Kuleler XV [TowerHp:25] | — |
+| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 |
+|---|---|---|---|
+| 1 | Keskin Oklar I [TowerDamage:25] | — | — |
+| 2 | Sağlam Kuleler I [TowerHp:25] | — | — |
+| 3 | Keskin Oklar II [TowerDamage:25] | Kule Hakkı I [TowerSlot:1] | — |
+| 4 | Sağlam Kuleler II [TowerHp:25] | — | — |
+| 5 | Keskin Oklar III [TowerDamage:25] | — | — |
+| 6 | Sağlam Kuleler III [TowerHp:25] | Kule Hakkı II [TowerSlot:1] | — |
+| 7 | Keskin Oklar IV [TowerDamage:25] | — | Tuzak Hakkı I [TrapSlot:1] |
+| 8 | Sağlam Kuleler IV [TowerHp:25] | — | — |
+| 9 | Keskin Oklar V [TowerDamage:25] | — | — |
+| 10 | Sağlam Kuleler V [TowerHp:25] | Kule Hakkı III [TowerSlot:1] | — |
+| 11 | Keskin Oklar VI [TowerDamage:25] | — | — |
+| 12 | Sağlam Kuleler VI [TowerHp:25] | — | — |
+| 13 | Keskin Oklar VII [TowerDamage:25] | — | — |
+| 14 | Sağlam Kuleler VII [TowerHp:25] | — | Tuzak Hakkı II [TrapSlot:1] |
+| 15 | Keskin Oklar VIII [TowerDamage:25] | Kule Hakkı IV [TowerSlot:1] | — |
+| 16 | Sağlam Kuleler VIII [TowerHp:25] | — | — |
+| 17 | Keskin Oklar IX [TowerDamage:25] | — | — |
+| 18 | Sağlam Kuleler IX [TowerHp:25] | — | — |
+| 19 | Keskin Oklar X [TowerDamage:25] | — | — |
+| 20 | Sağlam Kuleler X [TowerHp:25] | Kule Hakkı V [TowerSlot:1] | — |
+| 21 | Keskin Oklar XI [TowerDamage:25] | — | — |
+| 22 | Sağlam Kuleler XI [TowerHp:25] | — | — |
+| 23 | Keskin Oklar XII [TowerDamage:25] | — | — |
+| 24 | Sağlam Kuleler XII [TowerHp:25] | — | — |
+| 25 | Keskin Oklar XIII [TowerDamage:25] | — | — |
+| 26 | Sağlam Kuleler XIII [TowerHp:25] | — | — |
+| 27 | Keskin Oklar XIV [TowerDamage:25] | — | — |
+| 28 | Sağlam Kuleler XIV [TowerHp:25] | — | — |
+| 29 | Keskin Oklar XV [TowerDamage:25] | — | — |
+| 30 | Sağlam Kuleler XV [TowerHp:25] | — | — |
 
 - Kule hakkı: oyun başında 3; Kule Hakkı I-V her biri +1 → en çok 8. Her biri bir öncekini ister.
+- Tuzak hakkı: oyun başında 4; Tuzak Hakkı I-II her biri +1 → en çok 6 (eski Tuzak Ustalığı araştırmasının yerine; kullanıcı kararı 27.11.2026).
 
 # 3. ASKERÎ AĞACI
 
@@ -187,43 +188,44 @@ Amaç: Bina canı, yükseltme maliyeti, otomatik tamir ve işçi iş sırası.
 
 # 5. KÖY GELİŞİMİ AĞACI
 
-Amaç: İnşa ve eğitim süresi, köylü evi, kışla, Akademi ve yol hakları.
+Amaç: İnşa ve eğitim süresi, köylü evi, kışla, Akademi, yol hakları ve yol geliştirme.
 
-| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 |
-|---|---|---|---|
-| 1 | Hızlı İnşaat I [BuildTime:25] | Köylü Evi I [VillagerHouseSlot:1] | — |
-| 2 | Hızlı Eğitim I [TrainTime:25] | — | — |
-| 3 | Hızlı İnşaat II [BuildTime:25] | Köylü Evi II [VillagerHouseSlot:1] | — |
-| 4 | Hızlı Eğitim II [TrainTime:25] | — | — |
-| 5 | Hızlı İnşaat III [BuildTime:25] | — | Yol Hakkı I [RoadSlot:2] |
-| 6 | Hızlı Eğitim III [TrainTime:25] | — | — |
-| 7 | Hızlı İnşaat IV [BuildTime:25] | — | — |
-| 8 | Hızlı Eğitim IV [TrainTime:25] | Kışla II [BarracksSlot:1] | — |
-| 9 | Hızlı İnşaat V [BuildTime:25] | — | — |
-| 10 | Hızlı Eğitim V [TrainTime:25] | — | Yol Hakkı II [RoadSlot:2] |
-| 11 | Hızlı İnşaat VI [BuildTime:25] | — | — |
-| 12 | Hızlı Eğitim VI [TrainTime:25] | Akademi II [AcademySlot:1] | — |
-| 13 | Hızlı İnşaat VII [BuildTime:25] | — | — |
-| 14 | Hızlı Eğitim VII [TrainTime:25] | — | — |
-| 15 | Hızlı İnşaat VIII [BuildTime:25] | — | — |
-| 16 | Hızlı Eğitim VIII [TrainTime:25] | — | Yol Hakkı III [RoadSlot:2] |
-| 17 | Hızlı İnşaat IX [BuildTime:25] | — | — |
-| 18 | Hızlı Eğitim IX [TrainTime:25] | Kışla III [BarracksSlot:1] | — |
-| 19 | Hızlı İnşaat X [BuildTime:25] | — | — |
-| 20 | Hızlı Eğitim X [TrainTime:25] | — | — |
-| 21 | Hızlı İnşaat XI [BuildTime:25] | — | — |
-| 22 | Hızlı Eğitim XI [TrainTime:25] | — | — |
-| 23 | Hızlı İnşaat XII [BuildTime:25] | — | — |
-| 24 | Hızlı Eğitim XII [TrainTime:25] | — | Yol Hakkı IV [RoadSlot:2] |
-| 25 | Hızlı İnşaat XIII [BuildTime:25] | — | — |
-| 26 | Hızlı Eğitim XIII [TrainTime:25] | — | — |
-| 27 | Hızlı İnşaat XIV [BuildTime:25] | — | — |
-| 28 | Hızlı Eğitim XIV [TrainTime:25] | — | — |
-| 29 | Hızlı İnşaat XV [BuildTime:25] | — | — |
-| 30 | Hızlı Eğitim XV [TrainTime:25] | — | — |
+| Seviye | Araştırma 1 | Araştırma 4 | Araştırma 5 | Araştırma 6 |
+|---|---|---|---|---|
+| 1 | Hızlı İnşaat I [BuildTime:25] | Köylü Evi I [VillagerHouseSlot:1] | — | — |
+| 2 | Hızlı Eğitim I [TrainTime:25] | — | — | — |
+| 3 | Hızlı İnşaat II [BuildTime:25] | Köylü Evi II [VillagerHouseSlot:1] | — | — |
+| 4 | Hızlı Eğitim II [TrainTime:25] | — | — | — |
+| 5 | Hızlı İnşaat III [BuildTime:25] | — | Yol Hakkı I [RoadSlot:2] | Yol Geliştirme I [RoadTier:1] |
+| 6 | Hızlı Eğitim III [TrainTime:25] | — | — | — |
+| 7 | Hızlı İnşaat IV [BuildTime:25] | — | — | — |
+| 8 | Hızlı Eğitim IV [TrainTime:25] | Kışla II [BarracksSlot:1] | — | — |
+| 9 | Hızlı İnşaat V [BuildTime:25] | — | — | — |
+| 10 | Hızlı Eğitim V [TrainTime:25] | — | Yol Hakkı II [RoadSlot:2] | — |
+| 11 | Hızlı İnşaat VI [BuildTime:25] | — | — | — |
+| 12 | Hızlı Eğitim VI [TrainTime:25] | Akademi II [AcademySlot:1] | — | — |
+| 13 | Hızlı İnşaat VII [BuildTime:25] | — | — | — |
+| 14 | Hızlı Eğitim VII [TrainTime:25] | — | — | — |
+| 15 | Hızlı İnşaat VIII [BuildTime:25] | — | — | Yol Geliştirme II [RoadTier:2] |
+| 16 | Hızlı Eğitim VIII [TrainTime:25] | — | Yol Hakkı III [RoadSlot:2] | — |
+| 17 | Hızlı İnşaat IX [BuildTime:25] | — | — | — |
+| 18 | Hızlı Eğitim IX [TrainTime:25] | Kışla III [BarracksSlot:1] | — | — |
+| 19 | Hızlı İnşaat X [BuildTime:25] | — | — | — |
+| 20 | Hızlı Eğitim X [TrainTime:25] | — | — | — |
+| 21 | Hızlı İnşaat XI [BuildTime:25] | — | — | — |
+| 22 | Hızlı Eğitim XI [TrainTime:25] | — | — | — |
+| 23 | Hızlı İnşaat XII [BuildTime:25] | — | — | — |
+| 24 | Hızlı Eğitim XII [TrainTime:25] | — | Yol Hakkı IV [RoadSlot:2] | — |
+| 25 | Hızlı İnşaat XIII [BuildTime:25] | — | — | Yol Geliştirme III [RoadTier:3] |
+| 26 | Hızlı Eğitim XIII [TrainTime:25] | — | — | — |
+| 27 | Hızlı İnşaat XIV [BuildTime:25] | — | — | — |
+| 28 | Hızlı Eğitim XIV [TrainTime:25] | — | — | Yol Geliştirme IV [RoadTier:4] |
+| 29 | Hızlı İnşaat XV [BuildTime:25] | — | — | — |
+| 30 | Hızlı Eğitim XV [TrainTime:25] | — | — | — |
 
 - Köylü evi: 1 başta + Köylü Evi I-II → 3. Kışla: 1. Sv3, + Kışla II-III → 3. Akademi: 1. Sv5, + Akademi II → 2 (2. Akademi +1 araştırma yuvası).
 - Yol Hakkı I-IV: her biri +2 yol (toplam +8).
+- Yol Geliştirme I-IV: yolları bir üst malzemeye geliştirme izni — I Taş (Sv5), II Altın+Tahta (Sv15), III Demir (Sv25), IV Kristal (Sv28); eski tek yol araştırmasının yerine (kullanıcı kararı 27.11.2026).
 
 # 6. BİLİM AĞACI
 
@@ -303,5 +305,5 @@ Amaç: Kule saldırı ve savunma elementleri, asker saldırı ve savunma element
 | 30 | Element Ustalığı 30 [ElementMastery:8] | — | — | — |
 
 - Kule saldırı elementleri (Okçu Kulesine uygulanır): Ok, Ateş, Buz, Zehir, Büyü, Şimşek.
-- Duvar savunma elementleri (yalnızca Duvar; kullanıcı kararı 27.11.2026) ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
+- Kule savunma elementleri ve asker saldırı/savunma elementleri: Ateş, Buz, Zehir.
 - Döngü: Ateş > Zehir > Buz > Ateş. Zayıf elementle saldıran %40 az hasar verir (üstün olana ek hasar yok). Direnç: bir elemente karşı güçlendirilmiş (aynı savunma elementli) hedef o elementten %35 az hasar alır. Ok, Büyü, Şimşek nötrdür.

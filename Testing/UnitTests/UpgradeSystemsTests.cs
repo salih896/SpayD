@@ -42,9 +42,11 @@ namespace GameCore.Tests
             StringAssert.Contains("Tuzak hakkı 4", err);
             Assert.IsTrue(g.TryToggleTrap(P(5, 1), TrapType.Bomb, out err), "Var olan tuzağı değiştirmek hakkı aşmaz: " + err);
 
-            g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
-            Assert.IsTrue(g.TryStartTrapResearch(out err), err);
-            g.Advance(GameRules.TrapResearchSeconds, 0);
+            var trapRs = new List<ResearchDef>(ResearchCatalog.All).FindAll(d => d.Stat == ResearchStat.TrapSlot);
+            Assert.AreEqual(2, trapRs.Count, "Savunma: Tuzak Hakkı I-II");
+            g.Research.ForceComplete(trapRs[0].Id);
+            Assert.AreEqual(5, g.MaxTraps);
+            g.Research.ForceComplete(trapRs[1].Id);
             Assert.AreEqual(6, g.MaxTraps);
             Assert.IsTrue(g.TryToggleTrap(P(5, 5), TrapType.Shock, out err), err);
             Assert.IsTrue(g.TryToggleTrap(P(5, 6), TrapType.Frost, out err), err);
@@ -167,14 +169,14 @@ namespace GameCore.Tests
         {
             var g = Rich(10);
             g.AddBuildingDirect(P(2, 2), BuildingType.University, 1);
-            g.RoadResearchDone = true;
+            foreach (var d in ResearchCatalog.All) if (d.Stat == ResearchStat.RoadTier && d.Permille <= 1) g.Research.ForceComplete(d.Id);
+            g.Research.ForceComplete(ResearchCatalog.FindSpecial(ResearchStat.TrapSlot, 1).Id);
             string err;
-            Assert.IsTrue(g.TryStartTrapResearch(out err), err);
             Assert.IsTrue(g.TryUpgradeRoad(P(5, 3), out err), err);
             g.Advance(50, 0);
             string text = GameSave.Save(g, 3);
             var h = GameSave.Load(text, ResourceConfig.CreateDefault(), out _);
-            Assert.AreEqual(g.TrapResearchRemaining, h.TrapResearchRemaining);
+            Assert.AreEqual(5, h.MaxTraps);
             Assert.IsTrue(h.IsUpgrading(JobKind.Road, P(5, 3), SoldierType.Swordsman));
             Assert.AreEqual(text, GameSave.Save(h, 3));
         }

@@ -19,7 +19,7 @@ namespace GameCore.Tests
         [Test]
         public void ResearchCatalog_Has474UniqueEntries()
         {
-            Assert.AreEqual(257, ResearchCatalog.All.Count);
+            Assert.AreEqual(263, ResearchCatalog.All.Count); // + Tuzak Hakkı I-II, Yol Geliştirme I-IV (27.11.2026)
             var ids = new HashSet<string>();
             foreach (var d in ResearchCatalog.All) Assert.IsTrue(ids.Add(d.Id), d.Id);
         }

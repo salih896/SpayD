@@ -197,7 +197,7 @@ namespace GameClient
                     var om = orbit.main; om.simulationSpace = ParticleSystemSimulationSpace.Local;
                     Life(orbit, 1.2f, 1.8f, 0.05f * scale, 0.1f * scale); Rate(orbit, 10f); Circle(orbit, 0.34f * scale);
                     var v = orbit.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.Local;
-                    v.x = new ParticleSystem.MinMaxCurve(0f); v.y = new ParticleSystem.MinMaxCurve(0.1f, 0.3f); v.z = new ParticleSystem.MinMaxCurve(0f);
+                    v.x = new ParticleSystem.MinMaxCurve(0f, 0f); v.y = new ParticleSystem.MinMaxCurve(0.1f, 0.3f); v.z = new ParticleSystem.MinMaxCurve(0f, 0f);
                     v.orbitalY = new ParticleSystem.MinMaxCurve(2.4f);
                     Spin(orbit, 180f); ColorLife(orbit, Grad(c.Core, c.Mid, c.Outer, 0.15f)); Go(orbit);
                     Halo(parent, top, c.Mid, 0.85f * scale);
@@ -549,7 +549,7 @@ namespace GameClient
                     var om = o.main; om.simulationSpace = ParticleSystemSimulationSpace.Local;
                     Life(o, 1.4f, 2f, 0.05f, 0.09f); Rate(o, 6f); Circle(o, 0.3f);
                     var v = o.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.Local;
-                    v.x = new ParticleSystem.MinMaxCurve(0f); v.y = new ParticleSystem.MinMaxCurve(0.05f, 0.15f); v.z = new ParticleSystem.MinMaxCurve(0f);
+                    v.x = new ParticleSystem.MinMaxCurve(0f, 0f); v.y = new ParticleSystem.MinMaxCurve(0.05f, 0.15f); v.z = new ParticleSystem.MinMaxCurve(0f, 0f);
                     v.orbitalY = new ParticleSystem.MinMaxCurve(1.6f);
                     Spin(o, 120f); ColorLife(o, Grad(c.Core, c.Mid, c.Outer, 0.15f)); Go(o);
                     break;
@@ -579,7 +579,7 @@ namespace GameClient
             var col = PS(parent, basePos + new Vector3(0f, 0.1f, 0f), "lvlup", Mat(Star, true), false, 1.2f, 24);
             Life(col, 0.7f, 1.1f, 0.06f, 0.12f, 0.6f, 1.4f); Circle(col, 0.3f); Burst(col, 20); Spin(col, 180f);
             var v = col.velocityOverLifetime; v.enabled = true; v.space = ParticleSystemSimulationSpace.World;
-            v.x = new ParticleSystem.MinMaxCurve(0f); v.z = new ParticleSystem.MinMaxCurve(0f); v.y = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
+            v.x = new ParticleSystem.MinMaxCurve(0f, 0f); v.z = new ParticleSystem.MinMaxCurve(0f, 0f); v.y = new ParticleSystem.MinMaxCurve(0.8f, 1.6f);
             ColorLife(col, Grad(c.Core, c.Mid, c.Outer, 0.05f)); Go(col);
             GroundRing(parent, new Vector3(basePos.x, 0.05f, basePos.z), c.Core, c.Mid, 1.3f);
         }

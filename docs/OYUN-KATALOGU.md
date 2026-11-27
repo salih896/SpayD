@@ -90,7 +90,7 @@ Eski Büyücü/Elf/Top/Buz/Şimşek kuleleri kayıtta Okçu Kulesi + Büyü/Ok/A
 - **Şimşek:** bobinli paratoner + parlayan küre
 
 ## 3. Tuzaklar (8)
-Hakkı: 4, Akademi "Tuzak Ustalığı" araştırmasıyla 6. Uçan askerleri etkilemez.
+Hakkı: 4; Akademi > Savunma'da Tuzak Hakkı I (Sv7) ve II (Sv14) ile 5 ve 6. Uçan askerleri etkilemez.
 
 | Tuzak | Açılış | Etki | Maliyet |
 |---|---|---|---|

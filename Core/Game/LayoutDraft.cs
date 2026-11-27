@@ -212,7 +212,7 @@ namespace GameCore.Game
                         var t = (TrapType)type; var d = TrapCatalog.Get(t);
                         if (d == null) { error = "Geçersiz tuzak"; return null; }
                         if (lvl < d.UnlockLevel) { error = d.Name + " tuzağı Sv " + d.UnlockLevel + "'te açılır"; return null; }
-                        if (TrapCount >= g.MaxTraps) { error = "Tuzak hakkı " + g.MaxTraps + (g.TrapResearchDone ? "" : " (Akademi'de Tuzak Ustalığı ile " + GameRules.ResearchTrapSlots + ")"); return null; }
+                        if (TrapCount >= g.MaxTraps) { error = "Tuzak hakkı " + g.MaxTraps + (g.MaxTraps < GameRules.ResearchTrapSlots ? " (Akademi: Savunma'da Tuzak Hakkı ile " + GameRules.ResearchTrapSlots + ")" : ""); return null; }
                         it.Trap = t; break;
                     }
                 default: error = "Yol hakkı seviyeyle artar"; return null;

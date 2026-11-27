@@ -188,7 +188,7 @@ namespace GameCore.Tests
         public void PickUpAll_EmptiesVillage_KeepsLockedRoad_AndCanRebuild()
         {
             var g = Rich(10);
-            g.RoadResearchDone = true;
+            foreach (var rd in ResearchCatalog.All) if (rd.Stat == ResearchStat.RoadTier && rd.Permille <= 1) g.Research.ForceComplete(rd.Id);
             string err;
             Assert.IsTrue(g.TryUpgradeRoad(P(5, 3), out err), err);
             var d = new LayoutDraft(g);

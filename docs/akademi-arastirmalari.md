@@ -3,7 +3,7 @@
 Üretilmiş görünüm: `Core/Progression/ResearchData.cs` (kaynak: `GameDesign/TechTrees.md`). Araştırma seviyesi = gereken Akademi seviyesi.
 1. sütun: bonus (bir önceki seviyeyi ister). Diğer sütunlar: özel araştırmalar (aynı adlı bir öncekini ister). Değerler GEÇİCİDİR.
 
-Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar kaldırıldı).
+Toplam: 263 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar kaldırıldı; 27.11.2026: Tuzak Hakkı I-II ve Yol Geliştirme I-IV eklendi).
 
 ## 1. Ekonomi (34)
 
@@ -44,7 +44,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 29 | 1 | Verimli Üretim XV | Üretim +%4 |
 | 30 | 1 | Geniş Depolar XV | Depo +%4 |
 
-## 2. Savunma (35)
+## 2. Savunma (37)
 
 | Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
@@ -57,6 +57,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 6 | 1 | Sağlam Kuleler III | Kule canı +%2,5 |
 | 6 | 2 | Kule Hakkı II | +1 Kule hakkı |
 | 7 | 1 | Keskin Oklar IV | Kule hasarı +%2,5 |
+| 7 | 3 | Tuzak Hakkı I | +1 tuzak hakkı |
 | 8 | 1 | Sağlam Kuleler IV | Kule canı +%2,5 |
 | 9 | 1 | Keskin Oklar V | Kule hasarı +%2,5 |
 | 10 | 1 | Sağlam Kuleler V | Kule canı +%2,5 |
@@ -65,6 +66,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 12 | 1 | Sağlam Kuleler VI | Kule canı +%2,5 |
 | 13 | 1 | Keskin Oklar VII | Kule hasarı +%2,5 |
 | 14 | 1 | Sağlam Kuleler VII | Kule canı +%2,5 |
+| 14 | 3 | Tuzak Hakkı II | +1 tuzak hakkı |
 | 15 | 1 | Keskin Oklar VIII | Kule hasarı +%2,5 |
 | 15 | 2 | Kule Hakkı IV | +1 Kule hakkı |
 | 16 | 1 | Sağlam Kuleler VIII | Kule canı +%2,5 |
@@ -162,7 +164,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 29 | 1 | Güçlü Temeller XV | Bina canı +%4 |
 | 30 | 1 | Tasarruflu Yapım XV | Yükseltme maliyeti -%2 |
 
-## 5. Köy Gelişimi (39)
+## 5. Köy Gelişimi (43)
 
 | Sv | Sütun | Araştırma | Etki |
 |---|---|---|---|
@@ -174,6 +176,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 4 | 1 | Hızlı Eğitim II | Eğitim süresi -%2,5 |
 | 5 | 1 | Hızlı İnşaat III | Yükseltme süresi -%2,5 |
 | 5 | 3 | Yol Hakkı I | +2 yol hakkı |
+| 5 | 4 | Yol Geliştirme I | Yol geliştirme: Taş |
 | 6 | 1 | Hızlı Eğitim III | Eğitim süresi -%2,5 |
 | 7 | 1 | Hızlı İnşaat IV | Yükseltme süresi -%2,5 |
 | 8 | 1 | Hızlı Eğitim IV | Eğitim süresi -%2,5 |
@@ -187,6 +190,7 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 13 | 1 | Hızlı İnşaat VII | Yükseltme süresi -%2,5 |
 | 14 | 1 | Hızlı Eğitim VII | Eğitim süresi -%2,5 |
 | 15 | 1 | Hızlı İnşaat VIII | Yükseltme süresi -%2,5 |
+| 15 | 4 | Yol Geliştirme II | Yol geliştirme: Altın+Tahta |
 | 16 | 1 | Hızlı Eğitim VIII | Eğitim süresi -%2,5 |
 | 16 | 3 | Yol Hakkı III | +2 yol hakkı |
 | 17 | 1 | Hızlı İnşaat IX | Yükseltme süresi -%2,5 |
@@ -200,9 +204,11 @@ Toplam: 257 araştırma, 7 ağaç (25.11.2026: düşük değerli araştırmalar 
 | 24 | 1 | Hızlı Eğitim XII | Eğitim süresi -%2,5 |
 | 24 | 3 | Yol Hakkı IV | +2 yol hakkı |
 | 25 | 1 | Hızlı İnşaat XIII | Yükseltme süresi -%2,5 |
+| 25 | 4 | Yol Geliştirme III | Yol geliştirme: Demir |
 | 26 | 1 | Hızlı Eğitim XIII | Eğitim süresi -%2,5 |
 | 27 | 1 | Hızlı İnşaat XIV | Yükseltme süresi -%2,5 |
 | 28 | 1 | Hızlı Eğitim XIV | Eğitim süresi -%2,5 |
+| 28 | 4 | Yol Geliştirme IV | Yol geliştirme: Kristal |
 | 29 | 1 | Hızlı İnşaat XV | Yükseltme süresi -%2,5 |
 | 30 | 1 | Hızlı Eğitim XV | Eğitim süresi -%2,5 |
 

@@ -14,7 +14,8 @@ namespace GameCore.Progression
         VillagerHouseSlot, TowerSlot, BarracksSlot, AcademySlot,   // yapı hakkı: Permille = +adet
         WoodSlot, StoneSlot, GoldSlot, IronSlot, RoadSlot,         // ek kaynak yapısı (üretim + depo) / ek yol
         AutoRepair, JobQueue, SoldierArmor, TowerArmor,            // Mimarlık/Bilim özel: bayrak, +iş sırası, +zırh
-        SoldierUnlock, TowerAttackElement, TowerDefenseElement, SoldierAttackElement, SoldierDefenseElement // Değer = asker türü / element kimliği
+        SoldierUnlock, TowerAttackElement, TowerDefenseElement, SoldierAttackElement, SoldierDefenseElement, // Değer = asker türü / element kimliği
+        RoadTier, TrapSlot                                          // yol geliştirme basamağı (Değer = sıra 1-4) / +tuzak hakkı (27.11.2026)
     }
 
     public sealed class ResearchDef

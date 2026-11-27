@@ -119,7 +119,7 @@ namespace GameCore.Village
             return true;
         }
 
-        /// <summary>Yolu bir malzeme basamağı yükseltir (tahta → altın+tahta → demir). Kapı kontrolü (seviye/araştırma) RoadRules.CanUpgrade'dedir.</summary>
+        /// <summary>Yolu bir malzeme basamağı yükseltir (tahta → altın+tahta → demir). Kapı kontrolü (seviye/basamak araştırması) GameState.TryUpgradeRoad'dadır.</summary>
         public bool TryUpgradeRoad(GridPos p, out string error)
         {
             error = null;

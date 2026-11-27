@@ -373,8 +373,8 @@ namespace GameClient
                 GUI.Label(new Rect(x, y, iw - 170, 24), (layout.IsEntrance(p) ? "GİRİŞ   " : "") + (g.Traps.TryGetValue(p, out var tr) ? TrapName(tr) + " tuzak" : ""));
                 y += 24;
                 string info;
-                if (!g.RoadResearchDone) info = g.RoadResearchRemaining > 0 ? "Yol araştırması sürüyor: " + Dur(g.RoadResearchRemaining) : "Geliştirmek için Akademi'de yol araştırması gerekli";
-                else if (RoadRules.IsMax(rt)) info = "En üst basamak (Kristal)";
+                if (RoadRules.IsMax(rt)) info = "En üst basamak (Kristal)";
+                else if (!g.RoadTierResearched(RoadRules.Next(rt))) info = "Geliştirmek için Akademi > Köy Gelişimi'nde Yol Geliştirme " + RoadRules.Rank(RoadRules.Next(rt)) + " (" + RoadRules.Name(RoadRules.Next(rt)) + ") araştırması gerekli";
                 else if (g.IsUpgrading(JobKind.Road, p, SoldierType.Swordsman)) info = "Geliştiriliyor";
                 else { var nx = RoadRules.Next(rt); info = RoadRules.Name(nx) + " (Sv " + RoadRules.MinLevel(nx) + "): " + RoadRules.UpgradeCost(nx) + "  " + Dur(RoadRules.UpgradeSeconds(nx)); }
                 GUI.Label(new Rect(x, y, iw - 170, 60), "<size=13>" + info + "</size>");
@@ -597,18 +597,6 @@ namespace GameClient
             string head = "Akademi Sv " + g.UniversityLevel + (g.Level < ResearchState.UniversityUnlockLevel ? " (Sv5'te açılır, sonra Akademi kur)" : "") + "   Yuva " + g.Research.Active.Count + "/" + g.Research.Slots;
             foreach (var a in g.Research.Active) head += "   | " + ResearchCatalog.Get(a.Id).Name + " " + Dur(a.RemainingSeconds);
             GUI.Label(new Rect(r.x + 12, r.y + 68, r.width - 700, 24), head, UiTheme.Small);
-            // yol geliştirme araştırması (approved #22)
-            string rtxt = g.RoadResearchDone ? "Yol geliştirme: AÇIK" : (g.RoadResearchRemaining > 0 ? "Yol araştırması: " + Dur(g.RoadResearchRemaining) : "Yol geliştirme araştır  " + RoadRules.ResearchCost);
-            var rrb = new Rect(r.xMax - 340, r.y + 66, 326, 30);
-            uiRects.Add(rrb);
-            if (GUI.Button(rrb, "<size=13>" + rtxt + "</size>", g.RoadResearchDone ? UiTheme.BtnGreen : GUI.skin.button) && !g.RoadResearchDone)
-            { string re; if (g.TryStartRoadResearch(out re)) Toast("Yol geliştirme araştırması başladı (" + Dur(RoadRules.ResearchDurationSeconds) + ")"); else Toast(re); }
-            string ttxt = g.TrapResearchDone ? "Tuzak Ustalığı: 6 tuzak hakkı" : (g.TrapResearchRemaining > 0 ? "Tuzak Ustalığı: " + Dur(g.TrapResearchRemaining) : "Tuzak Ustalığı araştır (4→6)  " + GameRules.TrapResearchCost);
-            var trb = new Rect(r.xMax - 680, r.y + 66, 330, 30);
-            uiRects.Add(trb);
-            if (GUI.Button(trb, "<size=13>" + ttxt + "</size>", g.TrapResearchDone ? UiTheme.BtnGreen : GUI.skin.button) && !g.TrapResearchDone)
-            { string te; if (g.TryStartTrapResearch(out te)) Toast("Tuzak Ustalığı başladı (" + Dur(GameRules.TrapResearchSeconds) + ")"); else Toast(te); }
-
             { var area = new Rect(r.x + 8, r.y + 100, r.width - 16, r.height - 202); DragScroll(area, ref scrollPos); GUILayout.BeginArea(area); }
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             for (int lv = 1; lv <= ResearchCatalog.MaxLevel; lv++)
@@ -664,6 +652,8 @@ namespace GameClient
                 case ResearchStat.GoldSlot: return "+1 Altın Madeni ve +1 Banka hakkı";
                 case ResearchStat.IronSlot: return "+1 Demir Madeni ve +1 Demir Deposu hakkı";
                 case ResearchStat.RoadSlot: return "+" + d.Permille + " yol hakkı";
+                case ResearchStat.RoadTier: return "Yol geliştirme: " + RoadRules.Name(RoadRules.ByRank(d.Permille)) + " (Sv" + RoadRules.MinLevel(RoadRules.ByRank(d.Permille)) + ")";
+                case ResearchStat.TrapSlot: return "+1 tuzak hakkı";
                 case ResearchStat.AutoRepair: return "Kuleler savunmadan sonra kendiliğinden onarılır";
                 case ResearchStat.JobQueue: return "Köylü başına +1 sıralı iş";
                 case ResearchStat.SoldierArmor: return "Saldıran askerlere +" + d.Permille + " zırh";
