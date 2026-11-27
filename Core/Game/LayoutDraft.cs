@@ -40,7 +40,6 @@ namespace GameCore.Game
         public readonly Dictionary<GridPos, DraftItem> Traps = new Dictionary<GridPos, DraftItem>();
         public readonly List<DraftItem> Inventory = new List<DraftItem>();
         public readonly HashSet<GridPos> Entrances = new HashSet<GridPos>();
-        public readonly List<DraftItem> Sold = new List<DraftItem>();
         private int nextId = 1;
 
         public int Size => g.Layout.Size;
@@ -104,18 +103,6 @@ namespace GameCore.Game
         {
             ResourceCost sum = default;
             foreach (var i in All()) if (i.IsNew) sum = Add(sum, CostOf(i));
-            return sum;
-        }
-
-        public ResourceCost Refund()
-        {
-            ResourceCost sum = default;
-            int lvl = g.Level;
-            foreach (var i in Sold)
-            {
-                if (i.Kind == DraftKind.Building) sum = Add(sum, GameRules.Scale(GameRules.BuildCostOf(i.Building), g.Config, lvl, GameRules.SellRefundPct));
-                else if (i.Kind == DraftKind.Tower) sum = Add(sum, GameRules.Scale(ContentCatalog.Tower(i.Tower).BuildCost, g.Config, lvl, GameRules.SellRefundPct));
-            }
             return sum;
         }
 
@@ -231,17 +218,13 @@ namespace GameCore.Game
             return "";
         }
 
-        /// <summary>Sat: var olan bina/kule onayda %50 iade, tuzak iadesiz; yeni satın alma iptal edilir. Yol satılamaz.</summary>
-        public bool Sell(DraftItem it, out string error)
+        /// <summary>Henüz ödenmemiş yeni satın almayı iptal et. Var olan yapı/kule/tuzak/yol satılamaz (approved #99).</summary>
+        public bool CancelPurchase(DraftItem it, out string error)
         {
             error = null;
             if (it == null) { error = "Öğe yok"; return false; }
-            if (it.Kind == DraftKind.Road) { error = "Yol satılamaz (yol hakkı seviyeyle gelir)"; return false; }
-            if (it.HasOrigin && it.Kind != DraftKind.Trap)
-                foreach (var j in g.Jobs)
-                    if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower) && j.Pos.Equals(it.Origin)) { error = "Yükseltme sürerken satılamaz"; return false; }
+            if (!it.IsNew) { error = "Yapılar satılamaz"; return false; }
             if (!RemoveEverywhere(it)) { error = "Öğe bulunamadı"; return false; }
-            if (it.HasOrigin) Sold.Add(it);
             return true;
         }
 

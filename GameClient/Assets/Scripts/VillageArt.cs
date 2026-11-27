@@ -35,7 +35,8 @@ namespace GameClient
             baseMat = urpLit;
             if (cube != null) return;
             cube = PrimMesh(PrimitiveType.Cube); cyl = PrimMesh(PrimitiveType.Cylinder);
-            ball = MakeLowSphere(10, 7); // 768 yerine ~120 üçgen (low-poly stile de uygun; mobil performans) capsule = PrimMesh(PrimitiveType.Capsule);
+            ball = MakeLowSphere(10, 7); // 768 yerine ~120 üçgen (low-poly stile de uygun; mobil performans)
+            capsule = PrimMesh(PrimitiveType.Capsule);
             cone = MakeCone(12); roof = MakeRoof(); pyramid = MakePyramid();
             grassTex = NoiseTex(64, 0.82f, 1.08f, 11);
             dirtTex = NoiseTex(64, 0.75f, 1.12f, 23);

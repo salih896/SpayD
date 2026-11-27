@@ -170,18 +170,19 @@ namespace GameCore.Tests
         }
 
         [Test]
-        public void Sell_RefundsHalfOnConfirm()
+        public void ExistingCannotBeSold_NewPurchaseCanBeCancelled()
         {
             var g = Rich(10);
             var d = new LayoutDraft(g);
             FillRoads(d);
             string err;
-            int wood = g.Wallet.Get(ResourceType.Wood);
-            Assert.IsTrue(d.Sell(d.At(P(4, 6)), out err), err);
-            Assert.IsFalse(d.Sell(d.At(P(5, 3)), out err), "Yol satılamaz");
-            Assert.IsTrue(g.TryApplyLayout(d, out err), err);
-            Assert.AreEqual(0, g.CountBuildings(BuildingType.VillagerHouse));
-            Assert.Greater(g.Wallet.Get(ResourceType.Wood), wood);
+            Assert.IsFalse(d.CancelPurchase(d.At(P(4, 6)), out err), "Var olan yapı satılamaz");
+            Assert.IsFalse(d.CancelPurchase(d.At(P(5, 3)), out err), "Yol satılamaz");
+            Assert.IsNotNull(d.At(P(4, 6)));
+            // var olan yapı envantere alınıp bırakılırsa onay reddedilir (yapı kaybolmaz)
+            Assert.IsNotNull(d.PickUp(P(4, 6), out err), err);
+            Assert.IsFalse(g.TryApplyLayout(d, out err));
+            Assert.AreEqual(1, g.CountBuildings(BuildingType.VillagerHouse));
         }
 
         [Test]

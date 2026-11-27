@@ -479,22 +479,6 @@ namespace GameCore.Game
             return true;
         }
 
-        /// <summary>Sil: yapı/kule maliyetinin %50'si (seviye 1 maliyeti) iade edilir, tuzak ve yol bedelsiz.</summary>
-        public bool TryRemove(GridPos p, out string error)
-        {
-            error = null;
-            foreach (var j in Jobs) if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.Road || j.Kind == JobKind.TowerElement) && j.Pos.Equals(p)) { error = "Yükseltme sürerken silinemez"; return false; }
-            int lvl = Level;
-            ResourceCost refund = default;
-            if (Buildings.TryGetValue(p, out var b)) refund = GameRules.Scale(GameRules.BuildCostOf(b.Type), Config, lvl, GameRules.SellRefundPct);
-            else if (Towers.TryGetValue(p, out var t)) refund = GameRules.Scale(ContentCatalog.Tower(t.Type).BuildCost, Config, lvl, GameRules.SellRefundPct);
-            if (!Layout.Remove(p)) { error = "Silinecek bir şey yok"; return false; }
-            Buildings.Remove(p); Towers.Remove(p); Wears.Remove(p); Traps.Remove(p);
-            foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
-                if (refund.Get(rt) > 0) Wallet.TryAdd(rt, refund.Get(rt), lvl, out _, out _);
-            return true;
-        }
-
         public bool TryToggleTrap(GridPos p, TrapType t, out string error)
         {
             error = null;
@@ -539,10 +523,6 @@ namespace GameCore.Game
                 if (kv.Value.IsNew && lvl < TrapCatalog.Get(kv.Value.Trap).UnlockLevel) { error = LayoutDraft.NameOf(kv.Value) + " henüz açılmadı"; return false; }
             var cost = d.NewCost();
             if (!Wallet.CanAfford(cost, lvl, SpendArea.Building, out error)) return false;
-            foreach (var it in d.Sold)
-                if (it.Kind != DraftKind.Trap)
-                    foreach (var j in Jobs)
-                        if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.TowerElement) && j.Pos.Equals(it.Origin)) { error = "Yükseltme sürerken satılamaz"; return false; }
 
             var newLayout = d.BuildLayout();
             var nb = new Dictionary<GridPos, BuildingSpec>();
@@ -573,9 +553,6 @@ namespace GameCore.Game
             foreach (var kv in d.Traps) ntr[kv.Key] = kv.Value.Trap;
 
             Wallet.TrySpend(cost, lvl, SpendArea.Building, out error);
-            var refund = d.Refund();
-            foreach (ResourceType rt in Enum.GetValues(typeof(ResourceType)))
-                if (refund.Get(rt) > 0) Wallet.TryAdd(rt, refund.Get(rt), lvl, out _, out _);
             foreach (var j in Jobs)
                 if ((j.Kind == JobKind.Building || j.Kind == JobKind.Tower || j.Kind == JobKind.TowerElement) && move.TryGetValue(j.Pos, out var np)) j.Pos = np;
             Layout = newLayout; Buildings = nb; Towers = nt; Wears = nw; Traps = ntr;

@@ -31,7 +31,7 @@ namespace GameClient
         private bool dragFromCell;
         private GridPos dragOrigin;
         private bool entranceMode;
-        private Rect invPanelGui, sellZoneGui;
+        private Rect invPanelGui;
         private Transform ghostRoot;
         private int ghostId = -1;
         private HashSet<GridPos> problemCells = new HashSet<GridPos>();
@@ -162,11 +162,7 @@ namespace GameClient
             HideGhost();
             string err = null;
             bool placed = false;
-            if (OverGui(sellZoneGui, pos))
-            {
-                if (draft.Sell(it, out err)) { Toast(it.IsNew ? "Satın alma iptal edildi" : LayoutDraft.NameOf(it) + " satılacak (onayda %50 iade)"); dirty = true; return; }
-            }
-            else if (!OverGui(invPanelGui, pos) && TryGetCell(pos, out var cell))
+            if (!OverGui(invPanelGui, pos) && TryGetCell(pos, out var cell))
             {
                 placed = draft.Place(it, cell, out err);
                 if (placed) { FxKit.Construction(null, new Vector3(cell.X, 0f, cell.Y)); DropPuff(new Vector3(cell.X, 0f, cell.Y)); } // yerleşti: toz + halka
@@ -175,7 +171,7 @@ namespace GameClient
             }
             else if (dragFromCell && !OverGui(invPanelGui, pos)) draft.Place(it, dragOrigin, out _);
             // yeni satın alma yerleşmediyse iptal (envanterde ödenmemiş öğe kalmasın)
-            if (!placed && it.IsNew && draft.Inventory.Contains(it)) draft.Sell(it, out _);
+            if (!placed && it.IsNew && draft.Inventory.Contains(it)) draft.CancelPurchase(it, out _);
             if (!string.IsNullOrEmpty(err)) Toast(err);
             dirty = true;
         }
@@ -253,8 +249,6 @@ namespace GameClient
                 + "   Kışla " + draft.CountBuildings(BuildingType.Barracks) + "/" + g.MaxCountOf(BuildingType.Barracks);
             var cost = draft.NewCost();
             if (cost.Wood + cost.Stone + cost.Gold + cost.Iron > 0) status += "   Ödenecek: " + cost;
-            var refund = draft.Refund();
-            if (refund.Wood + refund.Stone + refund.Gold + refund.Iron > 0) status += "   İade: " + refund;
             var sr = new Rect(Mathf.Max(8f, w * 0.5f - 420f), 104f, Mathf.Min(w - 16f, 840f), 30f);
             GUI.Label(sr, "<size=13>" + status + "</size>", UiTheme.Pill); uiRects.Add(sr);
             bool ok = draftOk; // Rebuild'de (düzen değişince) hesaplanır
@@ -287,11 +281,9 @@ namespace GameClient
             if (GUI.Button(new Rect(bx, h - InvPanelH + 8f, btnW, 46f), "ONAYLA", UiTheme.BtnGreen)) { ConfirmLayout(); return; }
             if (GUI.Button(new Rect(bx, h - InvPanelH + 60f, btnW, 40f), "İptal", UiTheme.BtnRed)) { ExitLayout(); Toast("Değişiklikler atıldı"); return; }
             if (GUI.Button(new Rect(bx, h - InvPanelH + 106f, btnW, 40f), entranceMode ? "Giriş: AÇIK" : "Giriş", entranceMode ? UiTheme.BtnOn : GUI.skin.button)) entranceMode = !entranceMode;
-            sellZoneGui = new Rect(bx - 96f, h - InvPanelH + 8f, 88f, 138f);
-            GUI.Box(sellZoneGui, dragItem != null ? "<b>SAT</b>\n\nburaya\nbırak" : "<size=12>Satmak\niçin\nsürükle\nbırak</size>", dragItem != null ? UiTheme.PillBad : UiTheme.Skin.box);
 
             // kart alanı
-            var area = new Rect(10f, h - InvPanelH + 42f, sellZoneGui.x - 20f, InvPanelH - 50f);
+            var area = new Rect(10f, h - InvPanelH + 42f, bx - 20f, InvPanelH - 50f);
             float cw = 112f, ch = area.height - 4f;
             var groups = InventoryGroups();
             var shopTowers = new List<TowerType>(); // kaldırılmış eski kule türleri (Sv 999) listelenmez

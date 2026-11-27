@@ -12,7 +12,6 @@ namespace GameCore.Game
     {
         public const int MaxLevel = 30;
         public const int StarterWood = 600;
-        public const int SellRefundPct = 50;
 
         /// <summary>Kule hakkı (kullanıcı kararı 25.11.2026): 3 ile başlar; yalnızca Akademi "Kule Hakkı I-V" araştırmalarıyla +5 → en çok 8.</summary>
         public const int StartTowerSlots = 3, MaxTowerSlots = 8;
