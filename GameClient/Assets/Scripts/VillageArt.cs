@@ -730,6 +730,41 @@ namespace GameClient
                     new Vector3(0.12f, 0.08f, 0.1f), Color.Lerp(StoneDark, WoodDark, Rand(seed, i + 2)), new Vector3(Rand(seed, i + 3) * 40f, Rand(seed, i + 4) * 90f, 0));
         }
 
+        /// <summary>
+        /// Kule menzil halkası (kullanıcı isteği 28.11.2026 "kulelerin menzili görünsün"): yere yatık ince kenar + çok soluk dolgu.
+        /// Tek mesh, köşe renkli; FxKit parçacık malzemesi (ışıksız, saydam).
+        /// </summary>
+        public static GameObject RangeRing(Transform parent, Vector3 c, float radius, Color edge, float fillAlpha)
+        {
+            var go = new GameObject("range");
+            go.transform.SetParent(parent, false);
+            go.transform.position = c + new Vector3(0f, 0.04f, 0f);
+            const int n = 72; const float w = 0.11f;
+            var v = new List<Vector3> { Vector3.zero }; var cl = new List<Color>(); var tri = new List<int>();
+            var fill = new Color(edge.r, edge.g, edge.b, fillAlpha);
+            cl.Add(fill);
+            for (int i = 0; i <= n; i++)
+            {
+                float a = i * Mathf.PI * 2f / n;
+                var d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                v.Add(d * (radius - w)); cl.Add(new Color(edge.r, edge.g, edge.b, fillAlpha * 2f));
+                v.Add(d * radius); cl.Add(edge);
+            }
+            for (int i = 0; i < n; i++)
+            {
+                int a = 1 + 2 * i, b = a + 2;
+                tri.Add(0); tri.Add(b); tri.Add(a);                                   // dolgu (Cull Off: tek yön yeter)
+                tri.Add(a); tri.Add(b); tri.Add(b + 1); tri.Add(a); tri.Add(b + 1); tri.Add(a + 1); // kenar şeridi
+            }
+            var m = new Mesh { name = "rangeRing" };
+            m.SetVertices(v); m.SetColors(cl); m.SetTriangles(tri, 0); m.RecalculateBounds();
+            go.AddComponent<MeshFilter>().sharedMesh = m;
+            var r = go.AddComponent<MeshRenderer>();
+            r.sharedMaterial = FxKit.Mat(Texture2D.whiteTexture, false);
+            r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; r.receiveShadows = false;
+            return go;
+        }
+
         public static void BuildSelection(Transform parent, Vector3 c)
         {
             var r = Part(parent, Shape.Cyl, c + new Vector3(0, 0.03f, 0), new Vector3(0.98f, 0.01f, 0.98f), Mat(new Color(1f, 0.9f, 0.3f), 0.3f, 0.8f));

@@ -71,7 +71,7 @@ namespace GameClient
         {
             var list = new List<GameObject>();
             foreach (var r in root.GetComponentsInChildren<MeshRenderer>())
-                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null && r.GetComponentInParent<KickAnim>() == null && r.GetComponentInParent<BallistaAim>() == null) list.Add(r.gameObject); // hareketli parçalar birleştirilmez
+                if (r.GetComponentInParent<ArtMotion>() == null && r.GetComponentInParent<TrapAnim>() == null && r.GetComponentInParent<KickAnim>() == null && r.GetComponentInParent<BallistaAim>() == null && r.name != "range") list.Add(r.gameObject); // hareketli parçalar birleştirilmez
             if (list.Count > 1) StaticBatchingUtility.Combine(list.ToArray(), root);
         }
 
@@ -139,6 +139,15 @@ namespace GameClient
                                     if (el != TowerElement.None) VillageArt.ElementAura(viewRoot, c, el, ModelLibrary.WorldHeight(towerT) + 0.18f); // model yoksa eski aura
                                 }
                                 towerViews[p] = towerT;
+                                if (ts != null && (sim != null || p.Equals(selCell)) && draft == null)
+                                {
+                                    var tdef = ContentCatalog.TowerFor(ts.Type, ts.Element);
+                                    if (tdef.Attack > 0)
+                                    {
+                                        var rc = Color.Lerp(el != TowerElement.None ? VillageArt.ElementColor(el) : new Color(1f, 0.92f, 0.6f), Color.white, 0.45f);
+                                        VillageArt.RangeRing(viewRoot, c, tdef.RangeMilli / 1000f, new Color(rc.r, rc.g, rc.b, sim != null ? 0.55f : 1f), sim != null ? 0.05f : 0.13f);
+                                    }
+                                }
                                 if (sim != null && towerT != null) towerT.gameObject.AddComponent<KickAnim>(); // savaşta geri teper (birleştirilmez)
                                 if (ts != null && ts.DefElement != TowerElement.None) FxKit.DefenseAura(towerT, ts.DefElement, c, ts.Type == TowerType.Wall ? 0.5f : 0.42f);
                                 if (sim == null && (g.IsUpgrading(JobKind.Tower, p, SoldierType.Swordsman) || g.IsUpgrading(JobKind.TowerElement, p, SoldierType.Swordsman))) FxKit.Construction(viewRoot, c);

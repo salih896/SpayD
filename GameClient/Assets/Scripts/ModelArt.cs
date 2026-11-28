@@ -156,6 +156,51 @@ namespace GameClient
         }
     }
 
+    /// <summary>
+    /// Mancınık animasyonu (kullanıcı isteği 28.11.2026): atışta kol hızla öne savrulur, gövde hafifçe sıçrar,
+    /// sonra kol yavaşça geri çekilir (doldurma); yürürken tekerlekler döner. Kenney modelindeki "catapult" ve "wheel*" parçaları.
+    /// </summary>
+    public sealed class CatapultAnim : MonoBehaviour, ISoldierAnim
+    {
+        // Kenney modeli: kol arka ucundan (-x) döner ve +x boyunca uzanır; tekerlek ve kol mili z ekseninde
+        private static readonly Vector3 ArmAxis = Vector3.forward, WheelAxis = Vector3.forward;
+        private const float ArmThrow = 80f, WheelDegPerCell = 680f;
+        private Transform arm, body;
+        private readonly List<Transform> wheels = new List<Transform>();
+        private Quaternion armRest;
+        private Vector3 bodyRest;
+        private float speed, fireT = -100f, fireDur = 1.5f;
+
+        public void Init(Transform model)
+        {
+            body = model; bodyRest = model.localPosition;
+            arm = ModelLibrary.FindDeep(model, "catapult");
+            if (arm != null) armRest = arm.localRotation;
+            foreach (var t in model.GetComponentsInChildren<Transform>(true)) if (t.name.StartsWith("wheel")) wheels.Add(t);
+        }
+
+        public void SetMoving(bool m) { if (!m) speed = 0f; }
+        public void SetSpeed(float v) => speed = v;
+
+        public float TriggerAttack(float interval)
+        {
+            fireT = Time.time; fireDur = Mathf.Clamp(interval * 0.9f, 0.7f, 4f);
+            return 0.14f; // taş, kol en öne geldiğinde çıkar
+        }
+
+        private void Update()
+        {
+            float t = Time.time - fireT, ang;
+            const float up = 0.14f, hold = 0.12f;
+            if (t < up) { float k = t / up; ang = ArmThrow * (1f - (1f - k) * (1f - k)); }            // hızla öne
+            else if (t < up + hold) ang = ArmThrow * (1f + 0.06f * Mathf.Sin((t - up) / hold * Mathf.PI)); // durdurucuya çarpıp seker
+            else ang = ArmThrow * (1f - Mathf.SmoothStep(0f, 1f, (t - up - hold) / Mathf.Max(0.1f, fireDur - up - hold))); // yavaşça geri
+            if (arm != null) arm.localRotation = armRest * Quaternion.AngleAxis(ang, ArmAxis);
+            if (body != null) body.localPosition = bodyRest + new Vector3(0f, t < 0.3f ? Mathf.Sin(t / 0.3f * Mathf.PI) * 0.025f : 0f, 0f);
+            if (speed > 0.01f) foreach (var w in wheels) w.Rotate(WheelAxis, speed * WheelDegPerCell * Time.deltaTime, Space.Self);
+        }
+    }
+
     /// <summary>Can çubuğu yüksekliği (sınır kutusu güvenilmez olan modeller için açık değer).</summary>
     public sealed class SoldierHeight : MonoBehaviour { public float Value; }
 
@@ -230,6 +275,7 @@ namespace GameClient
                 var croot = VillageArt.Group(parent, t.ToString(), Vector3.zero);
                 var c = ModelLibrary.Spawn(croot, "Kenney/Castle/siege-catapult", new Vector3(0.15f, 0.06f, 0f), 90f, 0.42f); // kullanıcı isteği: biraz büyük
                 if (c == null) { Object.Destroy(croot.gameObject); return null; }
+                croot.gameObject.AddComponent<CatapultAnim>().Init(c);
                 VillageArt.LevelEffectsPublic(croot, L, 1.7f, 0.58f);
                 return croot;
             }
