@@ -419,7 +419,7 @@ namespace GameClient
                 {
                     var c = Colors(TowerElement.Fire);
                     var f = PS(parent, p, "trapflame", Mat(Glow, true), true, 1f, 14);
-                    Life(f, 0.35f, 0.55f, 0.08f, 0.14f); Rate(f, 14f); Circle(f, 0.1f); Up(f, 0.3f, 0.55f);
+                    Life(f, 0.3f, 0.45f, 0.05f, 0.09f); Rate(f, 6f); Circle(f, 0.08f); Up(f, 0.2f, 0.35f);
                     ColorLife(f, Grad(c.Core, c.Mid, c.Outer, 0.15f)); SizeLife(f, Curve(0f, 0.6f, 0.3f, 1f, 1f, 0.2f)); Go(f);
                     break;
                 }
@@ -427,7 +427,7 @@ namespace GameClient
                 {
                     var c = Colors(TowerElement.Poison);
                     var b = PS(parent, p, "trapbubble", Mat(Glow, true), true, 1f, 10);
-                    Life(b, 0.6f, 1f, 0.03f, 0.06f); Rate(b, 5f); Circle(b, 0.12f); Up(b, 0.12f, 0.25f);
+                    Life(b, 0.6f, 1f, 0.025f, 0.045f); Rate(b, 2.5f); Circle(b, 0.12f); Up(b, 0.12f, 0.25f);
                     ColorLife(b, Grad(c.Core, c.Mid, c.Outer, 0.1f)); SizeLife(b, Curve(0f, 0.5f, 0.85f, 1f, 1f, 1.5f)); Go(b);
                     break;
                 }
@@ -435,7 +435,7 @@ namespace GameClient
                 {
                     var c = Colors(TowerElement.Ice);
                     var s = PS(parent, p + new Vector3(0f, 0.05f, 0f), "trapfrost", Mat(Star, true), true, 1f, 8);
-                    Life(s, 0.8f, 1.3f, 0.03f, 0.06f); Rate(s, 4f); Circle(s, 0.14f); Up(s, 0.05f, 0.15f); Spin(s, 90f);
+                    Life(s, 0.8f, 1.3f, 0.025f, 0.045f); Rate(s, 2f); Circle(s, 0.14f); Up(s, 0.05f, 0.15f); Spin(s, 90f);
                     ColorLife(s, Grad(c.Core, c.Mid, c.Mid, 0.2f)); Go(s);
                     break;
                 }
@@ -444,7 +444,7 @@ namespace GameClient
                     var c = Colors(TowerElement.Lightning);
                     var a = PS(parent, p, "trapzap", Mat(Glow, true), true, 1f, 10);
                     Life(a, 0.06f, 0.12f, 0.015f, 0.03f, 1.2f, 2.2f); Sphere(a, 0.05f, true);
-                    var em = a.emission; em.SetBursts(new[] { new ParticleSystem.Burst(0f, 3, 5, 99, 0.6f) });
+                    var em = a.emission; em.SetBursts(new[] { new ParticleSystem.Burst(0f, 1, 3, 99, 1.4f) });
                     Stretch(a, 0.1f); ColorLife(a, Grad(c.Core, c.Mid, c.Outer, 0.01f)); Go(a);
                     break;
                 }
@@ -452,7 +452,7 @@ namespace GameClient
                 {
                     var c = Colors(TowerElement.Fire);
                     var fuse = PS(parent, p + new Vector3(0.03f, 0.12f, 0f), "fuse", Mat(Glow, true), true, 1f, 10);
-                    Life(fuse, 0.15f, 0.3f, 0.015f, 0.03f, 0.3f, 0.8f); Rate(fuse, 16f); Sphere(fuse, 0.01f, true); Gravity(fuse, 0.5f);
+                    Life(fuse, 0.12f, 0.25f, 0.012f, 0.022f, 0.2f, 0.5f); Rate(fuse, 7f); Sphere(fuse, 0.01f, true); Gravity(fuse, 0.5f);
                     ColorLife(fuse, Grad(c.Core, c.Mid, c.Outer, 0.02f)); Go(fuse);
                     break;
                 }
@@ -465,33 +465,33 @@ namespace GameClient
             var ground = new Vector3(p.x, 0.05f, p.z);
             switch (t)
             {
-                case TrapType.Fire: Impact(parent, TowerElement.Fire, p, 0.7f, speed); break;
-                case TrapType.Poison: Impact(parent, TowerElement.Poison, p, 0.7f, speed); break;
-                case TrapType.Frost: Impact(parent, TowerElement.Ice, p, 0.85f, speed); break;
+                case TrapType.Fire: Impact(parent, TowerElement.Fire, p, 0.4f, speed); break;
+                case TrapType.Poison: Impact(parent, TowerElement.Poison, p, 0.4f, speed); break;
+                case TrapType.Frost: Impact(parent, TowerElement.Ice, p, 0.45f, speed); break;
                 case TrapType.Shock:
-                    Lightning(parent, ground, ground + new Vector3(0f, 0.9f, 0f), Colors(TowerElement.Lightning).Mid, 0.15f);
-                    Impact(parent, TowerElement.Lightning, p, 0.7f, speed); break;
+                    Lightning(parent, ground, ground + new Vector3(0f, 0.45f, 0f), Colors(TowerElement.Lightning).Mid, 0.1f);
+                    Impact(parent, TowerElement.Lightning, p, 0.4f, speed); break;
                 case TrapType.Bomb:
-                    Impact(parent, TowerElement.Fire, p + new Vector3(0f, 0.15f, 0f), 1.6f, speed);
-                    SmokePuff(parent, p + new Vector3(0f, 0.2f, 0f), new Color(0.2f, 0.18f, 0.17f), 9, 0.45f, speed);
+                    Impact(parent, TowerElement.Fire, p + new Vector3(0f, 0.15f, 0f), 0.95f, speed);
+                    SmokePuff(parent, p + new Vector3(0f, 0.2f, 0f), new Color(0.2f, 0.18f, 0.17f), 5, 0.3f, speed);
                     break;
                 case TrapType.Slippery:
                 {
                     var w = new Color(0.55f, 0.85f, 1f);
                     var sp = PS(parent, ground, "splash", Mat(Glow, true), false, 0.8f, 14);
-                    Life(sp, 0.3f, 0.55f, 0.04f, 0.07f, 0.8f, 1.6f); Sphere(sp, 0.05f, true); Burst(sp, 12); Gravity(sp, 1.4f);
+                    Life(sp, 0.25f, 0.45f, 0.03f, 0.05f, 0.6f, 1.1f); Sphere(sp, 0.05f, true); Burst(sp, 6); Gravity(sp, 1.4f);
                     ColorLife(sp, Grad(Color.white, w, w, 0.02f)); Speed(sp, speed); Go(sp);
-                    GroundRing(parent, ground, Color.white, w, 0.7f, speed);
+                    GroundRing(parent, ground, Color.white, w, 0.42f, speed);
                     break;
                 }
                 default: // Diken, Kapan: toz + metal kıvılcım
                 {
                     var dust = Colors(TowerElement.None);
-                    SmokePuff(parent, ground, new Color(0.55f, 0.45f, 0.33f), 5, 0.22f, speed);
+                    SmokePuff(parent, ground, new Color(0.55f, 0.45f, 0.33f), 3, 0.15f, speed);
                     var sp = PS(parent, ground + new Vector3(0f, 0.08f, 0f), "metal", Mat(Glow, true), false, 0.4f, 10);
-                    Life(sp, 0.12f, 0.25f, 0.02f, 0.035f, 1.2f, 2.2f); Sphere(sp, 0.04f, true); Burst(sp, 8); Stretch(sp, 0.07f);
+                    Life(sp, 0.1f, 0.2f, 0.015f, 0.025f, 0.8f, 1.5f); Sphere(sp, 0.04f, true); Burst(sp, 5); Stretch(sp, 0.05f);
                     ColorLife(sp, Grad(Color.white, dust.Core, dust.Mid, 0.02f)); Speed(sp, speed); Go(sp);
-                    if (t == TrapType.Snare) GroundRing(parent, ground, new Color(0.85f, 0.85f, 0.9f), new Color(0.5f, 0.5f, 0.55f), 0.6f, speed);
+                    if (t == TrapType.Snare) GroundRing(parent, ground, new Color(0.85f, 0.85f, 0.9f), new Color(0.5f, 0.5f, 0.55f), 0.38f, speed);
                     break;
                 }
             }

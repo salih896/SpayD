@@ -118,8 +118,9 @@ namespace GameClient
                 int ei = 0;
                 foreach (var tw in target.Defense.Towers.Values)
                 {
-                    if (tw.Type == TowerType.Archer) tw.Element = (TowerElement)(1 + ei % 6);
-                    else if (tw.Type == TowerType.Wall) tw.DefElement = (TowerElement)(2 + ei % 3); // savunma elementi yalnızca Duvarda
+                    // oyuncunun verdiği element korunur (Balista dahil); yalnızca elementsizlere sırayla Ok..Balista
+                    if (tw.Type == TowerType.Archer) { if (tw.Element == TowerElement.None) tw.Element = (TowerElement)(1 + ei % 7); }
+                    else if (tw.Type == TowerType.Wall) { if (tw.DefElement == TowerElement.None) tw.DefElement = (TowerElement)(2 + ei % 3); } // savunma elementi yalnızca Duvarda
                     ei++;
                 }
             }
@@ -164,7 +165,7 @@ namespace GameClient
                     }
                     FxKit.TrapTrigger(DynRoot(), te.Type, new Vector3(te.Cell.X, 0.15f, te.Cell.Y), Mathf.Max(1f, speed));
                     if (trapAnims.TryGetValue(te.Cell, out var ta) && ta != null) ta.Trigger();
-                    if (te.Type == TrapType.Bomb) Shake(0.2f, 0.35f); // dikenler fırlar, çene kapanır... (patlayıcı kendi kaybolur)
+                    if (te.Type == TrapType.Bomb) Shake(0.1f, 0.22f); // dikenler fırlar, çene kapanır... (patlayıcı kendi kaybolur)
                 }
                 sim.TrapEvents.Clear();
                 if (n >= 60) tickAcc = 0f;
@@ -712,7 +713,7 @@ namespace GameClient
                     // dev balista oku: hızlı, düz; isabette ağır darbe
                     if (towerViews.TryGetValue(tower.Pos, out var bv) && bv != null)
                         bv.GetComponentInChildren<BallistaAim>()?.Fire(ContentCatalog.TowerFor(tower.TowerType, e).IntervalTicks * SimTickSeconds / spd);
-                    t = VillageArt.Arrow(DynRoot()); t.localScale = Vector3.one * 2.2f; cellsPerSec = 13f; arc = 0.04f;
+                    t = VillageArt.Arrow(DynRoot()); t.localScale = Vector3.one * 3.2f; cellsPerSec = 10f; arc = 0.04f; trail = new Color(1f, 0.93f, 0.75f, 0.9f); // iri ok + açık iz: uzaktan seçilsin
                     onHit = p => { FxKit.Impact(DynRoot(), e, p, 1.0f, spd); Shake(0.04f, 0.12f); };
                     break;
                 }

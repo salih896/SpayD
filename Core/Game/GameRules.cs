@@ -44,8 +44,8 @@ namespace GameCore.Game
             switch (t)
             {
                 case SoldierType.Spearman: case SoldierType.Fairy: case SoldierType.Assassin: case SoldierType.Bomber: return 2;
-                case SoldierType.Mage: case SoldierType.Cavalry: case SoldierType.Shieldbearer: case SoldierType.Healer: return 3;
-                case SoldierType.Giant: case SoldierType.Crossbowman: return 5; // Arbaletli 5 yer (approved #101)
+                case SoldierType.Mage: case SoldierType.Cavalry: case SoldierType.Shieldbearer: case SoldierType.Healer: case SoldierType.Crossbowman: return 3; // Arbaletli 3 yer (approved #102)
+                case SoldierType.Giant: return 5;
                 case SoldierType.Catapult: return 6;
                 case SoldierType.DragonRider: return 10;
                 default: return 1; // Kılıçlı, Okçu, Goblin

@@ -52,7 +52,7 @@ Atlı'da zırhı binici giyer ve ata da zırh takılır; Ejderha'da binici giyer
 | Kalkanlı | Sv4 | 380 | 8 | 10 | 1,5 | 50 | Zırh %40; kuleler önce onu hedefler | 3 |
 | Suikastçı | Sv9 | 80 | 26 | 8 | 1,5 | 140 | Önce kuleler | 2 |
 | Şifacı | Sv14 | 140 | 0 | 10 | 2,0 | 70 | 2 hücredeki askerleri 2 sn'de bir %5 iyileştirir | 3 |
-| Arbaletli | Sv19 | 90 | 26 | 36 | 3,0 | 60 | Kulelere +%40 | 5 |
+| Arbaletli | Sv19 | 90 | 26 | 36 | 3,0 | 60 | Kulelere +%40 | 3 |
 | Bombacı | Sv24 | 110 | 200 | — | 1,5 | 110 | Yapıya ulaşınca alan 1,5'te patlar, ölür | 2 |
 
 **Elementler:** Döngü Ateş > Zehir > Buz > Ateş (zayıf elementle saldıran %40 az; aynı savunma elementi %35 direnç; Ok/Büyü/Şimşek nötr). Askerlere saldırı/savunma elementi kışladan, savunma elementi (Ateş/Buz/Zehir Kalkanı) yalnızca Duvara, element menüsünden verilir; Okçu Kulesi yalnızca saldırı elementi alır.
